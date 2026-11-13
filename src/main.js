@@ -28,6 +28,14 @@ const answers = {
   'What kind of spender am I?': `You look fairly intentional: ${Math.round((categoryTotals[0].value / spend) * 100)}% of tracked spending went to groceries and home essentials. Dining out was ${money(dining)}.`,
   'What is safe for me to spend this week?': 'Based on this demo slice, 118 EUR is a cautious weekly ceiling after setting aside recurring home costs. Treat it as guidance, not a promise.',
 }
+const answerFor = (question) => {
+  const normalized = question.toLowerCase()
+  if (normalized.includes('grocery') || normalized.includes('groceries')) return `You spent ${money(categoryTotals.find((item) => item.category === 'Groceries').value)} on groceries in this demo month.`
+  if (normalized.includes('dining') || normalized.includes('restaurant') || normalized.includes('wolt')) return `Dining out came to ${money(dining)} across two transactions. A 20% reduction would return ${money(dining * .2)}.`
+  if (normalized.includes('subscription')) return 'Your tracked subscriptions came to 13.99 EUR, from Netflix.com.'
+  if (normalized.includes('income') || normalized.includes('salary') || normalized.includes('palkka')) return 'Your tracked income this month is 2,710.00 EUR from Palkka.'
+  return answers[question] ?? 'I can help with spending, categories, recurring costs, and simple what-if scenarios. Try asking how much you spent on groceries or dining out.'
+}
 const basketData = [
   { key: 'regular', label: 'Regular essentials', amount: 85.4, tone: 'coral', text: 'The bills that keep life running: home, subscriptions, and transport.' },
   { key: 'irregular', label: 'Unexpected', amount: 0, tone: 'lilac', text: 'No unusual one-off purchases showed up in this demo month.' },
@@ -64,7 +72,7 @@ function render() {
 
   const answer = document.querySelector('#answer')
   const conversation = document.querySelector('#conversation')
-  const showAnswer = (question) => { answer.hidden = false; answer.innerHTML = `<strong>${question}</strong><p>${answers[question] ?? 'I can help with spending, categories, recurring costs, and simple what-if scenarios. Try one of the prompts below.'}</p>`; conversation.insertAdjacentHTML('beforeend', `<div class="conversation-item fresh"><span class="conversation-dot"></span><p>${question}</p><small>Answered just now</small></div>`); answer.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) }
+  const showAnswer = (question) => { answer.hidden = false; answer.innerHTML = `<strong>${question}</strong><p>${answerFor(question)}</p>`; conversation.insertAdjacentHTML('beforeend', `<div class="conversation-item fresh"><span class="conversation-dot"></span><p>${question}</p><small>Answered just now</small></div>`); answer.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) }
   document.querySelectorAll('.prompt').forEach((button) => button.addEventListener('click', () => showAnswer(button.dataset.question)))
   document.querySelector('#ask-form').addEventListener('submit', (event) => { event.preventDefault(); const value = document.querySelector('#question').value.trim(); if (value) showAnswer(value) })
   document.querySelector('#clear-conversation').addEventListener('click', () => { conversation.innerHTML = '<div class="conversation-heading"><span>Recent questions</span><button id="clear-conversation" type="button">Clear</button></div><p class="conversation-empty">Your next question will appear here.</p>'; document.querySelector('#clear-conversation').addEventListener('click', () => {}) })
