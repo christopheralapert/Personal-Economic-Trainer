@@ -54,7 +54,7 @@ function transactionMarkup(tx) {
 function render() {
   document.querySelector('#app').innerHTML = `
     <div class="shell">
-      <header class="topbar"><a class="brand" href="#top" aria-label="Oma raha home"><span class="brand-mark">o</span><span>oma raha</span></a><div class="profile"><span class="status-dot"></span><span>Demo profile</span><button class="avatar" id="avatar" aria-label="Open profile">A</button></div></header>
+      <header class="topbar"><a class="brand" href="#top" aria-label="Oma raha home"><span class="brand-mark">o</span><span>oma raha</span></a><div class="topbar-actions"><button class="install-app" id="install-app" hidden>Install app</button><span class="connection-status" id="connection-status"><span class="status-dot"></span><span>Ready offline</span></span><button class="avatar" id="avatar" aria-label="Open profile">A</button></div></header>
       <main id="top">
         <section class="intro"><p class="eyebrow">Thursday, 28 February</p><h1>Good morning, Alex.</h1><p class="lede">A calm view of where your money is going - and what it can do next.</p></section>
         <section class="coach-panel" aria-labelledby="coach-title"><div class="coach-copy"><span class="spark">*</span><div><p class="eyebrow">Your money, explained</p><h2 id="coach-title">Ask your coach anything.</h2></div></div><form id="ask-form" class="ask-form"><label class="sr-only" for="question">Ask a question about your money</label><input id="question" placeholder="Try &quot;What is safe for me to spend?&quot;" autocomplete="off" /><button type="submit" aria-label="Ask coach">Go</button></form><div class="prompt-row">${Object.keys(answers).map((question) => `<button class="prompt" data-question="${question}">${question}</button>`).join('')}</div><div id="answer" class="answer" hidden></div><div class="conversation" id="conversation"><div class="conversation-heading"><span>Recent questions</span><button id="clear-conversation" type="button">Clear</button></div><div class="conversation-item"><span class="conversation-dot"></span><p>What is safe for me to spend this week?</p><small>Answered just now</small></div></div></section>
@@ -114,6 +114,15 @@ function render() {
   document.querySelector('#profile-detail').addEventListener('click', (event) => { event.currentTarget.innerHTML = 'Connected' })
   document.querySelector('#download-data').addEventListener('click', () => { const csv = ['date,merchant,category,amount_eur', ...transactions.map((tx) => `${tx.date},${tx.merchant},${tx.category},${tx.amount}`)].join('\n'); const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); link.download = 'oma-raha-demo-transactions.csv'; link.click(); URL.revokeObjectURL(link.href); document.querySelector('#download-status').hidden = false })
   document.querySelector('#avatar').addEventListener('click', () => document.querySelector('#profile').scrollIntoView({ behavior: 'smooth' }))
+  let installPrompt
+  window.addEventListener('beforeinstallprompt', (event) => { event.preventDefault(); installPrompt = event; document.querySelector('#install-app').hidden = false })
+  document.querySelector('#install-app').addEventListener('click', async () => { if (!installPrompt) return; installPrompt.prompt(); await installPrompt.userChoice; installPrompt = null; document.querySelector('#install-app').hidden = true })
+  const connectionStatus = document.querySelector('#connection-status')
+  const updateConnectionStatus = () => { connectionStatus.classList.toggle('offline', !navigator.onLine); connectionStatus.lastElementChild.textContent = navigator.onLine ? 'Ready offline' : 'Offline mode' }
+  window.addEventListener('online', updateConnectionStatus)
+  window.addEventListener('offline', updateConnectionStatus)
+  updateConnectionStatus()
+  if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => connectionStatus.classList.add('offline')))
   document.querySelectorAll('.bottom-nav a').forEach((link) => link.addEventListener('click', () => { document.querySelectorAll('.bottom-nav a').forEach((item) => item.classList.remove('active')); link.classList.add('active') }))
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { monthMenu.hidden = true; filterMenu.hidden = true; monthSwitcher.setAttribute('aria-expanded', 'false'); filterButton.setAttribute('aria-expanded', 'false') } })
 }

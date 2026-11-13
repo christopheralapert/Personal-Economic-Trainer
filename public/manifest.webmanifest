@@ -1,0 +1,15 @@
+{
+  "name": "Oma raha — personal economic trainer",
+  "short_name": "Oma raha",
+  "description": "A calm, conversational view of your personal finances.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f3ee",
+  "theme_color": "#18332d",
+  "lang": "en",
+  "icons": [
+    { "src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
