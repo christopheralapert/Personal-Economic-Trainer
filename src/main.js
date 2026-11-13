@@ -55,8 +55,11 @@ function render() {
           <article class="spend-card"><div class="card-top"><span>Spent this month</span><span class="period">1–28 Feb</span></div><strong>${money(spend)}</strong><div class="bar-chart" aria-label="Spending by category">${categoryTotals.map((item) => `<span style="height:${Math.max(22, item.value / 1.15)}px" title="${item.category}: ${money(item.value)}"></span>`).join('')}</div><div class="legend">${categoryTotals.map((item) => `<span><i class="dot"></i>${item.category}</span>`).join('')}</div></article>
         </section>
 
-        <section class="section-heading activity-heading"><div><p class="eyebrow">The latest</p><h2>Recent activity</h2></div><button class="filter-button">All categories <span>⌄</span></button></section>
-        <section class="activity-list">${transactions.slice(0, 5).map((tx) => `<div class="transaction"><div class="merchant-icon ${tx.category.toLowerCase().replaceAll(' ', '-').replace('out', 'out')}">${tx.category === 'Income' ? '↑' : tx.merchant.charAt(0)}</div><div class="transaction-copy"><strong>${tx.merchant}</strong><span>${tx.category} · ${tx.date}</span></div><b class="amount ${tx.amount > 0 ? 'positive' : ''}">${tx.amount > 0 ? '+' : ''}${money(tx.amount)}</b></div>`).join('')}</section>
+        <section class="scenario"><div><p class="eyebrow">Try a what-if</p><h2>If I cut dining out by 20%…</h2><p>Small changes become easier to see when they have a number attached.</p></div><div class="scenario-result"><strong>${money(dining * .2)}</strong><span>back in your pocket<br>each month</span></div><button class="scenario-action" id="scenario-action">Show me how <span>→</span></button></section>
+
+        <section class="section-heading activity-heading"><div><p class="eyebrow">The latest</p><h2>Recent activity</h2></div><div class="filter-wrap"><button class="filter-button" id="filter-button" aria-expanded="false">All categories <span>⌄</span></button><div class="filter-menu" id="filter-menu" hidden>${['All categories', 'Groceries', 'Dining out', 'Home', 'Transport', 'Income'].map((category) => `<button data-category="${category}">${category}</button>`).join('')}</div></div></section>
+        <section class="activity-list" id="activity-list">${transactions.slice(0, 5).map((tx) => transactionMarkup(tx)).join('')}</section>
+        <button class="load-more" id="load-more">See all activity <span>→</span></button>
 
         <aside class="demo-note"><span>✦</span><p>This is a private demo view using synthetic data. Your money stays yours — insights are here to help you decide, not to decide for you.</p></aside>
       </main>
@@ -65,6 +68,28 @@ function render() {
   `
 
   const answer = document.querySelector('#answer')
+  const activityList = document.querySelector('#activity-list')
+  let selectedCategory = 'All categories'
+  let showingAll = false
+  const renderTransactions = () => {
+    const filtered = selectedCategory === 'All categories' ? transactions : transactions.filter((tx) => tx.category === selectedCategory)
+    const visible = showingAll ? filtered : filtered.slice(0, 5)
+    activityList.innerHTML = visible.length ? visible.map((tx) => transactionMarkup(tx)).join('') : '<p class="empty-state">No activity in this category yet.</p>'
+    document.querySelector('#load-more').hidden = showingAll || filtered.length <= 5 || !filtered.length
+  }
+  const filterButton = document.querySelector('#filter-button')
+  const filterMenu = document.querySelector('#filter-menu')
+  filterButton.addEventListener('click', () => { filterMenu.hidden = !filterMenu.hidden; filterButton.setAttribute('aria-expanded', String(!filterMenu.hidden)) })
+  filterMenu.querySelectorAll('button').forEach((button) => button.addEventListener('click', () => {
+    selectedCategory = button.dataset.category
+    filterButton.firstChild.textContent = `${selectedCategory} `
+    filterMenu.hidden = true
+    filterButton.setAttribute('aria-expanded', 'false')
+    showingAll = false
+    renderTransactions()
+  }))
+  document.querySelector('#load-more').addEventListener('click', () => { showingAll = true; renderTransactions() })
+  document.querySelector('#scenario-action').addEventListener('click', (event) => { event.currentTarget.innerHTML = 'Saved as a small goal <span>✓</span>'; event.currentTarget.classList.add('saved') })
   const showAnswer = (question) => {
     answer.hidden = false
     answer.innerHTML = `<strong>${question}</strong><p>${answers[question] ?? 'I can help with spending, categories, recurring costs, and simple what-if scenarios. Try one of the prompts below.'}</p>`
@@ -72,6 +97,11 @@ function render() {
   }
   document.querySelectorAll('.prompt').forEach((button) => button.addEventListener('click', () => showAnswer(button.dataset.question)))
   document.querySelector('#ask-form').addEventListener('submit', (event) => { event.preventDefault(); const value = document.querySelector('#question').value.trim(); if (value) showAnswer(value) })
+}
+
+function transactionMarkup(tx) {
+  const iconClass = tx.category.toLowerCase().replaceAll(' ', '-')
+  return `<div class="transaction"><div class="merchant-icon ${iconClass}">${tx.category === 'Income' ? '↑' : tx.merchant.charAt(0)}</div><div class="transaction-copy"><strong>${tx.merchant}</strong><span>${tx.category} · ${tx.date}</span></div><b class="amount ${tx.amount > 0 ? 'positive' : ''}">${tx.amount > 0 ? '+' : ''}${money(tx.amount)}</b></div>`
 }
 
 render()
