@@ -9,7 +9,8 @@ for(const locale of Object.keys(languages) as Locale[])for(const provider of ["b
   await setupVoice(page,locale,"available",{privacy:provider==="browser",provider});
   if(provider==="gemini"){
    await mockHostedVoice(page,locale);
-   await expect(page.getByText(copy.geminiVoiceNotice,{exact:true})).toBeVisible();
+   const disclosure=page.getByText(copy.geminiVoiceNotice,{exact:true}).or(page.getByText(copy.geminiCoachVoiceNotice,{exact:true}));
+   await expect(disclosure).toHaveCount(1);await expect(disclosure).toBeVisible();
    expect(await page.evaluate(()=>window.voiceTest.media)).toBe(0);
   }
   const input=questionInput(page,locale),mic=page.getByRole("button",{name:copy.speechStart,exact:true});
@@ -292,6 +293,7 @@ test("enabling privacy interrupts hosted recording and restores local-only recog
  await page.getByRole("checkbox",{name:new RegExp(copy.privacyMode)}).check();
  await page.getByRole("button",{name:copy.back,exact:true}).click();
  await expect(page.getByText(copy.geminiVoiceNotice,{exact:true})).toHaveCount(0);
+ await expect(page.getByText(copy.geminiCoachVoiceNotice,{exact:true})).toHaveCount(0);
  await page.getByRole("button",{name:copy.speechStart,exact:true}).click();
  await expect.poll(()=>page.evaluate(()=>window.voiceTest.recognitions)).toEqual([{lang:tag,local:true}]);
  await page.getByRole("button",{name:copy.speechCancel,exact:true}).click();

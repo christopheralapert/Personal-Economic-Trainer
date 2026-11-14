@@ -1,6 +1,16 @@
 # Production presentation handoff — 14 November 2026
 
-## Coordinator update — 14 November 2026, 15:13 EET
+## Current coordinator update — voice/import integration
+
+The current phone presentation includes `bb02609` and the saved-import/private-Gemini work, on **`integration/voice-import-next`**, production source **`0d49b43`**, artifact **`frontend/web/.next/voice-import-20261114`**, **build `0d49b43-131377e695625033`**. It replaces the earlier presentation described below. The local `33119` and public HTTPS responses both returned that exact `X-MoneyLens-Build`. See [the integrated voice review](voice-review.md#integrated-coordinator-verification--14-november-2026) for regression counts, two live Gemini text checks, fresh CSV evidence, timings and mock boundaries.
+
+- Phone: **https://trophy-ranged-precook.ngrok-free.dev/demo?dataset=organizer1**. The unchanged ngrok tunnel targets `127.0.0.1:33110`; **Gemini text and Gemini audio are disabled**, including with Privacy off. HTTPS voice capabilities explicitly returned `enabled=false`. Device/browser speech is selected; no actual microphone or audible playback is claimed.
+- Local real-Gemini text test: **http://127.0.0.1:33119/demo?dataset=organizer1**, Suomi + Privacy off; real `gemini-direct` answer and August **30,97 €** evidence passed.
+- Private isolated import/Coach: **http://127.0.0.1:33120/banks**, sign in with labelled test identity **model-review**. The session/database/model path is real; its signed offline OIDC issuer is not Auth0. Two fresh October CSV rows totalled **30,97 EUR** and opened in evidence after a real Gemini answer.
+
+Physical phone controls now read **Lopeta** (stop capture), **Peru** (cancel), **Kuuntele vastaus** (listen) and **Pysäytä** (stop playback) in Finnish. If the phone lacks confirmed local recognition or a local synthesis voice, expect the unavailable explanation and use typing; do not count that as successful dictation. Close stale app tabs or clear this site's old stored data if needed. Later test/documentation commits do not change the served source build ID. The earlier source/build reports below are historical, not the current deployment.
+
+## Previous coordinator update — 14 November 2026, 15:13 EET
 
 The current presentation is now the integrated main web build, not the old target described in the original handoff below. Source branch: `integration/presentation-next`; source commit: `2fc4c66` (includes presentation `735b822` and environment guide `78a43ab`). The separate production artifact is `frontend/web/.next/presentation-next-20261114`, with **build ID `2fc4c66-131377e695625033`**. The build passed; its isolated output did not replace the existing 33118 preview's artifact.
 
@@ -111,8 +121,8 @@ Keep the existing ngrok tunnel targeting **33110**. Replace its old local server
 ## One-minute physical phone trial
 
 1. Open `https://trophy-ranged-precook.ngrok-free.dev/demo?dataset=organizer1` in the phone browser after the coordinator verifies the build. Choose **Settings → Suomi**. Keep **Yksityisyystila** enabled, choose browser speech if a voice provider selector appears, then return with **Takaisin**. Overview must show September 2026, snapshot **30.9.2026**.
-2. Open **Coach**, tap **Puhesyöte**, allow the microphone and say **Paljonko käytin takseihin viime kuussa?** Tap **Lopeta kuuntelu** if needed. Confirm the transcript remains editable and has not sent itself; correct it, then send. Expect **Käytit takseihin elokuussa 2026 yhteensä 30,97 €.**
-3. Tap **Lue ääneen**. Listen for the same visible sentence in Finnish, then test **Lopeta lukeminen** and start reading again. Tap **MRC-TRN-0063** and check **26.8.2026**, **−30,97 €**, taxi.
+2. Open **Coach**, tap **Puhesyöte**, allow the microphone and say **Paljonko käytin takseihin viime kuussa?** Tap **Lopeta** if needed, or **Peru** to preserve the previous draft. Confirm the transcript remains editable and has not sent itself; correct it, then send. Expect **Käytit takseihin elokuussa 2026 yhteensä 30,97 €.**
+3. Tap **Kuuntele vastaus**. Listen for the same visible sentence in Finnish, then test **Pysäytä** and start reading again. Tap **MRC-TRN-0063** and check **26.8.2026**, **−30,97 €**, taxi.
 4. If local Finnish recognition or a suitable local voice is unavailable, record that result and the phone/browser version. Type the question to finish the evidence check. Optionally try the keyboard's Finnish dictation, recording it separately as OS/keyboard dictation; it does not verify the app microphone button. Keep Privacy mode enabled for this trial.
 
 This phone trial is a procedure to execute, not a claimed device result.
