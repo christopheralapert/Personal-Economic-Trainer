@@ -2,7 +2,7 @@
 export const categoryAliases:Record<string,string>={
   // Explicit spelling variants only; never fuzzy-match quoted source labels or merchants.
   "dinig out":"dining","dinning out":"dining",
-  taxi:"taxi",taxis:"taxi",taksot:"taxi",takseihin:"taxi",taksimatkat:"taxi",takso:"taxi",taksole:"taxi",taksod:"taxi",taksosõidud:"taxi",
+  taxi:"taxi",taxis:"taxi",taksot:"taxi",takseihin:"taxi",taksimatkat:"taxi",takso:"taxi",taksole:"taxi",taksodele:"taxi",taksod:"taxi",taksosõidud:"taxi",
   dining:"dining","dining out":"dining",ravintolat:"dining",ravintoloihin:"dining",ravintolakuluja:"dining","ulkona syöminen":"dining",restoranid:"dining",restoranidele:"dining",restoranikulusid:"dining","väljas söömine":"dining",
   coffee:"coffee",kahvi:"coffee",kahviin:"coffee",kahvikuluja:"coffee",kohv:"coffee",kohvile:"coffee",kohvikulusid:"coffee",
   groceries:"groceries",ruokaostokset:"groceries",ruokaostoksiin:"groceries",toidukaubad:"groceries",toidukaupadele:"groceries",

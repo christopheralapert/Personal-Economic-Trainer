@@ -2,7 +2,7 @@ import {test,expect,type Page} from "@playwright/test";
 
 const cases=[
  {locale:"en",question:"How much did I spend on taxis last month?",label:"Your question",send:"Send question",sentence:"Recorded net spending on Taxis: 30,97 €. Period: August 2026.",followup:"What about the month before?",detail:"Transaction details",done:"Done"},
- {locale:"et",question:"Kui palju kulutasin eelmisel kuul taksole?",label:"Sinu küsimus",send:"Saada küsimus",sentence:"Kirjendatud netokulu (Takso): 30,97 €. Periood: august 2026.",followup:"Aga juulis 2026?",detail:"Tehingu üksikasjad",done:"Valmis"},
+ {locale:"et",question:"Kui palju kulutasin taksodele eelmisel kuul?",label:"Sinu küsimus",send:"Saada küsimus",sentence:"Kirjendatud netokulu (Takso): 30,97 €. Periood: august 2026.",followup:"Aga juulis 2026?",detail:"Tehingu üksikasjad",done:"Valmis"},
  {locale:"fi",question:"Paljonko käytin takseihin viime kuussa?",label:"Kysymyksesi",send:"Lähetä kysymys",sentence:"Käytit takseihin elokuussa 2026 yhteensä 30,97 €.",followup:"Entä heinäkuussa 2026?",detail:"Tapahtuman tiedot",done:"Valmis"},
 ] as const;
 const answers=(page:Page)=>page.locator('[data-message-role="assistant"]');

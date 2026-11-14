@@ -5,6 +5,15 @@ import {dictionaries} from "@/i18n/dictionaries";
 import {conceptRequests} from "./query-language";
 import {hasOnlyGroundedNumbers} from "./answer-grounding";
 describe("typed offline coaching",()=>{
+  it("accepts the natural Estonian taxi plural without loosening quoted source matching",async()=>{
+    const provider=new RuleProvider();
+    for(const category of ["taksole","taksodele"]) {
+      const answer=await provider.answer(`Kui palju kulutasin ${category} eelmisel kuul?`,"et",10);
+      expect(answer.parts.find(part=>part.type==="tool-showTransactions")).toMatchObject({input:{category:"taxi",period:{start:"2026-10-01",end:"2026-11-01"}}});
+    }
+    const unsupported=await provider.answer("Kui palju kulutasin taksodele eelmisel kuul ja toidule sel kuul?","et",10);
+    expect(unsupported.parts.some(part=>part.type.startsWith("tool-"))).toBe(false);
+  });
   it("asks for an unrecognized scenario category instead of reporting a period problem in every locale",async()=>{
     for(const locale of ["en","fi","et"] as const) {
       expect((await new RuleProvider().answer("What if I cut unknown dining by 20%?",locale,10)).parts).toEqual([{type:"text",text:dictionaries[locale].categoryRequired}]);

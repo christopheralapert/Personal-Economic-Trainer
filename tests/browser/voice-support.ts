@@ -3,7 +3,7 @@ import {en,fi,et} from "../../frontend/coach/src/i18n/dictionaries";
 
 export const languages={
  fi:{copy:fi,tag:"fi-FI",draft:"Paljonko käytin takseihin viime kuus",question:"Paljonko käytin takseihin viime kuussa?"},
- et:{copy:et,tag:"et-EE",draft:"Kui palju kulutasin taksole eelmisel kuu",question:"Kui palju kulutasin taksole eelmisel kuul?"},
+ et:{copy:et,tag:"et-EE",draft:"Kui palju kulutasin taksodele eelmisel kuu",question:"Kui palju kulutasin taksodele eelmisel kuul?"},
  en:{copy:en,tag:"en-US",draft:"How much did I spend on taxis last mont",question:"How much did I spend on taxis last month?"},
 } as const;
 export type Locale=keyof typeof languages;

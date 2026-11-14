@@ -16,7 +16,7 @@ Previously, interrupted browser speech and hosted audio could deliver late compl
 
 ## Coordinator reproduction: Estonian taxi inflection
 
-The speech components accept the Estonian draft correctly, but the shared Coach grammar rejects the natural plural form **taksodele**. The voice suite uses the supported form **taksole** to exercise speech independently. No shared conversation or translation file was changed in this voice review.
+The voice review found that the shared Coach grammar rejected the natural plural form **taksodele**, although speech accepted the draft. Integration adds this explicit taxi alias, a local-rule unit regression, and natural-plural browser coverage in both Coach and voice suites. The original reproduction below is retained for context; the expected 30,97 € answer is now required by the tests.
 
 1. Open the main web application's `/demo?dataset=organizer1` in a clean browser session.
 2. Select Estonian in Settings, keep Privacy mode enabled, and return to Coach.
@@ -26,6 +26,6 @@ The speech components accept the Estonian draft correctly, but the shared Coach 
 
 Expected: the answer identifies taxi spending for August 2026 as **30,97 €**, as it does for `Kui palju kulutasin taksole eelmisel kuul?` and Finnish `Paljonko käytin takseihin viime kuussa?`.
 
-The relevant selector list is `categoryAliases` in `frontend/coach/src/coach/query-language.ts`: it contains `taksole` but lacks `taksodele`. Coordinate the alias and parser regression test with the Coach workstream. This is independent of the browser speech language setting (`et-EE`) and also reproduces with typed text.
+The relevant selector list is `categoryAliases` in `frontend/coach/src/coach/query-language.ts`: it now contains both `taksole` and `taksodele`. This is independent of the browser speech language setting (`et-EE`) and also applies to typed text.
 
 The attempts to deliver this reproduction to the coordinator and Coach task through the task messaging tool returned `already has an active writer`; this document preserves the handoff in the local commit.

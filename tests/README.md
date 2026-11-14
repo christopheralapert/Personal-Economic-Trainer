@@ -39,7 +39,7 @@ The demo suite starts the production web build on port 31361. It checks Finnish 
 
 To test an already running local production web build, set `MONEYLENS_DEMO_TEST_ORIGIN` to its HTTP origin, including the port, before running `npm run test:demo`. Only loopback origins are accepted. The supplied server stays running after the suite finishes; the test transport still forces local-rule chat and intercepts private APIs.
 
-Shared Coach handoff: on `/demo?dataset=organizer1`, press Tab to focus “Skip to content”, then Enter. The URL gains `#main`, but focus stays on the link: `document.querySelector('#main')` is `null`. `frontend/web/app/layout.tsx` supplies the link, while both loading and ready `<main>` elements in `frontend/coach/src/components/money-coach.tsx` omit its target ID. This reproduces in the production web build; the shared-component fix is left to the coordinator.
+Keyboard regression: on `/demo?dataset=organizer1`, press Tab to focus “Skip to content”, then Enter. Focus must move to the single `main#main[tabindex="-1"]`, not merely add `#main` to the URL. `demo-keyboard.spec.ts` tests this at 360px and 1280px, with the demo loaded and with JavaScript held back during initial loading. Focus must survive hydration and the dataset planning provider's remount without overriding a later user focus choice. The root layout's native anchor remains usable before JavaScript runs; its client enhancement restores focus only when a focused landmark is removed.
 
 ## Wise statement browser regression
 

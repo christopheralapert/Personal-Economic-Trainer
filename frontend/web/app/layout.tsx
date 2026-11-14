@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { PwaLifecycle } from "@web/components/pwa-lifecycle";
+import { SkipToContent } from "@web/components/skip-to-content";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,5 +16,5 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body><a className="skip-link" href="#main">Skip to content</a>{children}<PwaLifecycle /></body></html>;
+  return <html lang="en"><body><SkipToContent />{children}<PwaLifecycle /></body></html>;
 }
