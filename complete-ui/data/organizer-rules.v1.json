@@ -1,0 +1,20 @@
+{
+  "version": "organizer-baskets-2",
+  "categories": {
+    "Housing": {"category":"housing","basket":"mandatory_regular","basis":"regular_bill","recurrence":true},
+    "Utilities": {"category":"utilities","basket":"mandatory_regular","basis":"regular_bill","recurrence":true},
+    "Groceries": {"category":"groceries","basket":"everyday","basis":"everyday_purchase","recurrence":false},
+    "Restaurants": {"category":"dining","basket":"everyday","basis":"everyday_purchase","recurrence":false},
+    "Health": {"category":"health","basket":"mandatory_irregular","basis":"essential_irregular","recurrence":true},
+    "Home & Tech": {"category":"home_tech","basket":"unresolved","basis":"ambiguous_purchase","recurrence":false},
+    "Transportation": {"category":"transport","basket":"everyday","basis":"everyday_purchase","recurrence":true},
+    "Lifestyle": {"category":"lifestyle","basket":"everyday","basis":"everyday_purchase","recurrence":false},
+    "Entertainment": {"category":"entertainment","basket":"everyday","basis":"everyday_purchase","recurrence":false},
+    "Travel": {"category":"travel","basket":"everyday","basis":"everyday_purchase","recurrence":false},
+    "Salary": {"category":"salary","basket":"unresolved","basis":"not_spending","recurrence":false},
+    "Other Income": {"category":"other_income","basket":"unresolved","basis":"not_spending","recurrence":false},
+    "Invest Deposit": {"category":"investment","basket":"unresolved","basis":"not_spending","recurrence":false},
+    "Invest Withdraw": {"category":"investment","basket":"unresolved","basis":"not_spending","recurrence":false},
+    "Salary Sweep": {"category":"transfer","basket":"unresolved","basis":"not_spending","recurrence":false}
+  }
+}
