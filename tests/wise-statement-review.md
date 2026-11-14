@@ -1,5 +1,63 @@
 # Wise EUR multi-format import verification
 
+## Coordinator integration — 14 November 2026
+
+Commit `6f611b0` is integrated on **`integration/wise-multiformat-next`**, merge `08475f7`, with backward-compatible replay fix **`f9bebef`**. The final production artifact is `frontend/web/.next/wise-multiformat-final-20261114`, **build `f9bebef-131377e695625033`**. Test/documentation-only commits after that source do not change its build ID. The running isolated preview is **http://127.0.0.1:33120/banks**; sign in using its clearly labelled test issuer, selecting **other-owner** for the completed live journey. This is signed offline OIDC with real sessions, CSRF, ownership checks, BFF/API and PostgreSQL, **not a real Auth0 or bank connection**. No push was made.
+
+### Actual migration IDs and disposable PostgreSQL proof
+
+The repeated `0025` filename prefix is not a duplicate Alembic revision ID. The actual graph is:
+
+| Revision ID | Parent(s) | Integrated status |
+| --- | --- | --- |
+| `0025_statement_provenance` | `0024_statement_staging` | Previously integrated; preserved unchanged |
+| `0025_statement_formats` | `0024_statement_staging` | From `6f611b0`; preserved unchanged |
+| `0026_merge_statement_branches` | Both statement `0025` revisions | Permanent merge; no schema rewrite |
+| `0027_statement_file_provenance` | `0026_merge_statement_branches` | **Single current head**; supports every bounded adapter's provenance and account-scoped file/content uniqueness |
+| `0025_identity_self_signup` | `0024_statement_staging` | Still uncommitted in the separate signup worktree; **not included in this application** |
+
+`.venv\Scripts\python.exe -m alembic -c backend/db/alembic.ini heads` returns exactly **`0027_statement_file_provenance (head)`**. `tests/api/test_statement_migration_graph.py` checks unique IDs and graph edges. `tests/integration/test_statement_branch_upgrade.py` upgrades fresh temporary databases from **0024**, **0025 provenance**, and **0025 formats** to the same single version row. The normal database fixture also proves an empty-database upgrade. The populated 0024 migration test preserves transaction IDs, receipt links, exact cents, classification and data version; a byte-exact legacy CSV replay through the new file API adds **zero rows**. Forbidden downgrade remains forbidden.
+
+Before considering any non-test database update, the actual pending signup migration was also tested in an **ignored, temporary version-location overlay**, with an explicit scratch-only merge of signup and the integrated head. Both first and repeated upgrades passed; its identity function and index existed alongside statement provenance. The scratch database was removed. This proves migration compatibility, **not integration or validation of the uncommitted signup application changes**. A permanent merge revision will still be needed when that work is actually integrated. The signup worktree, development database, existing ngrok process and 33118 demo were untouched.
+
+### Integration resolutions
+
+- Kept the existing private Coach language, Privacy mode, owned-account scope and model path. Added statement-date display without introducing a second account selector. Kept both post-import actions, **View transactions** and **Ask Coach**, with saved account/period selectors and an editable draft.
+- All file variants publish already normalized values through the same exact-cent bulk insert as the existing CSV path. Actual source format, owned account, receipt ID and row hash remain linked; files are not reparsed by History, Overview or Coach. Legacy Wise/canonical JSON API routes remain compatible. The explicit canonical EUR-cents CSV header is also recognized by the file picker (**64 KiB** canonical limit); its adapter has a regression test. This is additional to the six Wise variants documented below, not a claim of arbitrary CSV support.
+- Exact-byte receipt uniqueness is now **owner + account** scoped. Keyless CSV/XLSX/QIF repeats require a destination account before declaring a duplicate; identical bytes may legitimately belong to two distinct accounts. Complete cross-format signatures retain row multiplicity. Changed QIF date interpretation on an already saved account returns a conflict, never the wrong old result. A fixed-interpretation, byte-exact pre-upgrade CSV receipt without a retained canonical signature can still replay safely; missing old references do not enable speculative cross-format matching.
+- Rejected ambiguous PDF amount columns rather than turning a debit into zero. Added debit/credit/ambiguous-column, MT940 leap-day/year-boundary, and maximum declared-date regressions. Unknown layouts still fail closed. The original agent's generated service-worker hash was not used to replace unrelated running previews' public assets.
+
+### Final regression results
+
+- Production build, both workspace typechecks and published v1 contract compatibility: **passed**.
+- `tests/api`: **975 passed**.
+- Combined PostgreSQL migration/import/RLS/Coach selection: **65 passed**, including the opted-in Wise fixture's **7 passing browser cases**. This is a targeted combined run, not a repeat of the older full 439-test suite.
+- Final production main-web browser suites: **15 demo, 5 Coach, 74 voice passed**. Recognition, synthesis, microphone capture and Gemini audio are mocked; local financial calculations run normally. These are not live audio or physical-phone results.
+- Coach unit/transport suite: **169 Vitest + 15 Node AI/PWA passed**; main PWA **54**, structure **9**, web utilities **7** passed. Separate strict voice/browser TypeScript check and `git diff --check` passed.
+
+Commands use the existing `tests/api`, `tests/integration/test_statement_branch_upgrade.py`, `test_statement_migration.py`, `test_statement_formats_flow.py`, `test_statement_publication.py`, `test_statement_staging.py`, `test_wise_flow.py`, `test_database.py`, `test_wise_browser.py`, `test_coach_query.py` and `test_coach_languages.py` selections. The browser fixture opts in with `MONEYLENS_STATEMENT_BROWSER_TEST=true` and `MONEYLENS_NEXT_DIST` matching the isolated artifact. Every database is uniquely created in a dedicated local PostgreSQL 17.6 test container; cleanup only removes those test databases/roles. Existing dependency deprecation and intentional forged-value serializer warnings did not fail assertions.
+
+### Real Gemini: one account, then both
+
+On the **ordinary authenticated web UI**, a fresh synthetic **Wise CSV** supplied two same-reference taxi purchases of **−15.00 and −15.97 EUR** to account A. A synthetic **CAMT.053 v10 XML** supplied **−7.00 EUR** to account B. The native picker previewed both, explicit account choices were confirmed atomically, History displayed the saved rows, and each was reviewed as a taxi/everyday expense using the normal classification sheet. A repeat import added **zero** rows and retained those reviews. **Ask Coach** opened the selected saved account. Files without review are not silently promoted to classified expenses.
+
+Choose Suomi, disable Privacy mode and ask **Paljonko käytin takseihin lokakuussa 2026?** first with account A selected, then with all included EUR accounts. Both final replies were HTTP 200, **`source=model`, `provider=gemini-direct`**, model **`gemini-3.5-flash`**, with no fallback diagnostic:
+
+| Scope | Saved row sum / answer | Evidence opened | Question → visible answer | Model wait | Application |
+| --- | --- | --- | ---: | ---: | ---: |
+| Account A | −3,097 cents / **30,97 EUR** | Both rows; actual transaction detail | **3,261 ms** | 3,182.8 ms | 34.4 ms |
+| Accounts A + B | −3,797 cents / **37,97 EUR** | All three rows; actual transaction detail | **1,539 ms** | 1,463.4 ms | 40.1 ms |
+
+Both visible Finnish sentences named **2026-10-01–2026-10-31**. The second answer changed by exactly **700 cents**, equal to the added account's saved transaction. The actual ledger responses and answer artifact, not screenshot text alone, were checked. **Confirmation → first visible History rows: 220 ms**, including clicking View transactions. Timings are single 390×844 desktop-Chrome observations; model wait includes both network and Google's processing, not a separately measured inference duration. The 5.3-second pause between final questions respects the existing per-user five-second model cooldown and is outside the individual question timers.
+
+An earlier live attempt completed the single-account question and evidence, but its immediately following second question received local HTTP **429** from the cooldown. It was **not** counted as a passing model answer. The complete fresh-owner retry above then passed both scopes. Thus this round made **three successful real Gemini text interpretations in total** (one initial + two final); the rejected request did not reach model interpretation. No automatic provider retries or relaxed rate limits were added. No real-call `EACCES` occurred.
+
+A separate final-build Privacy-mode journey used **local rules only**, returned the same **3,097/3,797-cent** results and opened the same evidence. Other regression model transports were injected; the live browser journey did not intercept chat/ledger/model responses. No real Gemini audio was used. The root ignored `.env` key and remaining settings were preserved without displaying secrets. The existing public HTTPS presentation remains on its prior verified build, with hosted text/audio disabled; it was not silently replaced by this private preview.
+
+Phone-width and desktop captures at **360, 390 and 1280 CSS pixels** showed no horizontal document overflow. The Impeccable-guided conflict resolution retained existing layout/tokens, editable drafts and the two explicit post-import actions. The existing private drawer's return focus can land on the skip link; this work does not claim a full accessibility or physical-phone pass. Generated fixtures, browser captures, timing JSON and temporary migration overlay remain ignored under `test-results/multiformat-live/` and `.cache/`.
+
+## Original agent verification
+
 All six variants below pass **file selection → preview → confirmation → saved PostgreSQL transactions → Coach answer** in the existing **Import bank statements** view. Verification uses generated synthetic files, signed offline test-OIDC, the production Next.js BFF, the real Python API, and disposable PostgreSQL 17.6. No external bank or hosted model is called.
 
 ## Precisely tested variants
