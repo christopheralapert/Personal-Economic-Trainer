@@ -3,11 +3,13 @@ import {readFile} from "node:fs/promises";
 import {parseEnv} from "node:util";
 import {fileURLToPath} from "node:url";
 import path from "node:path";
+import {geminiCases} from "./gemini-cases.mjs";
 
 const app=fileURLToPath(new URL("../",import.meta.url));
-const root=path.resolve(app,"../..");
-const args=process.argv.slice(2),mock=args.length===1 && ["--mock","--mock-missing","--mock-max"].includes(args[0]);
-if(args.length && !mock) {console.error("Usage: node apps/money-coach/scripts/gemini-browser.mjs [--mock|--mock-missing|--mock-max]");process.exit(2);}
+const root=path.resolve(app,"..");
+const args=process.argv.slice(2),mockFlag=args.find(value=>["--mock","--mock-missing","--mock-max"].includes(value)),mock=!!mockFlag;
+const index=args.indexOf("--case"),selected=index===-1 ? "taxi" : args[index+1];
+if(!Object.hasOwn(geminiCases,selected) || args.some((value,i)=>value!==mockFlag && value!=="--case" && !(index!==-1 && i===index+1)) || args.filter(value=>value==="--case").length>1) {console.error(`Usage: node complete-ui/scripts/gemini-browser.mjs [--mock] [--case ${Object.keys(geminiCases).join("|")}]`);process.exit(2);}
 let key;
 if(mock) key="local-fake-key";
 else {
@@ -22,7 +24,7 @@ const run=(command,args,env)=>new Promise((resolve,reject)=>{
 const clean={...process.env};delete clean.GEMINI_API_KEY;
 const generate=path.join(app,"scripts/generate-pwa.mjs"),next=path.join(root,"node_modules/next/dist/bin/next"),playwright=path.join(root,"node_modules/@playwright/test/cli.js");
 if(await run(generate,[],clean)!==0 || await run(next,["build",app],clean)!==0) {console.error("Local test build failed; no model request was made.");process.exit(1);}
-const env={...clean,MONEY_COACH_LOCAL_GEMINI:"true",MONEY_COACH_GEMINI_MOCK:mock?"true":"false",MONEY_COACH_GEMINI_MOCK_MISSING:args[0]==="--mock-missing"?"true":"false",MONEY_COACH_GEMINI_MOCK_MAX:args[0]==="--mock-max"?"true":"false",MONEY_COACH_BROWSER_LIVE:"true",MONEY_COACH_ORGANIZER_SMOKE:"true",MONEY_COACH_BROWSER_SERVER_EXTERNAL:"true"};
+const env={...clean,MONEY_COACH_LOCAL_GEMINI:"true",MONEY_COACH_GEMINI_CASE:selected,MONEY_COACH_GEMINI_MOCK:mock?"true":"false",MONEY_COACH_GEMINI_MOCK_MISSING:mockFlag==="--mock-missing"?"true":"false",MONEY_COACH_GEMINI_MOCK_MAX:mockFlag==="--mock-max"?"true":"false",MONEY_COACH_BROWSER_LIVE:"true",MONEY_COACH_ORGANIZER_SMOKE:"true",MONEY_COACH_BROWSER_SERVER_EXTERNAL:"true"};
 // Refuse an existing listener; never send the key or test request to it.
 try {await fetch("http://127.0.0.1:31322/",{signal:AbortSignal.timeout(1000)});console.error("Port 31322 is already in use; stop that server and retry.");process.exit(2);} catch(error) {if(error?.name!=="TypeError" && error?.name!=="TimeoutError") throw error;}
 const server=spawn(process.execPath,[path.join(app,"scripts/preview-ai.mjs"),"--port","31322"],{cwd:app,env:{...env,GEMINI_API_KEY:key},stdio:"ignore",windowsHide:true});
@@ -41,6 +43,6 @@ try {
   else server.kill("SIGTERM");
   server.unref();
 }
-if(code===0) console.log(mock ? "PASS: gemini-direct-mock; organizer1 taxi tool matched 30,97 € (August 2026)." : "PASS: gemini-direct; organizer1 taxi tool matched 30,97 € (August 2026).");
+if(code===0) console.log(`PASS: ${mock ? "gemini-direct-mock" : "gemini-direct"}; organizer1 case ${selected} matched the deterministic engine.`);
 else console.error("Gemini browser test failed; a rule-based fallback does not count as success.");
 process.exit(code);

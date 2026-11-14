@@ -14,7 +14,7 @@ export function releaseOptions(args) {
 export async function runDemo(args) {
   const options=releaseOptions(args),root=path.dirname(fileURLToPath(import.meta.url));
   const manifest=await verifyRelease(root);
-  const app=path.join(root,"apps/money-coach"),child=spawn(process.execPath,[path.join(app,"server.js")],{cwd:app,env:runtimeEnvironment(process.env,options),stdio:"inherit",windowsHide:true});
+  const app=path.join(root,"complete-ui"),child=spawn(process.execPath,[path.join(app,"server.js")],{cwd:app,env:runtimeEnvironment(process.env,options),stdio:"inherit",windowsHide:true});
   process.stdout.write(`Money Coach synthetic demo ${manifest.revision.slice(0,12)}; model calls disabled.\n`);
   const forward=signal=>{if(!child.killed) child.kill(signal);};
   const interrupt=()=>forward("SIGINT"),terminate=()=>forward("SIGTERM");

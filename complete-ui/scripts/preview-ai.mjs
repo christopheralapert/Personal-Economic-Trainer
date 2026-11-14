@@ -25,7 +25,7 @@ try {
   console.log("Local AI preview was not started: build, policy or current origin/revision-bound evaluation grant is unavailable. No API request was made; the normal demo remains available.");
   process.exit(2);
 }
-const next=fileURLToPath(new URL("../../../node_modules/next/dist/bin/next",import.meta.url));
+const next=fileURLToPath(new URL("../../node_modules/next/dist/bin/next",import.meta.url));
 const child=spawn(process.execPath,[next,"start",app,"--hostname","127.0.0.1","--port",String(port)],{
   cwd:app,windowsHide:true,stdio:"inherit",env:{...process.env,MONEY_COACH_LOCAL_AI_EVALUATION:"true",MONEY_COACH_LOCAL_AI_ORIGIN:origin,MONEY_COACH_EVALUATION_DIRECTORY:liveDirectory},
 });

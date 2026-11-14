@@ -53,7 +53,7 @@ export async function verifyRelease(root) {
   const actual=await inventory(root);
   if(actual.files.length!==expected.size || actual.bytes!==manifest.bytes || bytes!==manifest.bytes) throw new Error("Release inventory mismatch");
   for(const file of actual.files) {const known=expected.get(file.path);if(!known || known.bytes!==file.bytes || known.sha256!==file.sha256) throw new Error("Release content mismatch");}
-  for(const required of ["run-demo.mjs","release-lib.mjs","apps/money-coach/server.js","apps/money-coach/.next/BUILD_ID","apps/money-coach/public/sw.js"]) if(!expected.has(required)) throw new Error("Incomplete release");
+  for(const required of ["run-demo.mjs","release-lib.mjs","complete-ui/server.js","complete-ui/.next/BUILD_ID","complete-ui/public/sw.js"]) if(!expected.has(required)) throw new Error("Incomplete release");
   return manifest;
 }
 /** Only basic OS process settings pass through; credentials, evaluator flags and preloads do not. */

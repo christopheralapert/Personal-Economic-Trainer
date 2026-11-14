@@ -17,7 +17,7 @@ export const REQUEST_COST_MICRO_EUR=costMicroEUR(MAX_INPUT_TOKENS,MAX_OUTPUT_TOK
 // conservative. Missing receipts retain the whole reservation; no estimates.
 export const REQUEST_RESERVATION=MAX_INPUT_TOKENS+MAX_OUTPUT_TOKENS;
 export const MAX_ATTEMPTS=40;
-export const liveDirectory=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"../../..", ".cache/money-coach-ai");
+export const liveDirectory=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"../..", ".cache/money-coach-ai");
 export const keyFingerprint=key=>createHash("sha256").update(key).digest("hex");
 const denied=code=>Object.assign(new Error(code),{code});
 const integer=value=>Number.isSafeInteger(value) && value>=0;

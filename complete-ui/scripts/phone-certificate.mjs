@@ -7,7 +7,7 @@ import {fileURLToPath} from "node:url";
 import path from "node:path";
 
 const run=promisify(execFile);
-export const certificateRoot=fileURLToPath(new URL("../../../.cache/money-coach-phone/",import.meta.url));
+export const certificateRoot=fileURLToPath(new URL("../../.cache/money-coach-phone/",import.meta.url));
 export function privateAddress(host) {
   if(!isIPv4(host)) return false;
   const [a,b]=host.split(".").map(Number);

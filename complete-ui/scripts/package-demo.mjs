@@ -13,12 +13,12 @@ export async function packageDemo() {
   const worker=await readFile(path.join(app,"public/sw.js"),"utf8");
   if(!worker.includes(revision.slice(0,20))) throw new Error("PWA shell is stale; run build:coach first");
   const standalone=await realpath(path.join(build,"standalone"));
-  const parent=path.resolve(app,"../../.cache/money-coach-release");
+  const parent=path.resolve(app,"../.cache/money-coach-release");
   await mkdir(parent,{recursive:true});
   const destination=await mkdtemp(path.join(parent,`demo-${revision.slice(0,12)}-`));
   if(!contained(parent,destination)) throw new Error("Invalid release destination");
   await copyTracedTree(standalone,destination);
-  const target=path.join(destination,"apps/money-coach");
+  const target=path.join(destination,"complete-ui");
   await copyTracedTree(await realpath(path.join(build,"static")),path.join(target,".next/static"));
   await copyTracedTree(await realpath(path.join(app,"public")),path.join(target,"public"));
   for(const name of ["run-demo.mjs","release-lib.mjs"]) await copyTracedTree(path.join(app,"scripts",name),path.join(destination,name),path.join(app,"scripts"));

@@ -6,7 +6,7 @@ import {useViewState} from "@/lib/view-state";
 import type {z} from "zod";
 import {propsSchemas,type ToolName} from "@/coach/catalog";
 import {useCopy,categoryLabel,basketLabel} from "@/i18n/context";
-import {spendByCategory,simulateReduction,transactionHistory,type TransactionFilters} from "@/engine";
+import {spendByCategory,simulateReduction,transactionHistory,monthPeriod,type TransactionFilters} from "@/engine";
 import {money} from "@/lib/format";
 import {DonutBreakdown} from "./donut-breakdown";
 import {SummaryTiles} from "./summary-tiles";
@@ -85,5 +85,6 @@ export function GeneratedComponent({name,output,onAsk,onGoal}:{name:ToolName;out
   const checked=useMemo(()=>propsSchemas[name].safeParse(output),[name,output]),{t}=useCopy();
   if(!checked.success) return <p role="alert" className="text-sm text-ink-2">{t("unknown")}</p>;
   const Component=componentRegistry[name] as React.ComponentType<Record<string,unknown>>;
-  return <><Component {...checked.data} onAsk={onAsk} onGoal={onGoal} onClick={()=>onAsk?.(t("qSafe"))}/>{!["showTransactions","showDonut","showWhatIf","showDetails","showFilter","peerComparison"].includes(name) && <BasisChip period={"period" in checked.data ? checked.data.period as import("@/engine").Period : "result" in checked.data && typeof checked.data.result==="object" && checked.data.result!==null && "period" in checked.data.result ? checked.data.result.period as import("@/engine").Period : undefined}/>}</>;
+  const basis=name==="showSafeToSpend" ? monthPeriod(propsSchemas.showSafeToSpend.parse(checked.data).result.asOf) : "period" in checked.data ? checked.data.period as import("@/engine").Period : "result" in checked.data && typeof checked.data.result==="object" && checked.data.result!==null && "period" in checked.data.result ? checked.data.result.period as import("@/engine").Period : undefined;
+  return <><Component {...checked.data} onAsk={onAsk} onGoal={onGoal} onClick={()=>onAsk?.(t("qSafe"))}/>{!["showTransactions","showDonut","showWhatIf","showDetails","showFilter","peerComparison"].includes(name) && <BasisChip period={basis}/>}</>;
 }
