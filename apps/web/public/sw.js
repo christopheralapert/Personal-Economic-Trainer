@@ -1,5 +1,5 @@
 /* Only public resources enter this cache. Financial routes always use the network. */
-const BUILD = "moneylens-public-8bd91f7323c4423c";
+const BUILD = "moneylens-public-6e4cbc3159d8b67a";
 const PRECACHE = ["/offline", "/icons/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/maskable-512.png"];
 const MAX_RUNTIME_ENTRIES = 64;
 const MAX_BYTES = 32 * 1024 * 1024;
