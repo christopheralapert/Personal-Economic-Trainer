@@ -3,9 +3,9 @@ from pathlib import Path
 
 ROOT=Path(__file__).parents[2]
 USER_FACING=(
-    ROOT/"apps/web/app",
-    ROOT/"apps/web/components",
-    ROOT/"complete-ui/src",
+    ROOT/"frontend/web/app",
+    ROOT/"frontend/web/components",
+    ROOT/"frontend/coach/src",
 )
 TECHNICAL_FILES={"private-session.ts","next.config.ts"}
 
@@ -13,6 +13,7 @@ TECHNICAL_FILES={"private-session.ts","next.config.ts"}
 def test_user_facing_strings_use_money_coach():
     matches=[]
     for folder in USER_FACING:
+        assert folder.is_dir(), f"Missing application directory: {folder}"
         for path in folder.rglob("*"):
             if not path.is_file() or path.name in TECHNICAL_FILES:
                 continue

@@ -146,6 +146,6 @@ def generate(root, output, docs, generation_date='2026-11-13'):
     print(json.dumps(dict(rows=count,customers=len(stats),cells=len(cells),suppressed=suppressed,cohort_bytes=(output/'cohorts.v1.json').stat().st_size,profile_rows=sum(len(value) for value in profiles.values()),multi_account=criteria['multi_account_exists'])))
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--source',type=Path,default=Path('.cache/organizer'));parser.add_argument('--output',type=Path,default=Path('complete-ui/data'));parser.add_argument('--docs',type=Path,default=Path('docs'));parser.add_argument('--generation-date',default='2026-11-13');args=parser.parse_args();generate(args.source,args.output,args.docs,args.generation_date)
+    parser=argparse.ArgumentParser();parser.add_argument('--source',type=Path,default=Path('.cache/organizer'));parser.add_argument('--output',type=Path,default=Path('frontend/coach/data'));parser.add_argument('--docs',type=Path,default=Path('docs'));parser.add_argument('--generation-date',default='2026-11-13');args=parser.parse_args();generate(args.source,args.output,args.docs,args.generation_date)
 
 if __name__=='__main__':main()

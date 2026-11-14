@@ -67,8 +67,8 @@ def test_output_is_byte_deterministic_and_contains_only_aggregate_cells(tmp_path
     save(tmp_path/'one.json',first);save(tmp_path/'two.json',second)
     assert (tmp_path/'one.json').read_bytes()==(tmp_path/'two.json').read_bytes()
     assert 'test-' not in json.dumps(first)
-    actual=json.loads((SCRIPTS.parent/'complete-ui/data/cohorts.v1.json').read_text(encoding='utf-8-sig'))
+    actual=json.loads((SCRIPTS.parent/'frontend/coach/data/cohorts.v1.json').read_text(encoding='utf-8-sig'))
     assert actual['provenance']['row_count']==3626755
     assert all(cell['n']>=30 for cell in actual['cells'].values())
     assert 'CUST' not in json.dumps(actual)
-    assert (SCRIPTS.parent/'complete-ui/data/cohorts.v1.json').stat().st_size<100*1024
+    assert (SCRIPTS.parent/'frontend/coach/data/cohorts.v1.json').stat().st_size<100*1024

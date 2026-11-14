@@ -35,7 +35,7 @@ def stop(process):
 @pytest.mark.skipif(os.environ.get("MONEYLENS_BROWSER_FINANCE")!="true",reason="Opt-in production browser journey requires Node, browser and a production build")
 def test_real_two_bank_browser_planning_and_revocation(database,owners):
     node=shutil.which("node")
-    assert node and (ROOT/"apps/web/.next/BUILD_ID").is_file(),"Install Node dependencies and run npm run build first."
+    assert node and (ROOT/"frontend/web/.next/BUILD_ID").is_file(),"Install Node dependencies and run npm run build first."
     with psycopg.connect(database["admin"]) as connection:
         for owner,subject,name in zip(owners[:2],("aino.v1","mika.v1"),("Synthetic Aino","Synthetic Mika")):
             connection.execute("""UPDATE moneylens.users SET subject_issuer=%s,subject_id=%s,is_synthetic=true,
@@ -54,11 +54,11 @@ def test_real_two_bank_browser_planning_and_revocation(database,owners):
     process_options={"cwd":ROOT,"env":environment,"stdout":subprocess.PIPE,"stderr":subprocess.STDOUT,"text":True,
         "creationflags":subprocess.CREATE_NEW_PROCESS_GROUP} if os.name=="nt" else {
         "cwd":ROOT,"env":environment,"stdout":subprocess.PIPE,"stderr":subprocess.STDOUT,"text":True,"start_new_session":True}
-    worker=subprocess.Popen([sys.executable,str(ROOT/"services/workers/run.py"),"--tenant",str(owners[0][0]),
+    worker=subprocess.Popen([sys.executable,str(ROOT/"backend/workers/run.py"),"--tenant",str(owners[0][0]),
         "--user",str(owners[0][1]),"--bank-sync"],**process_options)
     coaching=None;browser=None
     try:
-        coaching=subprocess.Popen([sys.executable,str(ROOT/"services/workers/run.py"),"--tenant",str(owners[0][0]),
+        coaching=subprocess.Popen([sys.executable,str(ROOT/"backend/workers/run.py"),"--tenant",str(owners[0][0]),
             "--user",str(owners[0][1]),"--coaching"],**process_options)
         browser=subprocess.Popen([node,str(ROOT/"node_modules/@playwright/test/cli.js"),"test","--config=playwright.finance.config.ts"],**process_options)
         try:

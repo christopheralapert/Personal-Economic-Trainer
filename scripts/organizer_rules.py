@@ -4,7 +4,7 @@ from collections import defaultdict
 from decimal import Decimal
 from pathlib import Path
 
-RULES = json.loads((Path(__file__).resolve().parents[1] / 'complete-ui/data/organizer-rules.v1.json').read_text(encoding='utf-8-sig'))
+RULES = json.loads((Path(__file__).resolve().parents[1] / 'frontend/coach/data/organizer-rules.v1.json').read_text(encoding='utf-8-sig'))
 
 def cents(value):
     result = Decimal(value) * 100

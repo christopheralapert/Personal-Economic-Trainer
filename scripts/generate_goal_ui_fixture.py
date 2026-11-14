@@ -6,7 +6,7 @@ import sys
 from uuid import UUID
 
 ROOT=Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT/"services/api"))
+sys.path.insert(0,str(ROOT/"backend/api"))
 from app.goals import GoalSnapshotV1,GoalViewV1,goal_progress
 
 now=datetime(2026,11,5,10,tzinfo=timezone.utc)

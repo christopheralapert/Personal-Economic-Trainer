@@ -8,7 +8,7 @@ import sys
 from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT / "services/api"))
+sys.path.insert(0,str(ROOT / "backend/api"))
 
 from app.statfin import BASE,LICENCE,SNAPSHOT,SPEC,build_query,fingerprint,load_snapshot,sha256,validate_response
 from app.statfin_client import ProviderError,StatFinClient

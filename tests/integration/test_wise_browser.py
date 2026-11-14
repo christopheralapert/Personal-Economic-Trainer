@@ -20,8 +20,8 @@ def test_browser_wise_import_against_isolated_api_and_postgres(database,owners):
     flags=getattr(subprocess,'CREATE_NO_WINDOW',0)
     procs=[]
     try:
-        procs.append(subprocess.Popen([sys.executable,'-m','uvicorn','app.main:app','--app-dir','services/api','--host','127.0.0.1','--port','18030','--no-access-log'],cwd=ROOT,env=api,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,creationflags=flags))
-        procs.append(subprocess.Popen(['node','node_modules/next/dist/bin/next','start','apps/web','--hostname','127.0.0.1','--port','33111'],cwd=ROOT,env=web,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,creationflags=flags))
+        procs.append(subprocess.Popen([sys.executable,'-m','uvicorn','app.main:app','--app-dir','backend/api','--host','127.0.0.1','--port','18030','--no-access-log'],cwd=ROOT,env=api,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,creationflags=flags))
+        procs.append(subprocess.Popen(['node','node_modules/next/dist/bin/next','start','frontend/web','--hostname','127.0.0.1','--port','33111'],cwd=ROOT,env=web,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,creationflags=flags))
         for url in ('http://127.0.0.1:18030/health/ready','http://127.0.0.1:33111/'):
             for _ in range(100):
                 try:

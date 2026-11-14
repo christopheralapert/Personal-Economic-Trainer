@@ -9,7 +9,7 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT / "services/api"))
+sys.path.insert(0,str(ROOT / "backend/api"))
 sys.path.insert(0,str(ROOT / "tests/api"))
 
 from app.planning_engine import calculate_planning

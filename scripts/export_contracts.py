@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "services/api"))
+sys.path.insert(0, str(ROOT / "backend/api"))
 
 from pydantic.json_schema import models_json_schema
 from app.contracts import CONTRACTS

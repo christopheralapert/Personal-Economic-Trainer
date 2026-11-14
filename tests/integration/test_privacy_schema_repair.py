@@ -7,7 +7,7 @@ from sqlalchemy import text
 
 
 def test_repair_missing_privacy_column_and_preserve_an_existing_preference(database,owners):
- path=Path(__file__).resolve().parents[2]/'db/migrations/versions/0022_repair_ai_privacy_column.py'
+ path=Path(__file__).resolve().parents[2]/'backend/db/migrations/versions/0022_repair_ai_privacy_column.py'
  spec=importlib.util.spec_from_file_location('privacy_repair',path);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
  with database['engine'].begin() as connection:
   connection.execute(text('ALTER TABLE moneylens.user_state DROP COLUMN allow_ai_payment_descriptions'))

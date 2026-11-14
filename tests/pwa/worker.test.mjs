@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import vm from "node:vm";
 import { readFile } from "node:fs/promises";
 
-const script = await readFile(new URL("../../apps/web/public/sw.js", import.meta.url), "utf8");
+const script = await readFile(new URL("../../frontend/web/public/sw.js", import.meta.url), "utf8");
 function basic(body="public bytes",headers={},status=200) {
   const response=new Response(body,{status,headers});
   const clone=response.clone.bind(response);

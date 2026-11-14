@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {matchesBank,normalizeBankName} from "../../apps/web/lib/bank-search.ts";
+import {matchesBank,normalizeBankName} from "../../frontend/web/lib/bank-search.ts";
 
 test("bank search folds accents, punctuation, case and spacing",()=>{
  for(const query of ["s pankki","S.PANKKI","s - pankki","spankki","S Bank"])assert(matchesBank({name:"S-Pankki",country:"FI"},query));

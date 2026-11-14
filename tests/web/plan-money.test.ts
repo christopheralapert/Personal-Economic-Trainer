@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {test} from "node:test";
-import {euros,parseEuro, sumMinor} from "../../apps/web/components/plan-format.ts";
+import {euros,parseEuro, sumMinor} from "../../frontend/web/components/plan-format.ts";
 
 test("euro input preserves exact cents and supports decimal comma without rounding", () => {
   assert.equal(parseEuro("12.50"),1250);

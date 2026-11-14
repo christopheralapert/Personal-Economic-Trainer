@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {createHmac} from "node:crypto";
-import {psuContext} from "../../apps/web/app/api/psu-context.ts";
+import {psuContext} from "../../frontend/web/app/api/psu-context.ts";
 
 test("ngrok's last verified hop replaces forged browser PSU headers",()=>{
   const before={...process.env};

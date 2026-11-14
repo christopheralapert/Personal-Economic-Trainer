@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {nativeMoney,readManifest} from "../../apps/web/components/import-files.ts";
+import {nativeMoney,readManifest} from "../../frontend/web/components/import-files.ts";
 
 test("native money uses currency minor units and exact safe-integer fractions",()=>{
   assert.match(nativeMoney(125,"JPY"),/^125\D/);

@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "services" / "api"))
+sys.path.insert(0, str(ROOT / "backend" / "api"))
 
 from app.live_banking_preflight import preflight
 from app.settings import Settings

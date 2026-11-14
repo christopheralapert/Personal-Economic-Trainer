@@ -17,4 +17,4 @@ test-results/
 *.tsbuildinfo
 next-env.d.ts
 .impeccable/review/
-complete-ui/.impeccable/review/
+frontend/coach/.impeccable/review/

@@ -1,5 +1,5 @@
 # Stateless fixture preview. Existing host development database/storage and .env
-# are deliberately not read. Private features use docs/development.md for now.
+# are deliberately not read. See README.md for private-service setup.
 name: moneylens-preview
 services:
   api:
@@ -44,7 +44,7 @@ services:
     read_only: true
     tmpfs:
       - /tmp:size=64m,mode=1777
-      - /app/apps/web/.next/cache:size=64m,uid=1000,gid=1000,mode=0700
+      - /app/frontend/web/.next/cache:size=64m,uid=1000,gid=1000,mode=0700
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     mem_limit: 512m

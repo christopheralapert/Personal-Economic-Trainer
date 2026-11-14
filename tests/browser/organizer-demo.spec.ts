@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {mkdir} from 'node:fs/promises';
-import organizer from '../../complete-ui/data/organizer-1.v1.json';
+import organizer from '../../frontend/coach/data/organizer-1.v1.json';
 
 const profile=organizer.profiles[0];
 const amount=(n:number)=>new Intl.NumberFormat('fi-FI',{style:'currency',currency:'EUR'}).format(n/100);

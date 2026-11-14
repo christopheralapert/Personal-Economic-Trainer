@@ -219,7 +219,7 @@ def test_store_rejects_missing_or_mismatched_transaction_scope(database,owners):
 
 def test_worker_process_restart_does_not_duplicate_effects(database,owners):
     root = Path(__file__).resolve().parents[2]
-    args = [sys.executable,str(root / "services/workers/run.py"),"--tenant",str(owners[0][0]),
+    args = [sys.executable,str(root / "backend/workers/run.py"),"--tenant",str(owners[0][0]),
             "--user",str(owners[0][1]),"--once","--enqueue-demo"]
     environment = {**os.environ,"MONEYLENS_DATABASE_URL":database["runtime"]}
     for _ in range(2):
@@ -232,7 +232,7 @@ def test_worker_process_restart_does_not_duplicate_effects(database,owners):
 
 def test_worker_records_permanent_validation_failure(database,owners):
     root = Path(__file__).resolve().parents[2]
-    spec = importlib.util.spec_from_file_location("moneylens_worker",root / "services/workers/run.py")
+    spec = importlib.util.spec_from_file_location("moneylens_worker",root / "backend/workers/run.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     job_id = call(database,owners[0],"enqueue","demo.echo","bad-envelope",{"schema_version":2})

@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 ROOT=Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT/"services/api"))
+sys.path.insert(0,str(ROOT/"backend/api"))
 from app.import_csv import COLUMNS,MAX_ROWS
 
 CUSTOMER="authored-customer-1"

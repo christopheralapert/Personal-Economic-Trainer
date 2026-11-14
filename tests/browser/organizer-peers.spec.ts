@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 import {mkdir} from 'node:fs/promises';
-import profile from '../../complete-ui/data/organizer-1.v1.json';
-import cohorts from '../../complete-ui/data/cohorts.v1.json';
+import profile from '../../frontend/coach/data/organizer-1.v1.json';
+import cohorts from '../../frontend/coach/data/cohorts.v1.json';
 
 for(const [width,height] of [[390,844],[1440,900]])for(const colorScheme of ['light','dark'] as const){
  test(`organizer personas and grounded peers ${width} ${colorScheme}`,async({page})=>{

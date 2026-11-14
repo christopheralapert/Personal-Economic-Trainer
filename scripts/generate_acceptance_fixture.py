@@ -10,7 +10,7 @@ import sys
 from generate_demo import generate as demo_fixture,ident
 
 ROOT=Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT/"services/api"))
+sys.path.insert(0,str(ROOT/"backend/api"))
 from app.demo import Profile
 from app.contracts import Transaction
 from app.planning_inputs import PlanningInputsV1

@@ -1,2 +1,0 @@
-import {defineConfig,devices} from "@playwright/test";
-export default defineConfig({testDir:"tests/ux",outputDir:"test-results/ux",workers:1,use:{...devices["Desktop Chrome"],channel:"chrome",baseURL:"http://127.0.0.1:31327"},webServer:{command:"node ../node_modules/next/dist/bin/next start . --hostname 127.0.0.1 --port 31327",url:"http://127.0.0.1:31327",reuseExistingServer:false,timeout:60000}});

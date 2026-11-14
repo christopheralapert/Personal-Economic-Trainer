@@ -14,7 +14,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT / "services/api"))
+sys.path.insert(0,str(ROOT / "backend/api"))
 
 from app.seed import seed_synthetic
 

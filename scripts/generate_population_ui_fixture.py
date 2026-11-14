@@ -11,7 +11,7 @@ import sys
 from uuid import UUID
 
 ROOT=Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT/"services/api"))
+sys.path.insert(0,str(ROOT/"backend/api"))
 
 from app.category_crosswalk import load_crosswalk
 from app.ledger import SpendingGroupV1,SpendingTotalsV1

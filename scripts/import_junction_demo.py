@@ -65,4 +65,4 @@ def extract(path,output):
  print(json.dumps(dict(source_rows=count,selected_rows=sum(s['rows'] for s in summaries),profiles=len(summaries))))
 
 if __name__=='__main__':
- parser=argparse.ArgumentParser();parser.add_argument('source',type=Path);parser.add_argument('--output',type=Path,default=Path('complete-ui/data'));args=parser.parse_args();extract(args.source,args.output)
+ parser=argparse.ArgumentParser();parser.add_argument('source',type=Path);parser.add_argument('--output',type=Path,default=Path('frontend/coach/data'));args=parser.parse_args();extract(args.source,args.output)

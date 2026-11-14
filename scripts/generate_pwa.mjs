@@ -6,7 +6,7 @@ import path from "node:path";
 import sharp from "sharp";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const web = path.join(root, "apps/web");
+const web = path.join(root, "frontend/web");
 const icons = path.join(web, "public/icons");
 const svg = await readFile(path.join(icons, "icon.svg"));
 await Promise.all([192, 512].map(size => sharp(svg).resize(size, size).png().toFile(path.join(icons, `icon-${size}.png`))));
@@ -27,7 +27,7 @@ await digest(path.join(web, "components"));
 await digest(path.join(web, "lib"));
 await digest(path.join(web, "i18n"));
 // Include shared Coach components in the public worker's build identity.
-await digest(path.join(root,"complete-ui/src"));
+await digest(path.join(root,"frontend/coach/src"));
 hash.update((await readFile(path.join(web, "next.config.ts"),"utf8")).replace(/\r\n/g,"\n"));
 hash.update((await readFile(path.join(root, "package-lock.json"),"utf8")).replace(/\r\n/g,"\n"));
 hash.update(svg);
