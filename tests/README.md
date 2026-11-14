@@ -1,6 +1,6 @@
 # Test suites
 
-Run commands from the repository root after installing dependencies. Browser suites require a production web build and Chrome or Playwright Chromium.
+Run commands from the repository root after installing dependencies. Browser suites require Chrome or Playwright Chromium. Most also require a production web build; the voice suite starts its own development server.
 
 | Folder | Purpose | Command |
 | --- | --- | --- |
@@ -25,6 +25,7 @@ All main-app Playwright configurations live in `tests/config/`. They resolve tes
 - `playwright.finance.config.ts`: invoked by the isolated finance integration fixture; its opt-in guard remains enabled.
 - `playwright.first-login.config.ts`: invoked by the isolated identity integration fixture.
 - `playwright.statement.config.ts`: invoked by the isolated Wise statement integration fixture.
+- `playwright.voice.config.ts`: run `npm run test:web:voice` for Finnish, Estonian, and English dictation and read-aloud checks on `/demo?dataset=organizer1`. The runner starts the main Next.js application on an automatically selected free loopback port and stops it afterwards; no production build, database, microphone, or provider key is required. It uses local Chrome (Playwright Chromium in CI). Speech recognition, synthesis, microphone capture, and hosted voice replies are mocked. Hosted chat stays disabled; real local-rule answers supply the visible sentences. Reports stay in `test-results/voice`. See [the voice review](voice-review.md) for the separate Coach language issue.
 
 List the default browser cases without starting servers:
 
