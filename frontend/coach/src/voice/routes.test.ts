@@ -15,6 +15,24 @@ function request(body:BodyInit,type="application/json",extra:Record<string,strin
 const speech={dataset:"organizer1",locale:"fi",savingsPercent:10,tool:"showTransactions",input:{period:{start:"2026-08-01",end:"2026-09-01"},category:"taxi"}};
 async function fixture(run:(env:Record<string,string>,file:string)=>Promise<void>){const directory=await mkdtemp(path.join(os.tmpdir(),"money-coach-voice-")),file=path.join(directory,"ledger.json");try{await run({GEMINI_API_KEY:"fake-voice-key",MONEY_COACH_GEMINI_VOICE_ENABLED:"true",MONEY_COACH_VOICE_LEDGER_PATH:file,MONEY_COACH_VOICE_MAX_REQUESTS:"4"},file);}finally{if(path.dirname(directory)!==os.tmpdir() || !path.basename(directory).startsWith("money-coach-voice-"))throw new Error("Unsafe cleanup");await rm(directory,{recursive:true,force:true});}}
 describe("optional Gemini voice boundaries",()=>{
+ for(const [locale,language,text] of [
+  ["fi","fi-FI","Käytit takseihin elokuussa 2026 yhteensä 30,97\u00a0€."],
+  ["et","et-EE","Kirjendatud netokulu (Takso): 30,97\u00a0€. Periood: august 2026."],
+  ["en","en-US","Recorded net spending on Taxis: 30,97\u00a0€. Period: August 2026."],
+ ] as const)it(`uses ${language} transcription and the authored ${locale} answer for hosted speech`,async()=>fixture(async(env)=>{
+  const network=vi.fn<typeof fetch>(async(_url,init)=>reply(JSON.parse(init!.body as string).model===TRANSCRIBE_MODEL ? "text" : "audio"));
+  const routes=createVoiceRoutes({env,network});
+  expect((await routes.transcribe(request("synthetic-audio","audio/webm",{"X-Money-Coach-Language":locale}))).status).toBe(200);
+  expect(JSON.parse(network.mock.calls[0][1]!.body as string).generation_config.transcription_config.language_codes).toEqual([language]);
+  expect((await routes.speak(request(JSON.stringify({...speech,locale})))).status).toBe(200);
+  expect(JSON.parse(network.mock.calls[1][1]!.body as string).input[0].content).toEqual([{type:"text",text}]);
+ }));
+ it("blocks both audio endpoints in privacy mode before contacting a provider",async()=>fixture(async(env)=>{
+  const network=vi.fn<typeof fetch>(),routes=createVoiceRoutes({env,network});
+  expect((await routes.transcribe(request("synthetic-audio","audio/webm",{"X-Money-Coach-Privacy":"on"}))).status).toBe(403);
+  expect((await routes.speak(request(JSON.stringify(speech),"application/json",{"X-Money-Coach-Privacy":"on"}))).status).toBe(403);
+  expect(network).not.toHaveBeenCalled();
+ }));
  it("unmetered mode preserves prior usage but removes the old request ceiling",async()=>fixture(async(env,file)=>{
   env.MONEY_COACH_VOICE_REQUEST_POLICY="unmetered";env.MONEY_COACH_VOICE_MAX_REQUESTS="2";
   await writeFile(file,JSON.stringify({version:1,attempts:[{operation:"speak",at:new Date().toISOString(),status:"complete",usage},{operation:"transcribe",at:new Date().toISOString(),status:"failed"}]}));

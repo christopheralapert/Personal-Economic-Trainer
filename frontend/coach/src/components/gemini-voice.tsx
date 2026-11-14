@@ -58,10 +58,12 @@ export function GeminiReadAloud({message,input,disabled=false}:{message:CoachMes
   window.dispatchEvent(new Event(stopPlayback));window.dispatchEvent(new Event(stopListening));window.speechSynthesis?.cancel();setStatus(null);
   if(disabled || !input || !part || !("input" in part)){setStatus("geminiVoiceFailed");return;}setBusy(true);
   const controller=new AbortController();request.current=controller;
+  const current=()=>request.current===controller && !controller.signal.aborted;
+  const finish=(failure?:Key)=>{if(!current())return;request.current=null;setBusy(false);if(failure)setStatus(failure);};
   try{
-   if(!url.current){const response=await coachFetch("/api/voice/speak",{method:"POST",headers:{"Content-Type":"application/json","X-Money-Coach-Privacy":"off"},body:JSON.stringify({dataset,scope,locale,savingsPercent:savings,tool:part.type.slice(5),input}),signal:controller.signal});if(!response.ok){const error=await response.json();setStatus(voiceStatus(error.error));setBusy(false);return;}const blob=await response.blob();if(controller.signal.aborted)return;url.current=URL.createObjectURL(blob);}
-   if(controller.signal.aborted)return;const player=new Audio(url.current);player.addEventListener("ended",()=>setBusy(false));player.addEventListener("error",()=>{setBusy(false);setStatus("geminiVoiceFailed");});audio.current=player;await player.play();
-  }catch{if(!controller.signal.aborted){setStatus("geminiVoiceFailed");setBusy(false);}}
+   if(!url.current){const response=await coachFetch("/api/voice/speak",{method:"POST",headers:{"Content-Type":"application/json","X-Money-Coach-Privacy":"off"},body:JSON.stringify({dataset,scope,locale,savingsPercent:savings,tool:part.type.slice(5),input}),signal:controller.signal});if(!response.ok){const error=await response.json();finish(voiceStatus(error.error));return;}const blob=await response.blob();if(!current())return;url.current=URL.createObjectURL(blob);}
+   if(!current())return;const player=new Audio(url.current);player.addEventListener("ended",()=>finish());player.addEventListener("error",()=>finish("geminiVoiceFailed"));audio.current=player;await player.play();
+  }catch{finish("geminiVoiceFailed");}
  }
  return <div className="flex flex-wrap items-center gap-2"><Button type="button" variant="ghost" size="chip" disabled={disabled || !part} onClick={busy ? stop : ()=>void play()}>{busy ? <VolumeX className="size-5"/> : <Volume2 className="size-5"/>}{t(busy ? "stopReading" : "readAloud")}</Button><span className="text-caption text-ink-2">{t("geminiVoice")}</span>{status && <span role="status" className="w-full text-caption text-ink-2">{t(status)}</span>}</div>;
 }

@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useRef,useState,type RefObject} from "react";
+import {useCallback,useEffect,useRef,useState,type RefObject} from "react";
 import {Mic,Square,Volume2,VolumeX,X} from "lucide-react";
 import {useCopy,type Key} from "@/i18n/context";
 import {Button} from "./ui/button";
@@ -51,14 +51,16 @@ export function ReadAloud({article,message}:{article:RefObject<HTMLElement|null>
 }
 function BrowserReadAloud({article,disabled=false}:{article:RefObject<HTMLElement|null>;disabled?:boolean}) {
  const {t,locale,privacy}=useCopy(),[speaking,setSpeaking]=useState(false),[error,setError]=useState(false),[available,setAvailable]=useState(false);
+ const generation=useRef(0);
+ const stop=useCallback(()=>{generation.current++;window.speechSynthesis?.cancel();setSpeaking(false);},[]);
  useEffect(()=>{const synth=window.speechSynthesis;if(!synth)return;const refresh=()=>setAvailable(synth.getVoices().some(item=>item.lang.toLowerCase().split("-")[0]===locale && (!privacy || item.localService===true)));refresh();synth.addEventListener("voiceschanged",refresh);return()=>synth.removeEventListener("voiceschanged",refresh);},[locale,privacy]);
- useEffect(()=>()=>{if(typeof window!=="undefined")window.speechSynthesis?.cancel();},[privacy,locale]);
- useEffect(()=>{const stop=()=>{window.speechSynthesis?.cancel();setSpeaking(false);};window.addEventListener("money-coach-stop-playback",stop);return()=>window.removeEventListener("money-coach-stop-playback",stop);},[]);
+ useEffect(()=>()=>{generation.current++;if(typeof window!=="undefined")window.speechSynthesis?.cancel();},[privacy,locale]);
+ useEffect(()=>{window.addEventListener("money-coach-stop-playback",stop);return()=>window.removeEventListener("money-coach-stop-playback",stop);},[stop]);
  function play(){setError(false);const synth=window.speechSynthesis,text=article.current?.querySelector("[data-spoken-answer]")?.textContent?.trim();
   if(!synth || !text){setError(true);return;}
   const voice=synth.getVoices().find(item=>item.lang.toLowerCase().split("-")[0]===locale && (!privacy || item.localService===true));
   if(!voice){setError(true);return;}
-  try {window.dispatchEvent(new Event("money-coach-stop-playback"));window.dispatchEvent(new Event("money-coach-stop-listening"));const utterance=new SpeechSynthesisUtterance(text);utterance.lang=language[locale];utterance.voice=voice;utterance.onend=()=>setSpeaking(false);utterance.onerror=()=>{setSpeaking(false);setError(true);};setSpeaking(true);synth.speak(utterance);} catch {setSpeaking(false);setError(true);}
+  try {window.dispatchEvent(new Event("money-coach-stop-playback"));window.dispatchEvent(new Event("money-coach-stop-listening"));const attempt=++generation.current,utterance=new SpeechSynthesisUtterance(text);utterance.lang=language[locale];utterance.voice=voice;utterance.onend=()=>{if(attempt===generation.current){generation.current++;setSpeaking(false);}};utterance.onerror=()=>{if(attempt===generation.current){generation.current++;setSpeaking(false);setError(true);}};setSpeaking(true);synth.speak(utterance);} catch {generation.current++;setSpeaking(false);setError(true);}
  }
- return <div className="flex items-center gap-2"><Button variant="ghost" size="chip" disabled={disabled || (!available && !speaking)} onClick={speaking ? ()=>{window.speechSynthesis.cancel();setSpeaking(false);} : play}>{speaking ? <VolumeX className="size-5"/> : <Volume2 className="size-5"/>}{t(speaking ? "stopReading" : "readAloud")}</Button>{(error || !available || disabled) && <span role="status" className="text-caption text-ink-2">{t("voiceUnavailable")}</span>}</div>;
+ return <div className="flex items-center gap-2"><Button variant="ghost" size="chip" disabled={disabled || (!available && !speaking)} onClick={speaking ? stop : play}>{speaking ? <VolumeX className="size-5"/> : <Volume2 className="size-5"/>}{t(speaking ? "stopReading" : "readAloud")}</Button>{(error || !available || disabled) && <span role="status" className="text-caption text-ink-2">{t("voiceUnavailable")}</span>}</div>;
 }
