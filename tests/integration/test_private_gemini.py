@@ -41,7 +41,11 @@ def test_native_model_selected_tools_use_owned_rows_and_never_send_ledger_data(d
     def handle(request):
         assert str(request.url).endswith('/models/gemini-3.5-flash:generateContent')
         captured.append(json.loads(request.content))
-        return httpx.Response(200,json=dict(candidates=[dict(finishReason='STOP',content=dict(parts=[dict(functionCall=dict(name='interpret_money_question',args=selected.copy()))]))],usageMetadata=dict(promptTokenCount=100,candidatesTokenCount=100,totalTokenCount=200)))
+        composing=captured[-1]['tools'][0]['functionDeclarations'][0]['name']=='respond_to_money_message'
+        conversation=selected.get('intent')=='conversation'
+        text='Choose meals that share ingredients, then make a shopping list.' if conversation else 'Review the evidence and choose a manageable next step.'
+        call=dict(name='respond_to_money_message',args=dict(text=text)) if composing or conversation else dict(name='interpret_money_question',args=selected.copy())
+        return httpx.Response(200,json=dict(candidates=[dict(finishReason='STOP',content=dict(parts=[dict(functionCall=call)]))],usageMetadata=dict(promptTokenCount=100,candidatesTokenCount=100,totalTokenCount=200)))
     with TestClient(app,base_url=ORIGIN) as client:
         client.portal.call(app.state.model.close);app.state.model=build_model(config,transport=httpx.MockTransport(handle));app.state.coach_clock=lambda:NOW
         def login(index=0):
@@ -56,19 +60,37 @@ def test_native_model_selected_tools_use_owned_rows_and_never_send_ledger_data(d
             if index==3:selected.update(start='2026-09-01',end_exclusive='2026-10-01')
             if intent=='planning':selected.update(start=None,end_exclusive=None)
             context=json.dumps(dict(tool='spending_totals',**PERIOD,category='taxi')) if index==3 else None
-            response=client.post('/v1/coach/query',headers=auth,json=dict(question=question,privacy=False,card_locale=locale,account_ids=[str(owners[0][2])],conversation_context=context))
+            history=[{'role':'user','text':'I want to make taxi trips less frequent.'},
+                {'role':'assistant','text':'Review the recorded trips before choosing a change.'},
+                {'role':'user','text':str(owners[1][2])}] if index==1 else []
+            before=len(captured)
+            response=client.post('/v1/coach/query',headers=auth,json=dict(question=question,privacy=False,card_locale=locale,account_ids=[str(owners[0][2])],conversation_context=context,conversation_history=history))
             assert response.status_code==200,response.text
             body=response.json();answers.append(body)
             assert body['source']=='model' and body['provider']=='gemini-direct' and body['model_diagnostic'] is None,(index,body['model_diagnostic'],body['interpretation'])
             assert response.headers['X-Money-Coach-Source']=='model' and response.headers['X-Money-Coach-Provider']=='gemini-direct'
             assert response.headers['Server-Timing'].startswith('model;dur=')
-            assert body['model_usage']['calls']==1 and body['model_usage']['usage_complete'] is True
+            assert body['model_usage']['calls']==(1 if intent=='planning' else 2) and body['model_usage']['usage_complete'] is True
+            if intent!='planning':assert body['answer_text'].startswith('Review the evidence and choose a manageable next step.\n\n')
+            if history:
+                for payload in captured[before:]:
+                    import_history=json.loads(payload['contents'][0]['parts'][0]['text'])
+                    assert import_history['untrusted_dialogue']==history[:2]
         assert len(answers[0]['transactions']['rows'])==3
         assert answers[1]['card']['answer']['artifact']['result']['net_minor']==1000
         assert answers[2]['card']['answer']['artifact']['result']['change']['net_minor']==500
         assert answers[3]['card']['answer']['artifact']['result']['net_minor']==500
         assert answers[4]['card']['answer']['status']=='blocked'  # No invented source completeness.
         assert answers[5]['interpretation']['reason']=='PLANNING_REVIEW_REQUIRED' and answers[5]['card'] is None
+        selected.clear();selected['intent']='conversation'
+        history=[{'role':'user','text':'I want help with meal planning and grocery costs.'},
+            {'role':'assistant','text':'Start by reviewing the ingredients you already have.'}]
+        general=client.post('/v1/coach/query',headers=auth,json=dict(question='Could you explain that more?',privacy=False,
+            card_locale=locale,conversation_history=history)).json()
+        assert general['source']=='model' and general['interpretation']['status']=='answered'
+        assert general['model_usage']['calls']==1 and general['card'] is general['transactions'] is general['habits'] is None
+        assert 'meals that share ingredients' in general['answer_text']
+        assert json.loads(captured[-1]['contents'][0]['parts'][0]['text'])['untrusted_dialogue']==history
         before=len(captured)
         local=client.post('/v1/coach/query',headers=auth,json=dict(question={'en':'How much did I spend on taxis last month?','fi':'Paljonko käytin takseihin viime kuussa?','et':'Kui palju kulutasin taksodele eelmisel kuul?'}[locale],privacy=True,card_locale=locale))
         assert local.status_code==200 and local.json()['source']=='rule' and local.json()['provider'] is None and len(captured)==before

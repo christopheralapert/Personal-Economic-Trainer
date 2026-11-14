@@ -11,6 +11,7 @@ import {CoachCancelledError,throwIfCancelled} from "./execution";
 import {COACH_REVISION} from "./transport";
 import type {Locale} from "@/i18n/dictionaries";
 import type {QuestionContext} from "./question-context";
+import type {ConversationOptions} from './conversation-provider';
 
 import {loadDataset,type DatasetKey} from "@/engine/datasets";
 import {type Period} from "@/engine";
@@ -19,7 +20,7 @@ import {privateHTTPSOrigin,phoneCookieMatches} from "../../scripts/phone-ai-acce
 type Dependencies={env?:Record<string,string|undefined>;open?:typeof openBudget;network?:typeof fetch};
 /** Server-only, loopback evaluation composition. A flag/key never grants a request. */
 export function createCoachExecutor({env=process.env,open=openBudget,network=globalThis.fetch}:Dependencies={}) {
-  return async(request:Request,question:string,locale:Locale,savingsPercent:number,context?:QuestionContext,period?:Period,scope?:DataScope,dataset?:DatasetKey,privacy=false)=>{
+  return async(request:Request,question:string,locale:Locale,savingsPercent:number,context?:QuestionContext,period?:Period,scope?:DataScope,dataset?:DatasetKey,privacy=false,_conversation?:ConversationOptions)=>{
     const execution={signal:request.signal,context,period,data:scope===undefined && dataset===undefined ? undefined : scopedDataset(await loadDataset(dataset??"starter"),scope)};
     const fallback=async(diagnostic="local_rule")=>({message:await new RuleProvider().answer(question,locale,savingsPercent,execution),source:"rule" as const,diagnostic});
     throwIfCancelled(request.signal);

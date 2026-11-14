@@ -65,7 +65,8 @@ export function CoachQuery({request,initialQuestion=""}:{request:PrivateRequest;
     const context=previousScope ? JSON.stringify({start:previousScope.start,end_exclusive:previousScope.end_exclusive,...(selected?{tool:selected.name}:previousIntent?.kind==="habits"?{tool:"habits"}:{}),...(selectors&&"category" in selectors?{category:selectors.category}:{}),...(selectors&&"merchant" in selectors?{merchant:selectors.merchant}:{}),...(reduction!==null?{reduction_basis_points:reduction}:{}),...(comparison?{comparison_mode:comparison}:{})}) : undefined;
     activeTurn.current=id;setTurns(items=>[...items,{id,question:text}]);setQuestion("");setBusy(true);setError("");setSearchRows([]);setSearchCursor(null);
     try {
-      const answer=await request<Answer>("coach/query",{question:text,card_locale:locale,privacy,currency:"EUR",account_ids:accountIds,expected_data_version:null,conversation_context:context});
+      const history=privacy?[]:turns.flatMap(turn=>[{role:'user' as const,text:turn.question},...(turn.answer?.answer_text?[{role:'assistant' as const,text:turn.answer.answer_text}]:[])]).slice(-8).map(turn=>({...turn,text:turn.text.slice(0,2000)}));
+      const answer=await request<Answer>("coach/query",{question:text,card_locale:locale,privacy,currency:"EUR",account_ids:accountIds,expected_data_version:null,conversation_context:context,conversation_history:history});
       if(generation!==latest.current)return;
       setTurns(items=>items.map(turn=>turn.id===id?{...turn,answer}:turn));
       setSearchRows(answer.transactions?.rows??[]);setSearchCursor(answer.transactions?.next_cursor??null);
@@ -102,19 +103,19 @@ export function CoachQuery({request,initialQuestion=""}:{request:PrivateRequest;
         <ul className="mt-3 divide-y divide-line">{rows.map(row=><li key={row.id} data-coach-ledger-row><CoachRecord row={row}/></li>)}</ul>
         {!rows.length&&<p className="py-4 text-sm text-ink-2">{c.noMatches}</p>}
         {isLatest&&searchCursor&&<button className="secondary-button mt-3" disabled={busy} onClick={()=>void nextSearch()}>{c.next}</button>}
-        <a className="mt-3 inline-block text-sm text-brand underline" href={`/transactions?${historyQuery}`}>{c.history}</a><p className="mt-3 text-caption text-ink-2">{answer.interpretation.method==="structured_model"?c.model:c.rule} {answer.transactions.scope.dataset_coverage!=="covered_synthetic_snapshot"?c.partial:""}</p></>;
+        <a className="mt-3 inline-block text-sm text-brand underline" href={`/transactions?${historyQuery}`}>{c.history}</a><p className="mt-3 text-caption text-ink-2">{answer.source==="model"?c.model:c.rule} {answer.transactions.scope.dataset_coverage!=="covered_synthetic_snapshot"?c.partial:""}</p></>;
     }
     const artifact=card?.answer.artifact;
     const totals=artifact?.name==="spending_totals"?artifact.result:artifact?.name==="spending_comparison"?artifact.result.current:artifact?.name==="spending_reduction"?artifact.result.baseline:null;
     const mainFact=card?.rows.find(row=>/net|saving|reduction|gross/.test(row.fact_id));
     return <>
-      {card?<div><h3 className="text-sm text-ink-2">{card.title}</h3>{card.answer.status==="ready"&&mainFact&&<p className="mt-1 text-3xl font-bold">{mainFact.value_text}</p>}<p data-coach-answer className="mt-2 text-base leading-relaxed">{card.summary}</p>
+      {card?<div><h3 className="text-sm text-ink-2">{card.title}</h3>{card.answer.status==="ready"&&mainFact&&<p className="mt-1 text-3xl font-bold">{mainFact.value_text}</p>}<p data-coach-answer className="mt-2 whitespace-pre-wrap text-base leading-relaxed">{answer.answer_text || card.summary}</p>
         <Drawer><DrawerTrigger asChild><Button variant="ghost" size="chip" className="mt-3 text-ink-2">{c.basis}</Button></DrawerTrigger><DrawerContent><DrawerHeader><DrawerTitle>{card.title}</DrawerTitle></DrawerHeader><div className="max-h-sheet overflow-y-auto px-4 pb-6"><p className="text-caption text-ink-2">{card.status_label}</p><dl className="mt-3 divide-y divide-line">{card.rows.map(row=><div key={row.fact_id} className="flex min-h-12 items-center justify-between gap-3 py-2 text-sm"><dt>{row.label}</dt><dd className="font-semibold">{row.value_text}</dd></div>)}</dl><ul className="mt-3 space-y-2 text-caption text-ink-2">{card.notices.map((notice,index)=><li key={index}>{notice}</li>)}</ul></div></DrawerContent></Drawer>
-      </div>:habits?<div><h3 className="text-lg font-semibold">{c.patterns}</h3><p data-coach-answer className="mt-2 text-base leading-relaxed">{answer.answer_text}</p><ul className="mt-3 divide-y divide-line">{habits.category_patterns.map(pattern=><li key={pattern.label} className="flex justify-between gap-3 py-2 text-sm"><span>{pattern.label}</span><strong>{euros(pattern.gross_minor)}</strong></li>)}</ul></div>:<p data-coach-answer className="text-base leading-relaxed">{answer.interpretation.message}</p>}
+      </div>:habits?<div><h3 className="text-lg font-semibold">{c.patterns}</h3><p data-coach-answer className="mt-2 whitespace-pre-wrap text-base leading-relaxed">{answer.answer_text}</p><ul className="mt-3 divide-y divide-line">{habits.category_patterns.map(pattern=><li key={pattern.label} className="flex justify-between gap-3 py-2 text-sm"><span>{pattern.label}</span><strong>{euros(pattern.gross_minor)}</strong></li>)}</ul></div>:<p data-coach-answer className="whitespace-pre-wrap text-base leading-relaxed">{answer.answer_text || answer.interpretation.message}</p>}
       {evidence&&<CoachEvidence request={request} scope={evidence} filters={totals?.evidence_filters}/>}
       {destination&&<a className="primary-button mt-4 inline-block" href={destination.href}>{destination.label}</a>}
-      <p className="mt-3 text-caption text-ink-2">{answer.interpretation.method==="structured_model"?c.model:c.rule}</p>
-      {answer.interpretation.method==="structured_model"&&<Drawer><DrawerTrigger asChild><Button variant="ghost" size="chip" className="mt-3">{c.saw}</Button></DrawerTrigger><DrawerContent><DrawerHeader><DrawerTitle>{c.saw}</DrawerTitle></DrawerHeader><p className="px-4 pb-6 text-sm">{c.sawNote}</p></DrawerContent></Drawer>}
+      <p className="mt-3 text-caption text-ink-2">{answer.source==="model"?c.model:c.rule}</p>
+      {answer.source==="model"&&<Drawer><DrawerTrigger asChild><Button variant="ghost" size="chip" className="mt-3">{c.saw}</Button></DrawerTrigger><DrawerContent><DrawerHeader><DrawerTitle>{c.saw}</DrawerTitle></DrawerHeader><p className="px-4 pb-6 text-sm">{c.sawNote}</p></DrawerContent></Drawer>}
     </>;
   }
 

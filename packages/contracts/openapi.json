@@ -3183,6 +3183,31 @@
         "title": "CoachHabitsIntentV1",
         "type": "object"
       },
+      "CoachHistoryMessageV1": {
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "text"
+        ],
+        "title": "CoachHistoryMessageV1",
+        "type": "object"
+      },
       "CoachInterpretationV1": {
         "additionalProperties": false,
         "properties": {
@@ -3253,7 +3278,8 @@
               "COMPARISON_REQUIRES_FULL_MONTH",
               "PLANNING_REVIEW_REQUIRED",
               "UNSUPPORTED_QUESTION",
-              "IDENTIFIER_NOT_ALLOWED"
+              "IDENTIFIER_NOT_ALLOWED",
+              "GENERAL_CONVERSATION"
             ],
             "title": "Reason",
             "type": "string"
@@ -3268,7 +3294,8 @@
               "ready",
               "clarification_required",
               "review_required",
-              "unsupported"
+              "unsupported",
+              "answered"
             ],
             "title": "Status",
             "type": "string"
@@ -3332,6 +3359,14 @@
               }
             ],
             "title": "Conversation Context"
+          },
+          "conversation_history": {
+            "items": {
+              "$ref": "#/components/schemas/CoachHistoryMessageV1"
+            },
+            "maxItems": 8,
+            "title": "Conversation History",
+            "type": "array"
           },
           "currency": {
             "default": "EUR",
@@ -15203,6 +15238,23 @@
               ],
               "title": "Prompt"
             }
+          },
+          {
+            "in": "query",
+            "name": "return_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "const": "/import",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Return To"
+            }
           }
         ],
         "responses": {
@@ -16173,6 +16225,142 @@
           }
         ],
         "summary": "Dashboard"
+      }
+    },
+    "/v1/demo-statements/dataset": {
+      "get": {
+        "operationId": "dataset_v1_demo_statements_dataset_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Dataset"
+      }
+    },
+    "/v1/demo-statements/sample/auto-taxis.csv": {
+      "get": {
+        "operationId": "sample_v1_demo_statements_sample_auto_taxis_csv_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Sample"
+      }
+    },
+    "/v1/demo-statements/session": {
+      "post": {
+        "operationId": "start_v1_demo_statements_session_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Start"
+      }
+    },
+    "/v1/demo-statements/statements/wise/accounts": {
+      "get": {
+        "operationId": "accounts_v1_demo_statements_statements_wise_accounts_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Accounts"
+      }
+    },
+    "/v1/demo-statements/statements/wise/confirm": {
+      "post": {
+        "operationId": "confirm_v1_demo_statements_statements_wise_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileConfirm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm"
+      }
+    },
+    "/v1/demo-statements/statements/wise/preview": {
+      "post": {
+        "operationId": "preview_v1_demo_statements_statements_wise_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileUpload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preview"
       }
     },
     "/v1/demo/banks": {

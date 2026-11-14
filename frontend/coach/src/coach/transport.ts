@@ -10,13 +10,14 @@ import {languageCommand} from './conversation-language';
 export const COACH_REVISION=process.env.NEXT_PUBLIC_MONEY_COACH_REVISION ?? "";
 export const REVISION_HEADER="X-Money-Coach-Revision";
 
-/** Send only the current question and, for explicit follow-ups, validated selectors. */
+/** Only bounded dialogue text may accompany a hosted request; never send client tool output. */
 export const prepareCoachRequest:NonNullable<HttpChatTransportInitOptions<CoachMessage>["prepareSendMessagesRequest"]>=({messages,body})=>{
   const latest=messages.at(-1);
   if(!latest || latest.role!=="user") throw new Error("A final user question is required");
   const question=latest.parts.filter(p=>p.type==="text").map(p=>p.text).join(" ");
   const context=isFollowUpQuestion(languageCommand(question)?.question||question) && body?.context!==undefined ? questionContextSchema.parse(body.context) : undefined;
-  return {body:{...(body?.dataset===undefined ? {} : {dataset:datasetKeySchema.parse(body.dataset)}),...(body?.scope===undefined ? {} : {scope:dataScopeSchema.parse(body.scope)}),...(body?.period===undefined ? {} : {period:periodSchema.parse(body.period)}),...(context ? {context} : {}),messages:[{role:latest.role,parts:latest.parts}],
+  const history=body?.privacy===false?messages.slice(0,-1).filter(message=>message.role==='user'||message.role==='assistant').slice(-8).map(message=>({role:message.role,parts:message.parts.filter(part=>part.type==='text').map(part=>({type:'text' as const,text:part.text.slice(0,2000)})).slice(0,1)})):[];
+  return {body:{...(body?.dataset===undefined ? {} : {dataset:datasetKeySchema.parse(body.dataset)}),...(body?.scope===undefined ? {} : {scope:dataScopeSchema.parse(body.scope)}),...(body?.period===undefined ? {} : {period:periodSchema.parse(body.period)}),...(context ? {context} : {}),messages:[...history,{role:latest.role,parts:latest.parts}],
     ...(body?.privacy===undefined ? {} : {privacy:body.privacy===true}),
     ...(body?.locale===undefined ? {} : {locale:body.locale}),
     ...(body?.conversationLanguage===undefined ? {} : {conversationLanguage:body.conversationLanguage}),

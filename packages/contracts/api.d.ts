@@ -121,6 +121,30 @@ export interface paths {
     /** Dashboard */
     get: operations["dashboard_v1_dashboard_get"];
   };
+  "/v1/demo-statements/dataset": {
+    /** Dataset */
+    get: operations["dataset_v1_demo_statements_dataset_get"];
+  };
+  "/v1/demo-statements/sample/auto-taxis.csv": {
+    /** Sample */
+    get: operations["sample_v1_demo_statements_sample_auto_taxis_csv_get"];
+  };
+  "/v1/demo-statements/session": {
+    /** Start */
+    post: operations["start_v1_demo_statements_session_post"];
+  };
+  "/v1/demo-statements/statements/wise/accounts": {
+    /** Accounts */
+    get: operations["accounts_v1_demo_statements_statements_wise_accounts_get"];
+  };
+  "/v1/demo-statements/statements/wise/confirm": {
+    /** Confirm */
+    post: operations["confirm_v1_demo_statements_statements_wise_confirm_post"];
+  };
+  "/v1/demo-statements/statements/wise/preview": {
+    /** Preview */
+    post: operations["preview_v1_demo_statements_statements_wise_preview_post"];
+  };
   "/v1/demo/banks": {
     /** Directory */
     get: operations["directory_v1_demo_banks_get"];
@@ -1604,6 +1628,16 @@ export interface components {
        */
       kind?: "habits";
     };
+    /** CoachHistoryMessageV1 */
+    CoachHistoryMessageV1: {
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: "user" | "assistant";
+      /** Text */
+      text: string;
+    };
     /** CoachInterpretationV1 */
     CoachInterpretationV1: {
       /** Intent */
@@ -1628,7 +1662,7 @@ export interface components {
        * Reason
        * @enum {string}
        */
-      reason: "SUPPORTED_QUERY" | "PERIOD_REQUIRED" | "PERIOD_INVALID" | "FILTER_REQUIRED" | "CHANGE_REQUIRED" | "COMPARISON_REQUIRES_FULL_MONTH" | "PLANNING_REVIEW_REQUIRED" | "UNSUPPORTED_QUESTION" | "IDENTIFIER_NOT_ALLOWED";
+      reason: "SUPPORTED_QUERY" | "PERIOD_REQUIRED" | "PERIOD_INVALID" | "FILTER_REQUIRED" | "CHANGE_REQUIRED" | "COMPARISON_REQUIRES_FULL_MONTH" | "PLANNING_REVIEW_REQUIRED" | "UNSUPPORTED_QUESTION" | "IDENTIFIER_NOT_ALLOWED" | "GENERAL_CONVERSATION";
       /**
        * Resolved At
        * Format: date-time
@@ -1638,7 +1672,7 @@ export interface components {
        * Status
        * @enum {string}
        */
-      status: "ready" | "clarification_required" | "review_required" | "unsupported";
+      status: "ready" | "clarification_required" | "review_required" | "unsupported" | "answered";
       /**
        * Timezone
        * @default Europe/Helsinki
@@ -1658,6 +1692,8 @@ export interface components {
       card_locale?: "en" | "fi" | "sv" | "et";
       /** Conversation Context */
       conversation_context?: string | null;
+      /** Conversation History */
+      conversation_history?: components["schemas"]["CoachHistoryMessageV1"][];
       /**
        * Currency
        * @default EUR
@@ -6394,6 +6430,7 @@ export interface operations {
     parameters: {
       query?: {
         prompt?: "login" | null;
+        return_to?: "/import" | null;
       };
     };
     responses: {
@@ -6812,6 +6849,94 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["DashboardView"];
+        };
+      };
+    };
+  };
+  /** Dataset */
+  dataset_v1_demo_statements_dataset_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  /** Sample */
+  sample_v1_demo_statements_sample_auto_taxis_csv_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  /** Start */
+  start_v1_demo_statements_session_post: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  /** Accounts */
+  accounts_v1_demo_statements_statements_wise_accounts_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
+  /** Confirm */
+  confirm_v1_demo_statements_statements_wise_confirm_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FileConfirm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Preview */
+  preview_v1_demo_statements_statements_wise_preview_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FileUpload"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };

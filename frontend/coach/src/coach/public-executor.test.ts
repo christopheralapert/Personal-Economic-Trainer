@@ -27,9 +27,23 @@ describe("explicitly enabled public synthetic Gemini",()=>{
   const network=vi.fn<typeof fetch>(mockGeminiFetch),execute=createPublicCoachExecutor({env,network});
   for(let i=0;i<3;i++){
    const result=await execute(request(),question,"fi",10,undefined,undefined,undefined,"organizer1",false);
-   expect(result).toMatchObject({source:"model",provider:"gemini-direct"});expect(result.message.parts[0]).toMatchObject({text:expect.stringContaining("30,97")});
+   expect(result).toMatchObject({source:"model",provider:"gemini-direct",diagnostic:"model_conversation_tool",message:{metadata:{generatedConversation:true}},usageDiagnostic:{calls:2}});expect(result.message.parts[0]).toMatchObject({text:expect.stringContaining("30,97")});
+   expect(result.message.parts.find(part=>part.type==='tool-showTransactions')).toMatchObject({input:{period:{start:'2026-08-01',end:'2026-09-01'},category:'taxi'},output:{netExpenses:3097}});
   }
-  expect(network).toHaveBeenCalledTimes(3);const ledger=await readFile(file,"utf8");expect(JSON.parse(ledger)).toMatchObject({version:2,attempts:3,completed:3,totalTokens:375});expect(ledger).not.toMatch(/fake-public-key|How much|MRC-TRN/);
+  expect(network).toHaveBeenCalledTimes(6);
+  for(const [index,[,init]] of network.mock.calls.entries()){
+   const body=JSON.parse(String(init?.body)),prompt=JSON.parse(body.contents.at(-1).parts[0].text);
+   expect(JSON.stringify(body)).not.toMatch(/MRC-|[0-9a-f]{8}-[0-9a-f-]{27,}|"(?:rows|transactions|account_id|amount_minor|balances|booked_on)"\s*:/iu);
+   if(index%2===0){
+    expect(body.toolConfig.functionCallingConfig.mode).toBe('ANY');expect(prompt.verifiedFacts).toBeUndefined();
+    const tool=body.tools[0].functionDeclarations.find((item:{name:string})=>item.name==='showTransactions');
+    expect(tool.parametersJsonSchema.properties).not.toHaveProperty('nextStep');
+   }else{
+    expect(body.generationConfig.responseMimeType).toBe('application/json');
+    expect(prompt.verifiedFacts).toEqual({verifiedSummary:expect.any(String),coverage:'partial',period:{start:'2026-08-01',end:'2026-09-01'},amount:expect.stringContaining('30,97')});
+   }
+  }
+  const ledger=await readFile(file,"utf8");expect(JSON.parse(ledger)).toMatchObject({version:2,attempts:3,completed:3,inputTokens:600,outputTokens:150,totalTokens:750});expect(ledger).not.toMatch(/fake-public-key|How much|MRC-TRN/);
  }));
  it("blocks all external calls in Privacy mode, without explicit enablement or for another origin",async()=>fixture(async(env,file)=>{
   const network=vi.fn<typeof fetch>(),execute=createPublicCoachExecutor({env,network});

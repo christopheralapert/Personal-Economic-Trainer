@@ -5,7 +5,7 @@ function collect(value:unknown,values:Set<number>):void {
     return;
   }
   if(typeof value==="string") {
-    for(const match of value.matchAll(/\d+(?:[.,]\d+)?/g)) values.add(Number(match[0].replace(",",".")));
+    for(const match of value.matchAll(/\d+(?:[\u00a0\u202f ]\d{3})*(?:[.,]\d+)?/g)) values.add(Number(match[0].replace(/[\u00a0\u202f ]/g,"").replace(",",".")));
     return;
   }
   if(Array.isArray(value)) {

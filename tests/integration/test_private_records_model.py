@@ -34,8 +34,11 @@ def private_model(database,owners,monkeypatch):
         question=payload["input"][0]["content"]
         args={"intent":"transactions" if "transactions" in question.lower() else "spending",**PERIOD,
             "category":None,"merchant":None,"reduction_basis_points":None,"comparison_mode":None}
+        composing=payload['tools'][0]['name']=='respond_to_money_message'
+        name='respond_to_money_message' if composing else 'interpret_money_question'
+        if composing:args={'text':'Review the recorded evidence before choosing a change.'}
         return httpx.Response(200,json={"status":"completed","usage":{"input_tokens":100,"output_tokens":100},
-            "output":[{"type":"function_call","name":"interpret_money_question","arguments":json.dumps(args)}]})
+            "output":[{"type":"function_call","name":name,"arguments":json.dumps(args)}]})
     with TestClient(app,base_url=ORIGIN) as client:
         client.portal.call(app.state.model.close)
         app.state.model=OpenAIResponses(config,transport=httpx.MockTransport(handle))
@@ -78,12 +81,12 @@ def test_owned_73_booked_records_paginate_and_model_results_match_same_scope(dat
     assert search.status_code==200,search.text
     search=search.json();assert len(search['transactions']['rows'])==50 and search['transactions']['next_cursor']
     assert search['transactions']['scope']['account_ids']==direct['scope']['account_ids']
-    assert len(captured)==2
+    assert len(captured)==4
     wire=json.dumps(captured)
     assert "Private fixture sentinel" not in wire and not any(identifier in wire for identifier in ids)
     assert all(p['store'] is False and p['max_output_tokens']==app.state.settings.model_max_output_tokens for p in captured)
     assert client.post('/v1/coach/query',headers={**auth,"X-CSRF-Token":"invalid"},json={"question":"spending"}).status_code==403
-    assert len(captured)==2
+    assert len(captured)==4
     # MyData exclusion applies to inventory, ledger and the model-selected tools.
     with psycopg.connect(database["admin"]) as c:c.execute("UPDATE moneylens.accounts SET included=false WHERE tenant_id=%s AND owner_user_id=%s",owners[0][:2])
     assert client.get('/v1/ledger/inventory',params=PERIOD).json()['total_booked_count']==0
@@ -94,4 +97,4 @@ def test_owned_73_booked_records_paginate_and_model_results_match_same_scope(dat
     assert other['total_booked_count']==1
     with psycopg.connect(database['admin']) as c:
         usage=c.execute("SELECT metadata FROM moneylens.audit_events WHERE tenant_id=%s AND owner_user_id=%s AND action='coach.model_usage'",owners[0][:2]).fetchall()
-        assert len(usage)==3 and all(row[0]['input_tokens']==100 for row in usage)
+        assert len(usage)==3 and all(row[0]['input_tokens']==200 and row[0]['calls']==2 for row in usage)

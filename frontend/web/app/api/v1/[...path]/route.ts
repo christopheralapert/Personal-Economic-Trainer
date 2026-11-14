@@ -52,7 +52,7 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
       (path.length === 5 && path[2] === "allocations" && job.test(path[3] ?? "") &&
         ["link", "unlink"].includes(path[4]) && request.method === "POST")));
   if (!fixed.has(`${request.method}:${endpoint}`) && !permittedClassification && !permittedAccount && !permittedJob && !permittedPlan && !permittedBank && !permittedLiveBank && !permittedGoal && !permittedInsight && !permittedImport && !permittedEducation && !permittedCoach && !permittedStatement) return NextResponse.json({ error: { code: "NOT_FOUND" } }, { status: 404, headers });
-  return proxyPrivate(request,`/v1/${endpoint}`,endpoint === "statements/wise/preview" ? 2800000 : endpoint === "statements/preview" ? 400000 : ["statements/wise/confirm","statements/confirm"].includes(endpoint) ? 262144 : endpoint === "plans" && request.method === "POST" ? 65536 : 8192);
+  return proxyPrivate(request,`/v1/${endpoint}`,endpoint === "statements/wise/preview" ? 2800000 : endpoint === "statements/preview" ? 400000 : ["statements/wise/confirm","statements/confirm"].includes(endpoint) ? 262144 : permittedCoach || endpoint === "plans" && request.method === "POST" ? 65536 : 8192);
 }
 
 export const GET = proxy;

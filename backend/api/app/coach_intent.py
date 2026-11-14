@@ -17,6 +17,11 @@ from .spending_comparison import comparison_window
 from .identity import AuthError
 
 
+class CoachHistoryMessageV1(Contract):
+    role: Literal["user","assistant"]
+    text: Annotated[StrictStr,Field(min_length=1,max_length=2000)]
+
+
 class CoachQuestionV1(Contract):
     question: Annotated[StrictStr,Field(min_length=1,max_length=2000)]
     privacy: StrictBool = True
@@ -25,6 +30,7 @@ class CoachQuestionV1(Contract):
     account_ids: list[UUID] | None = Field(default=None,min_length=1,max_length=50)
     expected_data_version: Annotated[StrictInt,Field(ge=1,le=2**53-1)] | None = None
     conversation_context: Annotated[StrictStr,Field(max_length=600)] | None = None
+    conversation_history: list[CoachHistoryMessageV1] = Field(default_factory=list,max_length=8)
 
     @model_validator(mode="after")
     def bounded_question(self):
@@ -34,6 +40,7 @@ class CoachQuestionV1(Contract):
             raise ValueError("Conversation context cannot contain control characters")
         if self.account_ids is not None and len(set(self.account_ids))!=len(self.account_ids):
             raise ValueError("Choose distinct account identities")
+        self.conversation_history=[message for message in self.conversation_history if safe_history_text(message.text)]
         return self
 
 
@@ -49,13 +56,13 @@ class CoachHabitsIntentV1(Contract):
 
 CoachIntentV1=Annotated[CoachAnalysisIntentV1|CoachHabitsIntentV1,Field(discriminator="kind")]
 Reason=Literal["SUPPORTED_QUERY","PERIOD_REQUIRED","PERIOD_INVALID","FILTER_REQUIRED","CHANGE_REQUIRED",
-    "COMPARISON_REQUIRES_FULL_MONTH","PLANNING_REVIEW_REQUIRED","UNSUPPORTED_QUESTION","IDENTIFIER_NOT_ALLOWED"]
+    "COMPARISON_REQUIRES_FULL_MONTH","PLANNING_REVIEW_REQUIRED","UNSUPPORTED_QUESTION","IDENTIFIER_NOT_ALLOWED","GENERAL_CONVERSATION"]
 
 
 class CoachInterpretationV1(Contract):
     interpretation_version: Literal["coach-intent.v1"] = "coach-intent.v1"
     method: Literal["bounded_english_patterns","structured_model"] = "bounded_english_patterns"
-    status: Literal["ready","clarification_required","review_required","unsupported"]
+    status: Literal["ready","clarification_required","review_required","unsupported","answered"]
     reason: Reason
     message: str = Field(max_length=600)
     resolved_at: AwareDatetime
@@ -67,6 +74,9 @@ class CoachInterpretationV1(Contract):
     def coherent_intent(self):
         if (self.status=="ready")!=(self.intent is not None):
             raise ValueError("Only complete supported questions have an executable intent")
+        if (self.status=="answered")!=(self.reason=="GENERAL_CONVERSATION") or (
+            self.status=="answered" and (self.method!="structured_model" or self.next_view is not None)):
+            raise ValueError("Conversational answers require model prose without a financial intent")
         return self
 
 
@@ -123,6 +133,15 @@ def interpretation_message(reason,locale):
 
 def question_has_identifiers(text):
     return bool(re.search(r"\b[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\b|\b[A-Z]{2}\d{2}(?:[ -]?[A-Z0-9]){11,30}\b",text,re.I))
+
+
+def safe_history_text(text):
+    """Dialogue only: discard identifiers, pasted records and unsafe control text."""
+    try: text.encode("utf-8")
+    except UnicodeError: return False
+    return bool(text.strip()) and not question_has_identifiers(text) and not any(
+        (ord(c)<32 and c not in "\r\n") or 127<=ord(c)<=159 for c in text
+    ) and not re.search(r'```|[\[{]\s*["{]|\b(?:account_id|tenant_id|owner_user_id|transaction_id|amount_minor|booked_on|next_cursor|rows|merchant|description)\b["\s]*[:=]',text,re.I)
 
 
 ALIASES={**dict.fromkeys(("dining out","dining","ravintolat","ravintoloihin","ravintolakuluja","ulkona syöminen","restoranid","restoranidele","restoranikulusid","väljas söömine"),"dining"),
