@@ -1,6 +1,35 @@
 # Production presentation handoff — 14 November 2026
 
-## Verified result
+## Coordinator update — 14 November 2026, 15:13 EET
+
+The current presentation is now the integrated main web build, not the old target described in the original handoff below. Source branch: `integration/presentation-next`; source commit: `2fc4c66` (includes presentation `735b822` and environment guide `78a43ab`). The separate production artifact is `frontend/web/.next/presentation-next-20261114`, with **build ID `2fc4c66-131377e695625033`**. The build passed; its isolated output did not replace the existing 33118 preview's artifact.
+
+| Running endpoint | Verified behavior |
+| --- | --- |
+| `http://127.0.0.1:33119/demo?dataset=organizer1` | Gemini enabled for this loopback origin. The normal browser Settings → Suomi → Privacy mode off journey made one real synthetic model request: HTTP 200, `source=model`, `provider=gemini-direct`, `evaluation=model_tool`. |
+| `https://trophy-ranged-precook.ngrok-free.dev/demo?dataset=organizer1` | Existing ngrok tunnel still targets `http://127.0.0.1:33110`. Gemini chat and hosted voice are explicitly disabled in this server's runtime; provider keys are removed from its child environment. Browser/device voice remains selected. |
+
+Both local servers and the actual HTTPS response returned HTTP 200 and the same `X-MoneyLens-Build: 2fc4c66-131377e695625033`. An ordinary fresh Chrome session completed ngrok's **Visit Site** warning and exercised public chat without request interception. Default Privacy mode returned `source=rule`, `evaluation=privacy_rule`; deliberately disabling Privacy mode still returned `source=rule`, `evaluation=public_configuration`, without a provider. The public `/api/voice/capabilities` response confirmed `enabled=false`. Browser speech controls were present, and there were no page errors. This confirms public local-answer configuration, not physical microphone or audio playback.
+
+The visible sentence in both real browser journeys was **Käytit takseihin elokuussa 2026 yhteensä 30,97 €.** Its evidence button opened **MRC-TRN-0063**, **26.8.2026**, **−30,97 €**, taxi. Turning Privacy mode back on at the Gemini-enabled local endpoint also returned the local `privacy_rule` response without a provider. No extra paid model call was used for that check.
+
+The root ignored `.env` was loaded explicitly by the local Gemini launcher. Checks passed for `GEMINI_API_KEY`, `MONEY_COACH_PUBLIC_GEMINI_ENABLED`, `MONEY_COACH_PUBLIC_AI_ORIGINS` and `MONEY_COACH_MODEL_USAGE_PATH`. The key was not displayed; a fingerprint excluding only the three requested configuration lines confirmed all other settings were preserved. The earlier local model network failure came from the sandboxed server process; running the same build through the approved external Command Prompt resolved it without application changes.
+
+Verification on this artifact:
+
+- Production web build: passed.
+- `npm run typecheck`: both web and Coach passed, including a repeat after removing generated custom-dist TypeScript configuration changes.
+- Demo Playwright configuration: **15 passed on 33119 and 15 passed on 33110**, including Finnish evidence/scenario and loading/loaded skip-link focus.
+- Voice Playwright configuration: **33 passed on each server**. Recognition, synthesis, audio and hosted voice remain mocked; the browser journeys above use real chat routes.
+- `npm test`: **168 Vitest + 15 AI/PWA Node tests passed**, without live providers.
+- `npm run test:web-money`: **7 passed**, including native import-file validation.
+- `npm run test:worker`: **54 passed**, including privacy, offline fallback and ngrok warning handling.
+
+For the production browser suites, set `MONEYLENS_DEMO_TEST_ORIGIN` to the local origin and `MONEYLENS_VOICE_TEST_PORT` to its port, then invoke `node node_modules/@playwright/test/cli.js test --config tests/config/playwright.demo.config.ts` and the corresponding `playwright.voice.config.ts`. These checks attach to the existing production server rather than regenerating its build.
+
+The ngrok process and 33118 demo were left alone. `agent/voice-polish` still has no new commit beyond `32c5877`; its future changes are not part of this presentation. Uncommitted `pet-signup-next` files were preserved; their database check remains separate and was not run here. No push was made. The physical-phone trial below is still pending and must not be inferred from mocked voice results. Documentation-only commits after `2fc4c66` do not change the running artifact's build ID.
+
+## Original agent verification
 
 At 14:37–14:41 EET, the integrated source was commit `32c5877b4ef07df5c6d009c168fb13fa571fcfdb`, with production build ID `32c5877-131377e695625033`. An additional main-web `next start` server was started on an OS-selected free loopback port, **53612**. It remains running for the coordinator at `http://127.0.0.1:53612/demo?dataset=organizer1`. No build was regenerated and the existing presentation server was left running.
 
