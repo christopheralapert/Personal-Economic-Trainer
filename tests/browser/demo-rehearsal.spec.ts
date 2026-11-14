@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './demo-support';
 import {mkdir} from 'node:fs/promises';
 
 test('Junction demo rehearses baskets, explanation, coach and scenario without live banking',async({page})=>{
@@ -24,7 +24,7 @@ test('Junction demo rehearses baskets, explanation, coach and scenario without l
   await page.locator('#home-question').press('Enter');
   await expect(page.locator('main')).toContainText('40,00');
   await page.getByRole('tab',{name:'Coach',exact:true}).click();
-  await page.locator('main input').last().fill('What if I cut dining out by 20%?');
+  await page.getByRole('textbox',{name:'Your question',exact:true}).fill('What if I cut dining out by 20%?');
   await page.getByRole('button',{name:'Send question',exact:true}).click();
   await expect(page.locator('main')).toContainText('50,00');
   await page.screenshot({path:'.impeccable/review/junction-demo-coach.png',fullPage:true,animations:'disabled'});

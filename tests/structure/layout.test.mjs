@@ -51,7 +51,7 @@ test("backend migration and fixture paths retain repository-root boundaries",asy
   assert.ok(config.includes('testpaths = ["../../tests/api"]'));
 });
 
-for(const suite of ["", ".container", ".finance", ".first-login", ".legal"]) {
+for(const suite of ["", ".container", ".finance", ".first-login", ".legal", ".demo"]) {
   test(`browser ${suite.slice(1)||"default"} configuration discovers tests from outside the repository`,()=>{
     const config=path.join(root,`tests/config/playwright${suite}.config.ts`);
     const result=spawnSync(process.execPath,[path.join(root,"node_modules/@playwright/test/cli.js"),"test","--config",config,"--list","--reporter=json"],{

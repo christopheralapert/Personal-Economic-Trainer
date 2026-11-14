@@ -20,6 +20,7 @@ All main-app Playwright configurations live in `tests/config/`. They resolve tes
 
 - `playwright.config.ts`: default synthetic/API-backed application checks.
 - `playwright.legal.config.ts`: isolated legal-page configuration; run `npm run test:web:legal`.
+- `playwright.demo.config.ts`: phone presentation and public entry checks; run `npm run build:web` then `npm run test:demo`. No Python API, database, identity provider, bank or hosted AI is needed.
 - `playwright.container.config.ts`: foundation checks against an already running container preview; run `npm run test:web:container`.
 - `playwright.finance.config.ts`: invoked by the isolated finance integration fixture; its opt-in guard remains enabled.
 - `playwright.first-login.config.ts`: invoked by the isolated identity integration fixture.
@@ -31,5 +32,11 @@ npm run test:web -- --list
 ```
 
 Pass test selections through the root command, for example `npm run test:web -- tests/browser/dashboard.spec.ts`. Standalone coach unit and browser tests stay under `frontend/coach`; run its unit suite with `npm test` and its browser suite with `npx playwright test --config frontend/coach/playwright.config.ts`.
+
+The demo suite starts the production web build on port 31361. It checks Finnish taxi answers and transaction details at 390px and 360px, the three classified baskets (with unreviewed payments shown separately), and September 2026 dining reductions of 20% yielding 159,58 €. Chat uses the real local-rule stream through test transport; private session checks and the bank directory are mocked, hosted voice is disabled, and external browser requests are blocked. Screenshots and failure traces stay under ignored `test-results/demo/`.
+
+To test an already running local production web build, set `MONEYLENS_DEMO_TEST_ORIGIN` to its HTTP origin, including the port, before running `npm run test:demo`. Only loopback origins are accepted. The supplied server stays running after the suite finishes; the test transport still forces local-rule chat and intercepts private APIs.
+
+Shared Coach handoff: on `/demo?dataset=organizer1`, press Tab to focus “Skip to content”, then Enter. The URL gains `#main`, but focus stays on the link: `document.querySelector('#main')` is `null`. `frontend/web/app/layout.tsx` supplies the link, while both loading and ready `<main>` elements in `frontend/coach/src/components/money-coach.tsx` omit its target ID. This reproduces in the production web build; the shared-component fix is left to the coordinator.
 
 The coach's `playwright.public.config.ts` checks speech and privacy controls against an already running main web build. Start `npm start -- --port 33110`, then run `npx playwright test --config frontend/coach/playwright.public.config.ts`. Set `MONEY_COACH_PUBLIC_ORIGIN` if the preview uses another local origin. Keep hosted services disabled: the suite mocks microphone input, speech output, and hosted voice responses and forces local-rule answers for mocked voice cases. It does not establish physical-device speech support or live provider availability.
