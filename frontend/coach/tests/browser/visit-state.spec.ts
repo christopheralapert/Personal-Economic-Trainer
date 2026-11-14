@@ -42,6 +42,7 @@ test("history paging and confirmed status survive leaving the coach without comm
 test("monthly simulator choices survive navigation and goal setup returns to its source without promising affordability",async({page})=>{
   let calls=0;page.on("request",request=>{if(request.method()==="POST" && request.url().endsWith("/api/chat")) calls++;});
   await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");await page.getByRole("tab",{name:en.whatif,exact:true}).click();
+  await page.getByRole("button",{name:new RegExp(`^${en.dining} `)}).click();
   const combined=page.getByRole("region",{name:en.combined,exact:true}),dining=page.getByRole("slider",{name:`${en.reduce} ${en.dining}`,exact:true});
   await expect(combined).toContainText("61,30");await dining.focus();await page.keyboard.press("Home");await expect(combined).toContainText("11,30");
   async function month(date:string){await page.getByRole("button",{name:date==="1.9.2026" ? en.previousPeriod : en.nextPeriod,exact:true}).click();}

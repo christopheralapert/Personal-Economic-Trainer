@@ -32,10 +32,12 @@ test("source inventory is translated, dated and readable without assuming contin
   await page.getByRole("button",{name:en.settings,exact:true}).click();
   for(const copy of [en,fi,et]) {
     await page.getByLabel(copy===en ? en.english : copy===fi ? en.finnish : en.estonian,{exact:true}).check();
-    const inventory=page.locator("section").filter({has:page.getByRole("heading",{name:copy.source,exact:true})});
-    await expect(inventory).toContainText(copy.inventoryNote);await expect(inventory).toContainText("4.11.2026");
+    await page.getByRole("button",{name:copy.aboutData,exact:true}).click();
+    const inventory=page.getByRole("region",{name:copy.source,exact:true});
+    await expect(inventory).toContainText(copy.sourceNote);await expect(inventory).toContainText(copy.partial);await expect(inventory).toContainText("4.11.2026");
     await expect(inventory.locator("dl div").filter({has:page.getByText(copy.transactions,{exact:true})}).locator("dd")).toHaveText("13");
     for(const width of [360,390,430,768]) {await page.setViewportSize({width,height:844});await page.evaluate(()=>{document.documentElement.style.fontSize="130%";});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
+    await page.getByRole("dialog").getByRole("button",{name:copy.done,exact:true}).click();
   }
   await page.evaluate(()=>{document.documentElement.style.fontSize="";});await page.setViewportSize({width:390,height:844});
   for(const colorScheme of ["light","dark"] as const){await page.emulateMedia({colorScheme});await page.screenshot({path:`${captures}/source-inventory-${colorScheme}.png`,fullPage:true});}

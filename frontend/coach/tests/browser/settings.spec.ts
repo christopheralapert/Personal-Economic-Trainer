@@ -6,13 +6,17 @@ test("settings show source-backed mock banks and capability-gated install states
   await page.addInitScript(()=>window.addEventListener("beforeinstallprompt",event=>{if(event.isTrusted) event.stopImmediatePropagation();}));
   await page.setViewportSize({width:390,height:844});await page.goto("/");
   await page.getByRole("button",{name:"Settings",exact:true}).click();
+  // Detail lives in one sheet per settings row.
+  await page.getByRole("button",{name:/^Connected banks/}).click();
   const banks=page.getByRole("region",{name:"Connected banks",exact:true});
   await expect(banks).toContainText("S-Bank demo");await expect(banks).toContainText("North demo bank");
   await expect(banks).toContainText("500,00");await expect(banks).toContainText("300,00");
   await expect(banks.getByText("Demo only",{exact:true})).toHaveCount(2);
+  await page.getByRole("dialog").getByRole("button",{name:"Done",exact:true}).click();await page.getByRole("button",{name:/^Add to your home screen/}).click();
   const install=page.getByRole("region",{name:"Add to your home screen",exact:true});
   await expect(install.getByRole("button",{name:"Install Money Coach",exact:true})).toHaveCount(0);
-  await install.getByRole("button",{name:"How to install",exact:true}).click();
+  // Inside the sheet the installation help is shown directly (no nested disclosure).
+  await expect(install.getByRole("button",{name:"How to install",exact:true})).toHaveCount(0);
   await expect(install).toContainText("Some browsers and embedded views do not offer installation");
   await page.evaluate(()=>{
     const state={calls:0,resolve:null as null|((value:{outcome:"dismissed"})=>void)};
@@ -35,6 +39,8 @@ test("settings show source-backed mock banks and capability-gated install states
   });
   await action.click();await expect(install).toContainText("Installation accepted");await expect(install.getByText("Money Coach is installed.",{exact:true})).toHaveCount(0);
   await page.evaluate(()=>window.dispatchEvent(new Event("appinstalled")));await expect(install).toContainText("Money Coach is installed.");
+  await page.getByRole("dialog").getByRole("button",{name:"Done",exact:true}).click();
+  await expect(page.getByRole("dialog")).toBeHidden();
   for(const [width,scheme,language,enlarged] of [[390,"dark","Eesti",false],[360,"light","Eesti",true],[430,"dark","Suomi",false],[768,"light","English",false]] as const) {
     await page.setViewportSize({width,height:844});await page.emulateMedia({colorScheme:scheme,reducedMotion:"reduce"});await page.getByLabel(language,{exact:true}).check();
     await page.evaluate(large=>{document.documentElement.style.fontSize=large ? "130%" : "100%";window.scrollTo(0,0);},enlarged);

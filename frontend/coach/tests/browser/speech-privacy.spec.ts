@@ -57,7 +57,7 @@ test('privacy mode does not use a remote-only read-aloud voice',async({page})=>{
 
 test('settings switches privacy and shows the online speech disclosure',async({page})=>{
  await setup(page,'available');await page.getByRole('button',{name:fi.settings,exact:true}).click();
- const privacy=page.getByRole('checkbox',{name:new RegExp(fi.privacyMode)});await expect(privacy).toBeChecked();await privacy.uncheck();
+ const privacy=page.getByRole('switch',{name:new RegExp(fi.privacyMode)});await expect(privacy).toBeChecked();await privacy.uncheck();
  await page.getByRole('button',{name:fi.back,exact:true}).click();await expect(page.getByText(fi.speechOnline)).toBeVisible();
  await page.getByRole('button',{name:fi.settings,exact:true}).click();await privacy.check();await page.getByRole('button',{name:fi.back,exact:true}).click();await expect(page.getByText(fi.speechOnline)).toHaveCount(0);
 });
@@ -73,7 +73,7 @@ async function cloudVoice(page:import('@playwright/test').Page,denied=false){
   Object.defineProperty(window,'MediaRecorder',{configurable:true,value:Recorder});
   Object.defineProperty(window,'Audio',{configurable:true,value:class {addEventListener(){}async play(){state.plays++;}pause(){state.pauses++;}}});
  },denied);
- await setup(page,'available');await page.getByRole('button',{name:fi.settings,exact:true}).click();await page.getByRole('checkbox',{name:new RegExp(fi.privacyMode)}).uncheck();await page.getByRole('radio',{name:fi.geminiVoice,exact:true}).check();await page.screenshot({path:path.resolve(__dirname,'../../../../.impeccable/review/gemini-voice-settings.png'),animations:'disabled'});await page.getByRole('button',{name:fi.back,exact:true}).click();await expect(page.getByText(fi.geminiVoiceNotice).or(page.getByText(fi.geminiCoachVoiceNotice))).toBeVisible();
+ await setup(page,'available');await page.getByRole('button',{name:fi.settings,exact:true}).click();await page.getByRole('switch',{name:new RegExp(fi.privacyMode)}).uncheck();await page.getByRole('button',{name:new RegExp(`^${fi.voiceSettings}`)}).click();await page.getByRole('radio',{name:fi.geminiVoice,exact:true}).check();await page.screenshot({path:path.resolve(__dirname,'../../../../.impeccable/review/gemini-voice-settings.png'),animations:'disabled'});await page.keyboard.press('Escape');await page.getByRole('button',{name:fi.back,exact:true}).click();await expect(page.getByText(fi.geminiVoiceNotice).or(page.getByText(fi.geminiCoachVoiceNotice))).toBeVisible();
 }
 
 test('Gemini recording is editable before sending and reads the same grounded Finnish answer',async({page})=>{

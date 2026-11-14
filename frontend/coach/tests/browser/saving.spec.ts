@@ -8,9 +8,10 @@ test("localized saving education prepares a review with the configured target an
   await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:"reduce"});
   for(const copy of [en,fi,et]) {
     await page.goto("/");await page.evaluate(()=>localStorage.removeItem("money-coach-preferences.v1"));await page.reload();await page.getByRole("button",{name:en.settings,exact:true}).click();await page.getByLabel(copy===fi ? en.finnish : copy===et ? en.estonian : en.english,{exact:true}).check();
-    await page.getByRole("slider",{name:copy.target,exact:true}).press("End");await page.getByRole("button",{name:copy.overview,exact:true}).click();
+    await page.getByRole("button",{name:new RegExp(`^${copy.target}`)}).click();await page.getByRole("slider",{name:copy.target,exact:true}).press("End");await page.getByRole("dialog").getByRole("button",{name:copy.done,exact:true}).click();await page.getByRole("tab",{name:copy.overview,exact:true}).click();
     await page.getByRole("tab",{name:copy.learn,exact:true}).click();const before=calls;
     await page.getByRole("button",{name:new RegExp(copy.savingConcept)}).click();
+    await page.getByRole("region",{name:new RegExp(copy.savingConcept)}).getByRole("button",{name:copy.askCoach,exact:true}).click();
     const answer=page.locator("article").last();await expect(answer).toContainText(copy.saveRoom);expect(calls).toBe(before+1);
     await answer.getByRole("button",{name:copy.calculation,exact:true}).click();await expect(page.getByRole("dialog")).toContainText(copy.safeSaveNote);await expect(page.getByRole("dialog")).toContainText(/100\s%/);await page.getByRole("dialog").getByRole("button",{name:copy.done,exact:true}).click();
     await answer.getByRole("button",{name:copy.goal,exact:true}).click();await expect(page.getByRole("textbox",{name:copy.goalName,exact:true})).toBeFocused();

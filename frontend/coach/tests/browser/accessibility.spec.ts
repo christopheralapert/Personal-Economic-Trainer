@@ -22,6 +22,8 @@ test("accessible controls, chart alternatives and WCAG checks across themes and 
     await expect(page.getByRole("tab",{name:en.overview,exact:true})).toHaveAttribute("aria-selected","true");
     await audit(page,`${colorScheme} overview`);
     await page.getByRole("tab",{name:en.whatif,exact:true}).click();
+    // The category picker chooses which category the single slider controls.
+    await page.getByRole("button",{name:new RegExp(`^${en.dining} `)}).click();
     const dining=page.getByRole("slider",{name:`${en.reduce} ${en.dining}`,exact:true});
     await expect(dining).toHaveAttribute("aria-valuetext",percent(20));
     await dining.focus();await page.keyboard.press("ArrowRight");
@@ -32,10 +34,10 @@ test("accessible controls, chart alternatives and WCAG checks across themes and 
     let current:typeof fi=en;
     for(const copy of [fi,et,en]) {
       await page.getByLabel(copy===fi ? current.finnish : copy===et ? current.estonian : current.english,{exact:true}).check();
-      await expect(page.getByRole("slider",{name:copy.target,exact:true})).toHaveAttribute("aria-valuetext",percent(10));
+      await page.getByRole("button",{name:new RegExp(`^${copy.target}`)}).click();await expect(page.getByRole("slider",{name:copy.target,exact:true})).toHaveAttribute("aria-valuetext",percent(10));await page.getByRole("dialog").getByRole("button",{name:copy.done,exact:true}).click();
       current=copy;
     }
-    await page.getByRole("button",{name:en.overview,exact:true}).click();
+    await page.getByRole("tab",{name:en.overview,exact:true}).click();
     await page.getByRole("tab",{name:en.learn,exact:true}).click();
     await audit(page,`${colorScheme} learn`);
     await page.getByRole("tab",{name:en.coach,exact:true}).click();

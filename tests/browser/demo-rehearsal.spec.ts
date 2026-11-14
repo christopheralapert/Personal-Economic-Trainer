@@ -7,7 +7,8 @@ test('Junction demo rehearses baskets, explanation, coach and scenario without l
   page.on('response',response=>{if(new URL(response.url()).pathname==='/api/chat')answers.push(response.headers()['x-money-coach-source']??'unknown');});
   await page.setViewportSize({width:390,height:844});await page.goto('/demo?dataset=starter');
   await expect(page.locator('header')).toContainText('Synthetic');
-  await expect(page.locator('[data-overview-block="baskets"] button')).toHaveCount(3);
+  await expect(page.locator('[data-overview-block="baskets"]').getByRole('button',{name:/^(Regular|Surprises|Everyday) /})).toHaveCount(3);
+  await expect(page.locator('[data-overview-block="baskets"]').getByRole('img',{name:/^Spending by basket: /})).toBeVisible();
   await expect(page.locator('[data-overview-block="baskets"]')).toContainText('Regular');
   await expect(page.locator('[data-overview-block="baskets"]')).toContainText('Surprises');
   await expect(page.locator('[data-overview-block="baskets"]')).toContainText('Everyday');

@@ -46,7 +46,7 @@ test('owned review persists through reload and the same scope feeds Overview and
  await page.getByRole('link',{name:'Overview',exact:true}).click();await expect(page.locator('[data-chart-total]')).toContainText('12,34');
  for(const scheme of ['light','dark'] as const){await page.emulateMedia({colorScheme:scheme});await page.screenshot({path:`.impeccable/review/classification/overview-${scheme}.png`,fullPage:true,animations:'disabled'});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
  await page.getByRole('link',{name:'Coach',exact:true}).click();await page.getByLabel('Question (English)',{exact:true}).fill('Show transactions in October 2026');await page.getByRole('button',{name:'Read my records',exact:true}).click();
- await expect(page.locator('[data-coach-ledger-row]')).toHaveCount(2);await expect(page.locator('[data-coach-ledger-row]').first()).toContainText('taxi');
+ await expect(page.locator('[data-coach-ledger-row]')).toHaveCount(2);await expect(page.locator('[data-coach-ledger-row]').first()).toContainText('Taxis');
  await page.screenshot({path:'.impeccable/review/classification/coach.png',fullPage:true,animations:'disabled'});
  await page.getByLabel('Question (English)',{exact:true}).focus();
  await page.evaluate(()=>{Object.defineProperty(window.visualViewport!,'height',{configurable:true,get:()=>500});window.visualViewport!.dispatchEvent(new Event('resize'));});

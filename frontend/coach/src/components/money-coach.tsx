@@ -43,6 +43,9 @@ import {InstallApp} from "./install-app";
 import {CategoryLimit} from "./category-limit";
 import {MonthlyPlans} from "./monthly-plans";
 import {DataSourceDetails} from "./data-source-details";
+import {SettingsGroup,SettingsRow,SettingsSheetRow} from "./settings-list";
+import {Switch} from "./ui/switch";
+import {bankSummaries} from "@/engine";
 
 const tabs=[{key:"overview",Icon:ChartNoAxesColumn},{key:"coach",Icon:MessageCircle},{key:"whatif",Icon:SlidersHorizontal},{key:"learn",Icon:BookOpen}] as const;
 export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embeddedDemo?:boolean;onlineCoachEnabled?:boolean}={}) {
@@ -118,15 +121,16 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
     {sourceReady && <header className="pt-safe"><div className="flex min-h-touch items-center justify-between gap-3 px-4"><div className="flex min-w-0 items-center gap-3"><div className="min-w-0"><h1 className="text-xl font-semibold">{t("app")}</h1>{(!flat || embeddedDemo || dataset.startsWith("organizer")) && <p className="mt-1 text-sm text-ink-2">{t(dataset.startsWith("organizer") ? "organizerDate" : "demo",{date:date(snapshot)})}</p>}</div></div>{<Button variant="ghost" size="icon" aria-label={settings || goal || controlsOpen ? t("back") : t("settings")} onClick={()=>{if(controlsOpen){closeControls();}else if(goal){setGoal(false);setSettings(goalOrigin==="settings");}else setSettings(!settings);}}>{settings || goal || controlsOpen ? <ChevronLeft className="size-5"/> : <Settings className="size-5"/>}</Button>}</div></header>}
     <main id="main" tabIndex={-1} className={!sourceReady ? "space-y-6 p-4" : tab==="coach" && !settings && !goal && !controlsOpen ? "px-4 pt-6 conversation-space" : flat ? "px-4" : "space-y-6 px-4 py-6"}>
       {!sourceReady ? <><h1 className="text-xl font-semibold">{t("app")}</h1><p role="status">{t(loadError ? "personaError" : "personaLoading")}</p>{loadError ? <DatasetPicker/> : <Skeleton className="h-64 rounded-3xl"/>}</> : <>
-      {controlsOpen ? <MyDataPanel/> : settings ? <PreferencesScreen savedGoal={savedGoal} onPrivacyChange={value=>{stop();setPrivacy(value);}} onGoal={()=>{setGoalOrigin("settings");setSettings(false);setGoal(true);}}/> : goal ? <SavingsGoalFlow initial={savedGoal} onBack={()=>{setGoal(false);setSettings(goalOrigin==="settings");}} onSave={value=>{setSavedGoal(value);setGoal(false);setSettings(goalOrigin==="settings");toast.success(t("goalSaved"));}}/> : <Tabs value={tab} onValueChange={setTab}>
+      <Tabs value={settings || goal || controlsOpen ? "" : tab} onValueChange={value=>{if(controlsOpen)closeControls();setSettings(false);setGoal(false);setTab(value);}}>
+        {controlsOpen ? <MyDataPanel/> : settings ? <PreferencesScreen legal={embeddedDemo} savedGoal={savedGoal} onPrivacyChange={value=>{stop();setPrivacy(value);}} onGoal={()=>{setGoalOrigin("settings");setSettings(false);setGoal(true);}}/> : goal ? <SavingsGoalFlow initial={savedGoal} onBack={()=>{setGoal(false);setSettings(goalOrigin==="settings");}} onSave={value=>{setSavedGoal(value);setGoal(false);setSettings(goalOrigin==="settings");toast.success(t("goalSaved"));}}/> : <>
         <TabsContent value="overview">
           <ViewScope store={visitViews} name="overview"><OverviewFocus onAsk={askFromEntry} onLearn={basket=>{setTab("learn");requestAnimationFrame(()=>document.getElementById(`learn-${basket}`)?.scrollIntoView({block:"start",behavior:"instant"}));}} busy={busy}/></ViewScope>
         </TabsContent>
         <TabsContent value="coach">
-          <div className="mb-6 flex items-center justify-between gap-4"><h2 className="text-xl font-bold">{t("coach")}</h2><Button variant="ghost" size="icon" aria-label={t("clear")} disabled={busy} onClick={clear}><Trash2 className="size-5"/></Button></div>
+          <div className="mb-4 flex items-center justify-between gap-4"><h2 className="text-xl font-semibold">{t("coach")}</h2><Button variant="ghost" size="icon" aria-label={t("clear")} disabled={busy} onClick={clear}><Trash2 className="size-5"/></Button></div>
           {chat.messages.length===0 && <QuestionGrid onAsk={question=>void ask(question)}/>}
           <div aria-live="polite" aria-relevant="additions" aria-busy={busy} className="space-y-8">{chat.messages.map((message,index)=><ConversationEntry key={message.id} message={message} question={chat.messages[index-1]?.role==="user" ? chat.messages[index-1].parts.filter(part=>part.type==="text").map(part=>part.text).join(" ") : ""} store={chatViews} latest={message.id===chat.messages.at(-1)?.id} busy={message.id===chat.messages.at(-1)?.id && busy} onAsk={askFromEntry} onGoal={openGoalFromCoach}/>)}</div>
-          {busy && <div role="status" className="space-y-3 py-5"><p className="text-sm text-ink-2">{t("reading")}</p><Skeleton className="h-12 w-full"/><Button variant="outline" onClick={stop}>{t("stop")}</Button></div>}
+          {busy && <div role="status" className="space-y-3 py-5"><p className="sr-only">{t("reading")}</p><Skeleton className="h-9 w-40"/><Skeleton className="h-4 w-full"/><Skeleton className="h-4 w-3/4"/><Skeleton className="h-40 w-full rounded-2xl"/><Button variant="outline" size="chip" onClick={stop}>{t("stop")}</Button></div>}
           {fallback && <p role="status" className="py-4 text-caption text-ink-2">{t("fallback")}</p>}
           {requestFailed && <p role="alert" className="py-4 text-sm text-neg">{t("requestFailed")}</p>}
           <div ref={end} className="scroll-above-composer"/>
@@ -134,14 +138,34 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
         </TabsContent>
         <TabsContent value="whatif"><ViewScope store={visitViews} name="simulator"><Simulator goal={savedGoal}/></ViewScope></TabsContent>
         <TabsContent value="learn"><PersonalizedLearn onAsk={askFromEntry}/></TabsContent>
+        </>}
         <TabsList aria-label={t("app")} className="pb-safe bottom-keyboard fixed inset-x-0 z-40 mx-auto grid h-auto min-h-navigation w-full max-w-app grid-cols-4 rounded-none border-t border-line bg-surface px-2 py-1">{tabs.map(({key,Icon})=><TabsTrigger key={key} value={key} className="min-h-14 min-w-0 flex-col gap-1 whitespace-normal rounded-xl px-1 py-1 text-caption data-[state=active]:bg-brand-tint data-[state=active]:text-active-ink"><Icon className="size-6"/><span>{t(key)}</span></TabsTrigger>)}</TabsList>
-      </Tabs>}
-      {(settings || goal) && !controlsOpen && <Button variant="outline" onClick={()=>{setSettings(false);setGoal(false);setTab("overview");}}>{t("overview")}</Button>}
+      </Tabs>
       </>}
     </main>{sourceReady && <Toaster/>}
   </div>;
 }
-function PreferencesScreen({onGoal,savedGoal,onPrivacyChange}:{onGoal:()=>void;savedGoal:SavingsGoal|null;onPrivacyChange:(value:boolean)=>void}) {
-  const {openControls,data}=useMoneyData(),planning=usePlanning(),income=overviewIncome(planning.period,data,planning.income);
-  const {locale,setLocale,savings,setSavings,privacy,t}=useCopy();return <div className="space-y-6"><h2 className="text-xl font-bold">{t("settings")}</h2><Button variant="outline" onClick={openControls}>{t("coachVisibility")}</Button><label className="flex min-h-14 items-center gap-3"><input type="checkbox" checked={privacy} onChange={event=>onPrivacyChange(event.target.checked)} className="size-5 accent-brand"/><span><span className="block font-semibold">{t("privacyMode")}</span><span className="block text-sm text-ink-2">{t("privacyNote")}</span></span></label><VoiceSettings/><section className="space-y-3"><h3 className="font-semibold">{t("language")}</h3><RadioGroup aria-label={t("language")} value={locale} onValueChange={v=>setLocale(v as Locale)}>{(["en","fi","et"] as const).map((value,i)=><label key={value} htmlFor={`language-${value}`} className="flex min-h-14 items-center gap-3 border-b border-line"><RadioGroupItem id={`language-${value}`} value={value}/>{t((["english","finnish","estonian"] as const)[i])}</label>)}</RadioGroup></section><section className="space-y-3"><h3 className="font-semibold">{t("target")} · {savings}%{income.amount!==null && <span className="mt-1 block text-sm font-normal text-ink-2">{t("monthlyTargetEffect",{amount:money(basisPointAmount(income.amount,savings*100))})}</span>}</h3><Slider aria-label={t("target")} aria-valuetext={percent(savings)} className="min-h-12" min={0} max={100} step={1} value={[savings]} onValueChange={([v])=>setSavings(v)}/><p className="text-sm text-ink-2">{t("targetNote")}</p></section><Button onClick={onGoal}>{t(savedGoal ? "editGoal" : "goal")}</Button>{savedGoal && <p className="wrap-anywhere text-sm">{t("goalSummary",{name:savedGoal.name,amount:money(savedGoal.amountMinor)})}</p>}<CategoryLimit/><MonthlyPlans/><DatasetPicker/><ConnectedBanks/><InstallApp/><DataSourceDetails/></div>;
+function PreferencesScreen({onGoal,savedGoal,onPrivacyChange,legal}:{onGoal:()=>void;savedGoal:SavingsGoal|null;onPrivacyChange:(value:boolean)=>void;legal:boolean}) {
+  const {openControls,data,scope}=useMoneyData(),planning=usePlanning(),income=overviewIncome(planning.period,data,planning.income),banks=bankSummaries(data);
+  const {locale,setLocale,savings,setSavings,privacy,voiceProvider,t}=useCopy(),restricted=scope.excludedAccounts.length>0 || scope.excludedCategories.length>0;
+  return <div className="space-y-6"><h2 className="text-xl font-semibold">{t("settings")}</h2>
+    <SettingsGroup title={t("language")}><RadioGroup aria-label={t("language")} value={locale} onValueChange={v=>setLocale(v as Locale)} className="gap-0 divide-y divide-line">{(["en","fi","et"] as const).map((value,i)=><label key={value} htmlFor={`language-${value}`} className="flex min-h-14 items-center gap-3 px-4"><RadioGroupItem id={`language-${value}`} value={value}/>{t((["english","finnish","estonian"] as const)[i])}</label>)}</RadioGroup></SettingsGroup>
+    <SettingsGroup title={t("settingsDataSource")}><DatasetPicker/><SettingsSheetRow label={t("aboutData")}><DataSourceDetails embedded/></SettingsSheetRow></SettingsGroup>
+    <SettingsGroup title={t("coachVisibility")}><SettingsRow label={t(restricted ? "coachSeesLimited" : "coachSeesAll")} onClick={openControls}/></SettingsGroup>
+    <SettingsGroup title={t("settingsAiPrivacy")}>
+      <label className="flex min-h-14 items-center gap-3 px-4 py-3"><span className="min-w-0 flex-1"><span className="block text-base">{t("privacyMode")}</span><span className="block text-caption text-ink-2">{t("privacyNote")}</span></span><Switch checked={privacy} onCheckedChange={onPrivacyChange} aria-label={t("privacyMode")}/></label>
+      <SettingsSheetRow label={t("voiceSettings")} value={t(privacy || voiceProvider!=="gemini" ? "voiceDevice" : "voiceOnline")}><VoiceSettings embedded/></SettingsSheetRow>
+    </SettingsGroup>
+    <SettingsGroup title={t("settingsBanks")}><SettingsSheetRow label={t("connectedBanks")} value={t(banks.length===1 ? "demoBanksOne" : "demoBanksCount",{count:banks.length})}><ConnectedBanks embedded/></SettingsSheetRow></SettingsGroup>
+    <SettingsGroup title={t("settingsPlans")}>
+      <SettingsSheetRow label={t("target")} value={percent(savings)}><div className="space-y-3"><p className="text-xl font-semibold tabular-nums">{percent(savings)}{income.amount!==null && <span className="mt-1 block text-sm font-normal text-ink-2">{t("monthlyTargetEffect",{amount:money(basisPointAmount(income.amount,savings*100))})}</span>}</p><Slider aria-label={t("target")} aria-valuetext={percent(savings)} className="min-h-12" min={0} max={100} step={1} value={[savings]} onValueChange={([v])=>setSavings(v)}/><p className="text-sm text-ink-2">{t("targetNote")}</p></div></SettingsSheetRow>
+      <SettingsRow label={t(savedGoal ? "editGoal" : "goal")} value={savedGoal ? t("goalSummary",{name:savedGoal.name,amount:money(savedGoal.amountMinor)}) : undefined} onClick={onGoal}/>
+      <SettingsSheetRow label={t("monthlyPlans")} value={t("monthlyPlansSummary")}><CategoryLimit/><MonthlyPlans/></SettingsSheetRow>
+    </SettingsGroup>
+    <SettingsGroup title={t("settingsAbout")} note={t("disclaimer")}>
+      <SettingsSheetRow label={t("installTitle")}><InstallApp embedded/></SettingsSheetRow>
+      {legal && <SettingsRow label={t("privacyPolicy")} href="/privacy"/>}
+      {legal && <SettingsRow label={t("termsOfUse")} href="/terms"/>}
+    </SettingsGroup>
+  </div>;
 }

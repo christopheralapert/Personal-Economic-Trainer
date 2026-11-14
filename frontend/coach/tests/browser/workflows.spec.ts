@@ -10,10 +10,11 @@ test("learning opens a scoped answer with one request and follow-ups match the a
   for(const copy of [en,fi,et]) {
     await page.getByRole("button",{name:en.settings,exact:true}).click();
     await page.getByLabel(copy===fi ? en.finnish : copy===et ? en.estonian : en.english,{exact:true}).check();
-    await page.getByRole("button",{name:copy.overview,exact:true}).click();
+    await page.getByRole("tab",{name:copy.overview,exact:true}).click();
     await page.getByRole("tab",{name:copy.learn,exact:true}).click();
     const before=calls;
     await page.getByRole("button",{name:new RegExp(copy.habit)}).click();
+    await page.getByRole("region",{name:new RegExp(copy.habit)}).getByRole("button",{name:copy.askCoach,exact:true}).click();
     const input=page.getByRole("textbox",{name:copy.questionLabel,exact:true});
     await expect(input).toHaveValue("");expect(calls).toBe(before+1);
     await expect(page.locator("article").last()).toContainText("50,00");
@@ -26,7 +27,7 @@ test("learning opens a scoped answer with one request and follow-ups match the a
     expect(calls).toBe(before+2);
     await page.getByRole("button",{name:copy.settings,exact:true}).click();
     await page.getByLabel(copy.english,{exact:true}).check();
-    await page.getByRole("button",{name:en.overview,exact:true}).click();
+    await page.getByRole("tab",{name:en.overview,exact:true}).click();
   }
 });
 
@@ -64,7 +65,7 @@ test("goal steps support keyboard validation, exact amounts, back navigation and
   await form.getByRole("button",{name:en.back,exact:true}).click();await expect(name).toHaveValue("Buffer & travel");
   await name.press("Enter");await amount.press("Enter");await form.getByRole("button",{name:en.saveGoal,exact:true}).click();
   await expect(page.getByText(/Buffer & travel · 1\s234,56/)).toBeVisible();
-  await page.getByRole("button",{name:en.editGoal,exact:true}).click();await expect(name).toHaveValue("Buffer & travel");
+  await page.getByRole("button",{name:new RegExp(`^${en.editGoal}`)}).click();await expect(name).toHaveValue("Buffer & travel");
   await name.fill("Rainy day");await name.press("Enter");await expect(amount).toHaveValue("1234,56");
   await amount.fill("100.29");await amount.press("Enter");await form.getByRole("button",{name:en.saveGoal,exact:true}).click();
   await expect(page.getByText(/Rainy day · 100,29/)).toBeVisible();

@@ -53,7 +53,7 @@ test("native SDK stream returns actual tool figures, no model; offline fallback,
   await ask(page,"How much did I spend on taxis last month?");await stale;
   await expect(page.locator("article").last()).toContainText("40,00");await expect(page.getByText("The online response was unavailable.",{exact:false})).toBeVisible();
   await context.unroute("**/api/chat");
-  await page.getByRole("tab",{name:"What if",exact:true}).click();await expect(page.getByRole("slider")).toHaveCount(3);
+  await page.getByRole("tab",{name:"What if",exact:true}).click();await expect(page.getByRole("slider")).toHaveCount(1);await expect(page.getByRole("group",{name:"Category",exact:true}).getByRole("button")).toHaveCount(3);
   await page.getByRole("button",{name:"Settings",exact:true}).click();await page.getByLabel("Eesti",{exact:true}).check();await expect(page.getByRole("heading",{name:"Seaded",exact:true})).toBeVisible();
   await page.getByLabel("English",{exact:true}).check();
   await page.getByRole("button",{name:"Set a savings goal",exact:true}).click();await page.getByLabel("Goal name",{exact:true}).fill("Buffer");await page.getByRole("button",{name:"Continue",exact:true}).click();await page.getByLabel("Target amount in EUR",{exact:true}).fill("100,50");await page.getByRole("button",{name:"Continue",exact:true}).click();await page.getByRole("button",{name:"Save goal",exact:true}).click();await expect(page.getByText("Buffer · 100,50",{exact:false})).toBeVisible();
