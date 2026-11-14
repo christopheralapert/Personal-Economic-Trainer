@@ -1,6 +1,57 @@
 # Saved import and private Coach verification
 
-## Supported statement uploads
+## Current integrated follow-up from f70f933 — 14 November 2026
+
+The requested branch **`integration/import-coach-next`** was first checked at **`f70f933`**, then fast-forwarded to the already reviewed integration at `1db8ae1`. This preserves the separate voice merge `0d49b43` (agent `bb02609`), the statement merge `08475f7` (agent `6f611b0`), and the pre-upgrade CSV replay fix `f9bebef`; neither agent was duplicated or history rewritten. The application source and tested production artifact remain **`f9bebef`**, **build `f9bebef-131377e695625033`**, under `frontend/web/.next/wise-multiformat-final-20261114`. Later measurement/test/documentation commits do not change that application artifact.
+
+**Current local entry:** **http://127.0.0.1:33120/banks**. Sign in through the explicitly labelled isolated issuer as **model-review**, then use Coach at `/coach`. It is signed offline test-OIDC with real private sessions/CSRF, PostgreSQL, ownership/RLS, BFF/API and real Gemini when Privacy is off; it does **not** establish real Auth0 or bank availability. Root ignored `.env`, its existing key, and other settings were preserved. The signup worktree remains uncommitted and untouched. Public HTTPS remains on **`0d49b43-131377e695625033`**, Gemini text/audio off; no tunnel, 33118 demo or public process was replaced. No push was made.
+
+The older sections below describe the original `f70f933` verification; their original CSV-only limits and presentation build are historical. **Current file publication supports these deliberately narrow tested variants:**
+
+| Format | Exact tested boundary |
+| --- | --- |
+| Wise CSV | UTF-8, optional BOM, required `TransferWise ID,Date,Amount,Currency,Description`, `DD-MM-YYYY`, dot-decimal EUR; optional IBAN column |
+| PDF | English Wise EUR statement with selectable text, timezone-labelled date period, IBAN, incoming/outgoing/amount heading, transaction amount plus running balance and dated `Transaction:` detail rows; wrapped descriptions supported, extra ambiguous monetary columns rejected; no OCR |
+| XLSX | One OOXML sheet with Wise CSV columns; inline/shared strings and text dates or Excel 1900-epoch numeric dates; not arbitrary spreadsheet layouts |
+| CAMT.053 XML | `camt.053.001.10`, one EUR `Stmt`, `BOOK` entries, one `TxDtls` per entry, CRDT/DBIT, booking date/reference/remittance |
+| MT940 | Single EUR statement with `20/25/28C/60F`, paired `61/86`, `62F`; tested leap-day and year-boundary booking dates; no wrappers/paged/reversal variants |
+| QIF | `!Type:Bank`, terminated D/T/P records with optional M/N/C; ISO dates or explicit day-first/month-first slash-date selection; explicit EUR/account choice |
+
+Wise-file intake is **up to ten files, 2 MiB each, 1–1,000 rows per file**, with a separate 500,000-byte encrypted-preview bound. **Canonical EUR-cents CSV remains supported**, using exactly `reference,booked_on,amount_minor,currency,description`, ISO dates, signed integer cents and the original **64 KiB / 1,000-row** bound. Legacy JSON CSV commands remain available. API and BFF limits were reviewed together: **2,800,000 JSON bytes** for base64 file preview, **400,000** for the legacy generic CSV preview. Actual file-byte and row limits are still enforced after decoding.
+
+Both paths consume already normalized staged rows and call the shared **single `jsonb_to_recordset` insert**, not per-row SQL. Owner/account/receipt/source-format/row-hash provenance stays attached. Multi-file confirmation is atomic; complete cross-format matches add no rows, identical purchase occurrences survive, account-scoped byte duplicates do not collapse distinct accounts, and another user cannot confirm/read the first user's data. See [the statement integration review](wise-statement-review.md#coordinator-integration--14-november-2026) for conflict resolutions and conservative overlap rules.
+
+The real revision IDs `0025_statement_provenance` and `0025_statement_formats` share parent `0024_statement_staging`, are joined by **`0026_merge_statement_branches`**, and end at the single head **`0027_statement_file_provenance`**. Empty, 0024, either 0025 branch, and populated legacy-CSV upgrades were tested only in uniquely created disposable PostgreSQL databases; the populated upgrade retains IDs/classification/cents and exact replay adds zero rows. Pending **`0025_identity_self_signup`** is a different ID, not included in this build. Its actual migration passed a separate temporary-overlay merge/repeated-upgrade proof; permanent signup integration still requires a real merge revision and its own application checks. No development database was upgraded.
+
+### Same-condition 700-row repeat
+
+Chrome 390×844, service workers blocked, same loopback ports/container/PostgreSQL 17.6 and identical **700 rows / 28,639 bytes** from the original experiment. Before measuring, the isolated API/web processes and their synthetic database were restarted. Cold is the first import journey; warm uses a different fresh browser context/owner in the same process, not a previously published receipt. No regression jobs or live model requests ran during these timers. The newly required account selection is performed after the preview timer and before the confirmation timer. Confirmation → visible rows includes clicking **View transactions**, as before.
+
+| Version | State | Preview visible | Confirmation complete | Confirm → visible History | Local question → visible rows |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `f70f933` recorded result | Cold | 75 ms | 99 ms | 256 ms | 87 ms |
+| Current common build | Cold | **78 ms** | **108 ms** | **388 ms** | **84 ms** |
+| `f70f933` recorded result | Warm | 63 ms | 100 ms | 345 ms | 75 ms |
+| Current common build | Warm | **68 ms** | **93 ms** | **243 ms** | **66 ms** |
+
+Confirmation changed by **+9 ms cold / −7 ms warm**. Time to visible History changed by **+132 ms cold / −102 ms warm**; these are individual local observations, not statistical benchmarks or a uniform speedup. The fast batch publication is retained; the cold visibility result is slower and is not hidden by quoting only the warm result. No unrelated optimization was made from one mixed-direction sample. Private local-question `Server-Timing` was **36.6 / 21.3 ms app**, **0 ms model**, for cold/warm. After both timed journeys, pagination verified **700 distinct saved IDs and −350,000 cents** for each owner, without warming the next measurement.
+
+The committed **`scripts/measure_statement_imports.mjs`** reproduces this UI protocol against an already running isolated rehearsal issuer with unused `large-cold`/`large-warm` test subjects. It requires explicit `MONEYLENS_PERFORMANCE_REHEARSAL=true`, rejects non-loopback targets, generates only synthetic rows and checks Privacy/local-source metadata; it never loads a provider key. The operator must restart the isolated server/database first for a true cold measurement. JSON stays ignored in `test-results/statement-performance/last-run.json`. Tests pin the 28,639-byte fixture and fail-closed entry guard; this is not a tool for benchmarking a real user's banking workspace.
+
+### Common-build regressions and two new live Gemini requests
+
+This follow-up reran **975 API tests**, **65 combined PostgreSQL tests** including the fixture's **seven passing six-format/mixed-file browser cases**, **15 demo**, **5 Coach** and **74 voice browser tests**, both workspace typechecks, v1 contract compatibility, **54 PWA** and **11 structure** tests. Graph/upgrade tests include fresh databases and retained pre-upgrade CSV rows. Voice recognition, synthesis, microphone capture and hosted audio remain mocked; regression provider transports are injected. These counts do not claim another full 439-test run or a physical-phone/audio check.
+
+After the 700-row measurements and regressions, **exactly two new real `gemini-3.5-flash` requests** were made on the ordinary authenticated UI with fresh **model-review** ownership: import synthetic CSV to account A (−15.00, −15.97 EUR), CAMT XML to B (−7.00 EUR), review each as taxi/everyday expense, and use Ask Coach. A repeat adds zero rows and preserves reviews. Suomi + Privacy off + **Paljonko käytin takseihin lokakuussa 2026?** returned:
+
+| Scope | Result / actual evidence | Question → visible answer | Model wait | Application work |
+| --- | --- | ---: | ---: | ---: |
+| Account A | **30,97 EUR**, exactly two saved rows; transaction detail opens | **2,566 ms** | 2,481.3 ms | 36.5 ms |
+| All own included EUR accounts | **37,97 EUR**, exactly three saved rows; transaction detail opens | **1,130 ms** | 1,060.5 ms | 33.4 ms |
+
+Both were HTTP 200, **`source=model`, `provider=gemini-direct`**, without fallback diagnostics, and named **2026-10-01–2026-10-31** in Finnish. The difference is exactly **700 cents**, equal to B's actual saved transaction. The unrelated 700-row performance owners are not included in this user's result. Confirmation → first visible History rows for this three-row/two-file live flow was **342 ms**. The existing five-second model cooldown was respected outside the question timers; neither 429 nor fallback was counted as a success. Model wait includes network plus Google processing, not isolated inference. There were no page errors or EACCES failures. Gemini audio was not called. Reports/captures remain ignored in `test-results/multiformat-live/`.
+
+## Original f70f933 verification — supported statement uploads
 
 Both adapters normalize once into the same encrypted, session-bound preview and publish into the shared owned transaction ledger. The file is not parsed by History, Overview or Coach. Confirmation consumes validated staged values. Each saved row links its account, owner and receipt; all monetary values are exact integer minor units.
 

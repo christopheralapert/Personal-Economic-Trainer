@@ -1,5 +1,7 @@
 # Test suites
 
+For the current combined six-format/private-Gemini build, migration proof and 700-row timing comparison, see [the import/Coach follow-up](import-coach-review.md#current-integrated-follow-up-from-f70f933--14-november-2026). Earlier reports retain their original source/build context.
+
 Run commands from the repository root after installing dependencies. Browser suites require Chrome or Playwright Chromium. Most also require a production web build; the voice suite starts its own development server.
 
 | Folder | Purpose | Command |
@@ -44,6 +46,16 @@ To test an already running local production web build, set `MONEYLENS_DEMO_TEST_
 Keyboard regression: on `/demo?dataset=organizer1`, press Tab to focus “Skip to content”, then Enter. Focus must move to the single `main#main[tabindex="-1"]`, not merely add `#main` to the URL. `demo-keyboard.spec.ts` tests this at 360px and 1280px, with the demo loaded and with JavaScript held back during initial loading. Focus must survive hydration and the dataset planning provider's remount without overriding a later user focus choice. The root layout's native anchor remains usable before JavaScript runs; its client enhancement restores focus only when a focused landmark is removed.
 
 ## Wise statement browser regression
+
+Synthetic-only timing is a separate opt-in, not part of normal CI or a live-model test. Start an isolated production rehearsal with a fresh database and the explicitly labelled offline test issuer, provisioning unused `large-cold` and `large-warm` subjects. Restart API/web first for the cold condition, then run:
+
+```powershell
+$env:MONEYLENS_PERFORMANCE_REHEARSAL = 'true'
+node scripts/measure_statement_imports.mjs http://127.0.0.1:33120
+Remove-Item Env:MONEYLENS_PERFORMANCE_REHEARSAL
+```
+
+It imports the fixed 700-row/28,639-byte synthetic Wise CSV, measures visible UI outcomes, keeps Privacy mode on, and verifies all saved rows afterward. It refuses non-loopback origins and missing opt-in; it does not provision an issuer/database or establish that a previously used process is cold. Run only against the disposable synthetic rehearsal, never an ordinary user's workspace. Results are ignored under `test-results/statement-performance/`; fixture/guard checks run with `npm run test:structure`.
 
 Build this checkout with `npm run build:web`, then run the opt-in fixture from the repository root:
 

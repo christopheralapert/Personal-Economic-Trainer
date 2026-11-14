@@ -2,6 +2,8 @@
 
 ## Coordinator integration — 14 November 2026
 
+Latest follow-up: the same checked application is now on **`integration/import-coach-next`**, advanced from the requested `f70f933` without rewriting history. Its fresh 700-row cold/warm repeat, new live model-review identity journey and current links supersede the earlier running-preview details below; see [the current import/Coach follow-up](import-coach-review.md#current-integrated-follow-up-from-f70f933--14-november-2026). The application build remains `f9bebef-131377e695625033`.
+
 Commit `6f611b0` is integrated on **`integration/wise-multiformat-next`**, merge `08475f7`, with backward-compatible replay fix **`f9bebef`**. The final production artifact is `frontend/web/.next/wise-multiformat-final-20261114`, **build `f9bebef-131377e695625033`**. Test/documentation-only commits after that source do not change its build ID. The running isolated preview is **http://127.0.0.1:33120/banks**; sign in using its clearly labelled test issuer, selecting **other-owner** for the completed live journey. This is signed offline OIDC with real sessions, CSRF, ownership checks, BFF/API and PostgreSQL, **not a real Auth0 or bank connection**. No push was made.
 
 ### Actual migration IDs and disposable PostgreSQL proof
