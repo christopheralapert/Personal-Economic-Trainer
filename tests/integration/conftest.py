@@ -19,6 +19,8 @@ ROOT = Path(__file__).resolve().parents[2]
 def database():
     url = os.environ.get("MONEYLENS_TEST_DATABASE_URL")
     if not url:
+        if os.environ.get("MONEYLENS_STATEMENT_BROWSER_TEST") == "true":
+            pytest.fail("MONEYLENS_STATEMENT_BROWSER_TEST=true requires MONEYLENS_TEST_DATABASE_URL; the requested browser verification must not be skipped")
         pytest.skip("Set MONEYLENS_TEST_DATABASE_URL to an isolated local/CI administrator database")
     name = "moneylens_test_" + uuid4().hex
     login = "ml_test_" + uuid4().hex

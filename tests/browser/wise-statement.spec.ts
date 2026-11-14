@@ -1,5 +1,5 @@
 import {test,expect,type Page} from '@playwright/test';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,readFile} from 'node:fs/promises';
 
 test.skip(process.env.MONEYLENS_STATEMENT_BROWSER_TEST !== 'true','Run through test_wise_browser.py with isolated PostgreSQL and test OIDC');
 const csv='TransferWise ID,Date,Amount,Currency,Description\nshared,03-10-2026,-5.00,EUR,Synthetic shop\nshared,03-10-2026,-5.00,EUR,Synthetic shop\n';
@@ -29,14 +29,14 @@ async function login(page:Page) {
   await page.getByRole('link',{name:'Open test issuer'}).click();
   await page.getByRole('link',{name:'Continue with test identity'}).click();
 }
-async function preview(page:Page,openBanks=true) {
+async function preview(page:Page,openBanks=true,content=csv,status=200) {
   if(openBanks)await page.goto('/banks');
   const chooser=page.waitForEvent('filechooser');
   await page.getByLabel('Choose CSV').click();
-  await (await chooser).setFiles({name:'synthetic-wise.csv',mimeType:'text/csv',buffer:Buffer.from(csv)});
+  await (await chooser).setFiles({name:'synthetic-wise.csv',mimeType:'text/csv',buffer:Buffer.from(content)});
   const response=page.waitForResponse(r=>r.url().endsWith('/statements/wise/preview')&&r.request().method()==='POST');
   await page.getByRole('button',{name:'Preview statement',exact:true}).click();
-  const result=await response;expect(result.status()).toBe(200);return result.json();
+  const result=await response;expect(result.status()).toBe(status);return result.json();
 }
 async function confirmAs(page:Page,id:string) {
   return page.evaluate(async preview_id=>{
@@ -48,7 +48,7 @@ async function confirmAs(page:Page,id:string) {
 const ready='2 entries available. Their purpose needs review.';
 async function seeRows(page:Page) {await expect(page.locator('[data-ledger-row]')).toHaveCount(2);}
 
-test('signed OIDC: access, CSV persistence, Coach, repeats, PDF and owner isolation',async({browser})=>{
+test('signed OIDC: CSV persistence, Coach, repeats, overlap, text-PDF rejection and owner isolation',async({browser})=>{
   const unknown=await browser.newContext();const denied=await unknown.newPage();
   await testIdentity(denied,'wise-browser-unknown');await login(denied);
   await expect(denied).toHaveURL(/\/access$/);
@@ -79,6 +79,12 @@ test('signed OIDC: access, CSV persistence, Coach, repeats, PDF and owner isolat
   const history=page.url();
   await page.close();page=await a.newPage();await testIdentity(page,'wise-browser-a');await page.goto(history);await seeRows(page);
   await page.reload();await seeRows(page);
+
+  // Different bytes covering the saved period must never append duplicate rows.
+  await preview(page,true,csv.replaceAll('shared','another-reference'),409);
+  await expect(page.getByRole('alert').filter({hasText:'This period overlaps other Wise records'})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Confirm import',exact:true})).toHaveCount(0);
+  await page.goto(history);await seeRows(page);
 
   await page.goto('/coach');
   await page.getByLabel('Question (English)').fill('Show transactions from 2026-10-01 until 2026-11-01');
@@ -116,10 +122,17 @@ test('signed OIDC: access, CSV persistence, Coach, repeats, PDF and owner isolat
 
   await page.goto('/banks');
   await expect(page.getByLabel('Choose CSV')).toHaveAttribute('accept','.csv,text/csv');
-  await page.getByLabel('Choose CSV').setInputFiles({name:'synthetic.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4\nsynthetic unsupported statement')});
+  // The Python fixture verifies this is a readable PDF with a controlled text layer.
+  const pdf=await readFile(process.env.MONEYLENS_TEST_STATEMENT_PDF!);
+  let pdfSubmitted=false;
+  page.on('request',r=>{if(r.url().endsWith('/statements/wise/preview')&&r.method()==='POST')pdfSubmitted=true;});
+  await page.getByLabel('Choose CSV').setInputFiles({name:'synthetic.pdf',mimeType:'application/pdf',buffer:pdf});
   await page.getByRole('button',{name:'Preview statement',exact:true}).click();
   await expect(page.getByRole('alert').filter({hasText:'Choose a valid Wise EUR CSV under 64 KiB and try again.'})).toBeVisible();
+  expect(pdfSubmitted).toBe(false);
   await expect(page.getByRole('button',{name:'Confirm import',exact:true})).toHaveCount(0);
   await page.goto(history);await seeRows(page);
+  await other.reload();await seeRows(other);
+  expect(await confirmAs(other,staged.id)).toBe(404);
   await b.close();await a.close();
 });
