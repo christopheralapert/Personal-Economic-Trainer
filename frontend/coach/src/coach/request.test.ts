@@ -3,6 +3,7 @@ import {DefaultChatTransport} from "ai";
 import {BODY_TIMEOUT_MS,MAX_REQUEST_BYTES,readCoachJSON} from "./request";
 import {RuleProvider} from "./rule-provider";
 import {POST} from "@/app/api/chat/route";
+import {createChatRoute} from "./chat-route";
 import {coachFetch,prepareCoachRequest,COACH_REVISION,REVISION_HEADER} from "./transport";
 import type {CoachMessage} from "./catalog";
 
@@ -14,6 +15,20 @@ function request(body:BodyInit,headers:HeadersInit={"content-type":"application/
 afterEach(()=>{vi.useRealTimers();vi.restoreAllMocks();vi.unstubAllGlobals();});
 
 describe("bounded public chat ingress",()=>{
+  it("returns a private, revisioned failure when execution unexpectedly rejects",async()=>{
+    const execute=vi.fn().mockRejectedValue(new Error("private execution details"));
+    const response=await createChatRoute(execute)(request(JSON.stringify({messages:[{role:"user",parts:[{type:"text",text:"How much did I spend on taxis last month?"}]}]})));
+    expect(response.status).toBe(503);expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get(REVISION_HEADER)).toBe(COACH_REVISION);expect(await response.text()).toBe("");
+  });
+
+  it("treats a rejection after client cancellation as cancellation",async()=>{
+    const controller=new AbortController();
+    const execute=vi.fn().mockImplementation(async()=>{controller.abort();throw new Error("disconnected");});
+    const response=await createChatRoute(execute)(request(JSON.stringify({messages:[{role:"user",parts:[{type:"text",text:"How much did I spend on taxis last month?"}]}]}),{"content-type":"application/json"},controller.signal));
+    expect(response.status).toBe(400);expect(await response.text()).toBe("");
+  });
+
   it("accepts selector-only follow-ups and rejects injected financial context",async()=>{
     const context={tool:"showWhatIf",input:{period:{start:"2026-10-01",end:"2026-11-01"},category:"dining",pct:20}};
     const payload={context,messages:[{role:"user",parts:[{type:"text",text:"And at 30%?"}]}]};

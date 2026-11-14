@@ -24,7 +24,8 @@ export function createChatRoute(execute=executeCoach) {
   if(request.signal.aborted) return rejected(400);
   let outcome;
   try {outcome=await execute(request,question,body.locale,body.savingsPercent,body.context,body.period,body.scope,body.dataset,body.privacy);}
-  catch(error) {if(error instanceof CoachCancelledError) return rejected(400);throw error;}
+  // Keep framework error pages and execution details out of the chat transport.
+  catch(error) {return rejected(error instanceof CoachCancelledError || request.signal.aborted ? 400 : 503);}
   if(request.signal.aborted) return rejected(400);
   const answer=outcome.message;
   const stream=createUIMessageStream({execute:({writer})=>{

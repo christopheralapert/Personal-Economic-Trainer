@@ -40,7 +40,7 @@ function TransactionsAnswer({period,filters,onAsk,...initial}:z.infer<typeof pro
   const {t,locale}=useCopy(),history=useHistorySnapshot(initial);
 
   const description=spokenAnswer("showTransactions",{period,...filters},{...history,period,filters},locale);
-  return <section className="space-y-4"><div className="space-y-2">{history.netExpenses!==null && <p className="text-3xl font-bold tabular-nums">{money(history.netExpenses)}</p>}<p data-spoken-answer className="text-sm text-ink-2">{description}</p></div><h3 className="font-semibold">{t("transactions")}</h3><HistoryResult initial={history} period={period} filters={filters} status="booked" onAsk={onAsk} openDetails/><BasisChip period={period} count={history.total}/></section>;
+  return <section className="space-y-4"><div className="space-y-2">{history.netExpenses!==null && <p className="text-3xl font-bold tabular-nums">{money(history.netExpenses)}</p>}<p data-spoken-answer className="text-sm text-ink-2">{description}</p></div><ScopeSummary filters={filters}/><h3 className="font-semibold">{t("transactions")}</h3><HistoryResult initial={history} period={period} filters={filters} status="booked" onAsk={onAsk} openDetails/><BasisChip period={period} count={history.total}/></section>;
 }
 function PeriodAnswer({period:initial,groups,onAsk}:z.infer<typeof propsSchemas.showDetails>&Ask) {
   const {data}=useMoneyData(),[period,setPeriod]=useViewState("period",initial);
