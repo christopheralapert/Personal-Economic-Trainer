@@ -49,6 +49,14 @@ async function decode(response:Response){
 }
 
 describe("main web /api/chat with native Gemini test transport",()=>{
+ for(const [language,name] of [['es','Spanish'],['ja','Japanese']] as const)it(`keeps validated financial results when a one-answer ${language} command is present`,async()=>{
+  const network=testTransport();vi.stubGlobal('fetch',network);const {POST}=await import('../../../web/app/api/chat/route');
+  const response=await POST(request(payload(`Reply in ${name}. ${cases[0].question}`)));expect(response.status).toBe(200);const answer=await decode(response);expect(answer.metadata).toEqual({answerMode:'model',language});expect(network).toHaveBeenCalledTimes(1);expect(answer.parts.find(part=>part.type==='tool-showTransactions')).toMatchObject({output:{netExpenses:3097,period:august}});
+ });
+ it('acknowledgements and unsupported private languages never call a model',async()=>{
+  const network=vi.fn<typeof fetch>();vi.stubGlobal('fetch',network);const {POST}=await import('../../../web/app/api/chat/route');
+  for(const body of [payload('Thank you'),payload(cases[0].question,'en',{privacy:true,conversationLanguage:'ja'})]){const response=await POST(request(body));expect(response.status).toBe(200);expect(response.headers.get('X-Money-Coach-Source')).toBe('rule');expect((await decode(response)).parts.some(part=>part.type.startsWith('tool-'))).toBe(false);}expect(network).not.toHaveBeenCalled();
+ });
  for(const sample of cases)it(`streams grounded ${sample.locale} tools and follow-up selectors`,async()=>{
   const network=testTransport();vi.stubGlobal("fetch",network);
   const {POST}=await import("../../../web/app/api/chat/route");
@@ -57,7 +65,7 @@ describe("main web /api/chat with native Gemini test transport",()=>{
   expect(response.headers.get("X-Money-Coach-Provider")).toBe("gemini-direct");
   expect(response.headers.get("X-Money-Coach-Evaluation")).toBe("model_tool");
   const answer=await decode(response);
-  expect(answer.metadata).toEqual({answerMode:"model"});
+  expect(answer.metadata).toEqual({answerMode:"model",language:sample.locale});
   const text=answer.parts.find(part=>part.type==="text");
   expect(text?.type==="text" ? text.text.replaceAll("\u00a0"," ") : undefined).toBe(sample.framing);
   expect(answer.parts.find(part=>part.type==="tool-showTransactions")).toMatchObject({input:{period:august,category:"taxi"},output:{period:august,filters:{category:"taxi"},netExpenses:3097}});
@@ -82,7 +90,7 @@ describe("main web /api/chat with native Gemini test transport",()=>{
   expect(response.status).toBe(200);expect(response.headers.get("X-Money-Coach-Source")).toBe("rule");
   expect(response.headers.get("X-Money-Coach-Provider")).toBeNull();
   expect(response.headers.get("X-Money-Coach-Evaluation")).toBe("provider_http:429:RESOURCE_EXHAUSTED");
-  const answer=await decode(response);expect(answer.metadata).toEqual({answerMode:"rule"});
+  const answer=await decode(response);expect(answer.metadata).toEqual({answerMode:"rule",language:"fi"});
   expect(answer.parts.find(part=>part.type==="tool-showTransactions")).toMatchObject({output:{netExpenses:3097,period:august}});
   expect(JSON.stringify(answer)).not.toContain("private provider details");expect(network).toHaveBeenCalledTimes(1);
  });

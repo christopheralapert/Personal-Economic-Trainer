@@ -3,7 +3,8 @@ import {z} from "zod";
 
 export const VOICE_ENDPOINT="https://generativelanguage.googleapis.com/v1beta/interactions";
 export const TRANSCRIBE_MODEL="gemini-3.5-transcribe",SPEECH_MODEL="gemini-3.8-flash-tts";
-export const languageCodes={en:"en-US",fi:"fi-FI",et:"et-EE"} as const;
+export {speechLanguages as languageCodes} from '@/coach/conversation-language';
+import {speechLanguages as languageCodes} from '@/coach/conversation-language';
 export class VoiceError extends Error {constructor(readonly code:string,readonly status=502,readonly retryAfter?:string){super(code);}}
 const content=z.discriminatedUnion("type",[z.object({type:z.literal("text"),text:z.string().max(2000)}),z.object({type:z.literal("audio"),mime_type:z.literal("audio/wav"),data:z.string().max(3000000)})]);
 const resultSchema=z.object({status:z.literal("completed"),steps:z.array(z.object({type:z.string(),content:z.array(content).optional()})).max(10),usage:z.object({total_input_tokens:z.number().int().nonnegative(),total_output_tokens:z.number().int().nonnegative(),total_tokens:z.number().int().positive()})});

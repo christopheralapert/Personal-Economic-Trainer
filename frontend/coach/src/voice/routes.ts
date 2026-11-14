@@ -9,9 +9,10 @@ import {loadDataset,datasetKeySchema} from "@/engine/datasets";
 import {dataScopeSchema,scopedDataset} from "@/engine/data-scope";
 import {createVoiceProvider,VoiceError,SPEECH_MODEL,TRANSCRIBE_MODEL} from "./provider";
 import {withVoiceReservation} from "./budget";
+import {streamSpeech} from './stream-provider';
 
 export const MAX_VOICE_BYTES=524288,MAX_RECORDING_MS=20000;
-const localeSchema=z.enum(["en","fi","et"]);
+const localeSchema=z.enum(["en","fi","et","es","ja"]);
 const speechSchema=z.object({dataset:datasetKeySchema.refine(key=>key.startsWith("organizer")),locale:localeSchema,savingsPercent:z.number().int().min(0).max(100),scope:dataScopeSchema.optional(),tool:z.string().min(1).max(40),input:z.record(z.string(),z.unknown())}).strict();
 async function audioBytes(request:Request){
  const length=request.headers.get("content-length");if(length!==null && (!/^\d+$/.test(length) || BigInt(length)>BigInt(MAX_VOICE_BYTES)))throw new VoiceError("audio_size",413);
@@ -46,14 +47,21 @@ export function createVoiceRoutes({env=process.env,network=globalThis.fetch}:{en
    return Response.json({text:result.text,provider:"gemini"},{headers:headers()});
   }catch(error){return failed(error);}},
   speak:async(request:Request)=>{try{
+   const started=performance.now();
    guard(request);const body=speechSchema.parse(await readCoachJSON(request)),data=scopedDataset(await loadDataset(body.dataset),body.scope),tools=createComponentTools(body.savingsPercent,data);
    if(!Object.hasOwn(tools,body.tool))throw new VoiceError("tool_invalid",400);
    const name=body.tool as ToolName,tool=tools[name],input=(tool.inputSchema as z.ZodType<Record<string,unknown>>).parse(body.input);
    const output=await (tool.execute as (input:unknown,options:unknown)=>Promise<unknown>)(input,{toolCallId:"voice",messages:[]});
    const text=spokenAnswer(name,input as Record<string,unknown>,output,body.locale);if(!text || text.length>600)throw new VoiceError("speech_unavailable",400);
    if(request.signal.aborted)throw new VoiceError("cancelled",499);
-   const provider=createVoiceProvider(env.GEMINI_API_KEY!,network),result=await withVoiceReservation(file!,maximum,"speak",()=>provider.speak(text,request.signal));
-   return new Response(new Uint8Array(result.audio),{headers:{...headers(),"Content-Type":"audio/wav","X-Money-Coach-Voice-Provider":"gemini"}});
+   if(request.headers.get('accept')==='application/x-money-coach-pcm'){
+    const controller=new AbortController(),signal=AbortSignal.any([request.signal,controller.signal]),encoder=new TextEncoder();
+    const stream=new ReadableStream<Uint8Array>({async start(writer){const send=(value:unknown)=>{if(!signal.aborted)writer.enqueue(encoder.encode(JSON.stringify(value)+'\n'));};try{await withVoiceReservation(file!,maximum,'speak',()=>streamSpeech(env.GEMINI_API_KEY!,text,signal,(data,providerMs)=>send({type:'audio',data,providerMs}),network));send({type:'done'});}catch(error){send({type:'error',error:error instanceof VoiceError?error.code:'voice_unavailable'});}finally{try{writer.close();}catch{}}},cancel(){controller.abort();}});
+    return new Response(stream,{headers:{...headers(),'Content-Type':'application/x-money-coach-pcm','X-Money-Coach-Voice-Provider':'gemini','X-Accel-Buffering':'no'}});
+   }
+   const prepared=performance.now();let providerMs=0;
+   const provider=createVoiceProvider(env.GEMINI_API_KEY!,network),result=await withVoiceReservation(file!,maximum,"speak",async()=>{const start=performance.now();const value=await provider.speak(text,request.signal);providerMs=performance.now()-start;return value;});
+   return new Response(new Uint8Array(result.audio),{headers:{...headers(),"Content-Type":"audio/wav","X-Money-Coach-Voice-Provider":"gemini","Server-Timing":`prepare;dur=${(prepared-started).toFixed(1)}, provider;dur=${providerMs.toFixed(1)}, total;dur=${(performance.now()-started).toFixed(1)}`}});
   }catch(error){return failed(error);}},
  };
 }

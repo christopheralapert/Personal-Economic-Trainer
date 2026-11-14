@@ -37,11 +37,11 @@ function ScopeSummary({filters}:{filters:TransactionFilters}) {
   const {t}=useCopy();
   return filters.basket!==undefined || filters.category!==undefined || filters.merchant!==undefined ? <dl className="space-y-2 text-caption text-ink-2">{filters.basket!==undefined && <div className="flex flex-wrap gap-2"><dt>{t("basket")}:</dt><dd className="min-w-0 wrap-anywhere">{basketLabel(filters.basket,t)}</dd></div>}{filters.category!==undefined && <div className="flex flex-wrap gap-2"><dt>{t("category")}:</dt><dd className="min-w-0 wrap-anywhere">{categoryLabel(filters.category,t)}</dd></div>}{filters.merchant!==undefined && <div className="flex flex-wrap gap-2"><dt>{t("merchant")}:</dt><dd className="min-w-0 wrap-anywhere">{filters.merchant}</dd></div>}</dl> : <p className="text-caption text-ink-2">{t("scopeAll")}</p>;
 }
-function TransactionsAnswer({period,filters,onAsk,...initial}:z.infer<typeof propsSchemas.showTransactions>&Ask) {
+function TransactionsAnswer({period,filters,onAsk,sentence,...initial}:z.infer<typeof propsSchemas.showTransactions>&Ask&Sentence) {
   const {t,locale}=useCopy(),history=useHistorySnapshot(initial);
 
   const description=spokenAnswer("showTransactions",{period,...filters},{...history,period,filters},locale);
-  return <section className="space-y-4"><div className="space-y-2">{history.netExpenses!==null && <p className="text-3xl font-semibold tabular-nums">{money(history.netExpenses)}</p>}<p data-spoken-answer className="text-base leading-relaxed text-ink">{description}</p></div><ScopeSummary filters={filters}/><h3 className="font-semibold">{t("transactions")}</h3><HistoryResult initial={history} period={period} filters={filters} status="booked" onAsk={onAsk} openDetails/><BasisChip period={period} count={history.total}/></section>;
+  return <section className="space-y-4"><div className="space-y-2">{history.netExpenses!==null && <p className="text-3xl font-semibold tabular-nums">{money(history.netExpenses)}</p>}{sentence??<p data-spoken-answer className="text-base leading-relaxed text-ink">{description}</p>}</div><ScopeSummary filters={filters}/><h3 className="font-semibold">{t("transactions")}</h3><HistoryResult initial={history} period={period} filters={filters} status="booked" onAsk={onAsk} openDetails/><BasisChip period={period} count={history.total}/></section>;
 }
 function PeriodAnswer({period:initial,groups,onAsk}:z.infer<typeof propsSchemas.showDetails>&Ask) {
   const {data}=useMoneyData(),[period,setPeriod]=useViewState("period",initial);
@@ -86,7 +86,7 @@ export const componentRegistry={
   showDetails:PeriodAnswer,showFilter:FilterAnswer,showStepper:GoalAnswer,
 };
 /** Components that lead with their own headline number place the plain sentence directly under it. */
-const headlineLed=new Set<ToolName>(["showDonut","showWhatIf"]);
+const headlineLed=new Set<ToolName>(["showDonut","showWhatIf","showTransactions"]);
 export function GeneratedComponent({name,output,onAsk,onGoal,sentence}:{name:ToolName;output:unknown;onAsk?:(question:string)=>void;onGoal?:()=>void;sentence?:React.ReactNode}) {
   const checked=useMemo(()=>propsSchemas[name].safeParse(output),[name,output]),{t}=useCopy();
   if(!checked.success) return <p role="alert" className="text-sm text-ink-2">{t("unknown")}</p>;

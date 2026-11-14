@@ -8,7 +8,7 @@ export type LearnTopic={id:string;concept:LearnConcept;title:Key;dot?:string|nul
 
 /** Shared educational content; private figures and reading state never enter browser storage. */
 export function LearnTopics({topics,read,onRead,onAsk}:{topics:LearnTopic[];read:string[];onRead:(key:LearnConcept)=>void;onAsk:(question:string)=>void}){
- const {t,locale}=useCopy(),c=learningCopy[locale],id=useId(),[open,setOpen]=useState<LearnConcept|null>(null);
+ const {t,learning:c}=useCopy(),id=useId(),[open,setOpen]=useState<LearnConcept|null>(null);
  return <><p className="text-caption text-ink-2" role="status">{c.progress.replace("{count}",String(topics.filter(topic=>read.includes(topic.concept)).length)).replace("{total}",String(topics.length))}</p>
  <div className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">{topics.map(topic=>{
   const expanded=open===topic.concept,label=`${id}-${topic.concept}`,content=`${label}-content`;

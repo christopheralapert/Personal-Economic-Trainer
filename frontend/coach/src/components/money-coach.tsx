@@ -46,24 +46,26 @@ import {DataSourceDetails} from "./data-source-details";
 import {SettingsGroup,SettingsRow,SettingsSheetRow} from "./settings-list";
 import {Switch} from "./ui/switch";
 import {bankSummaries} from "@/engine";
+import {acknowledgement,languageCommand,languageConfirmation,localLanguageUnavailable,appLanguageUnavailable,type ConversationLanguage} from '@/coach/conversation-language';
+import {appLanguageCommand} from '@/coach/app-language-command';
 
 const tabs=[{key:"overview",Icon:ChartNoAxesColumn},{key:"coach",Icon:MessageCircle},{key:"whatif",Icon:SlidersHorizontal},{key:"learn",Icon:BookOpen}] as const;
 export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embeddedDemo?:boolean;onlineCoachEnabled?:boolean}={}) {
   const {ready:sourceReady,loadError,data,dataset,scope,signature,controlsOpen,closeControls}=useMoneyData();
   const snapshot=sourceDate(data.as_of);
-  const {locale,savings,privacy,setPrivacy,voiceProvider,t}=useCopy(),[tab,setTab]=useState("overview"),[settings,setSettings]=useState(false),[goal,setGoal]=useState(false),[savedGoal,setSavedGoal]=useState<SavingsGoal|null>(null),[requestFailed,setRequestFailed]=useState(false);
+  const {locale,setLocale,setAppLanguage,languageStatus,conversationLocale,setConversationLocale,savings,privacy,setPrivacy,voiceProvider,t}=useCopy(),[tab,setTab]=useState("overview"),[settings,setSettings]=useState(false),[goal,setGoal]=useState(false),[savedGoal,setSavedGoal]=useState<SavingsGoal|null>(null),[requestFailed,setRequestFailed]=useState(false);
   useEffect(()=>{const requested=new URLSearchParams(window.location.search).get("tab");if(["overview","coach","whatif","learn"].includes(requested??""))setTab(requested!);},[]);
   const {period}=usePlanning();
   const [input,setInput]=useState(""),[localBusy,setLocalBusy]=useState(false),[fallback,setFallback]=useState(false);
   const [chatViews,setChatViews]=useState(createViewStore),[visitViews]=useState(createViewStore),[goalOrigin,setGoalOrigin]=useState<"settings"|"coach">("settings");
-  const latest=useRef(0),pending=useRef<{question:string;messages:CoachMessage[];locale:Locale;savings:number;generation:number;period:Period;data:typeof demo;signature:string;context?:QuestionContext}|null>(null),end=useRef<HTMLDivElement>(null);
+  const latest=useRef(0),pending=useRef<{question:string;messages:CoachMessage[];locale:Locale;language:ConversationLanguage;savings:number;generation:number;period:Period;data:typeof demo;signature:string;context?:QuestionContext}|null>(null),end=useRef<HTMLDivElement>(null);
   const sending=useRef(false),focusDraft=useRef(false),questionInput=useRef<HTMLInputElement>(null);
   const bindQuestionInput=useCallback((node:HTMLInputElement|null)=>{
     questionInput.current=node;
     if(node && focusDraft.current && !node.disabled){node.focus({preventScroll:true});focusDraft.current=false;}
   },[]);
   const transport=useMemo(()=>new DefaultChatTransport<CoachMessage>({api:"/api/chat",fetch:coachFetch,prepareSendMessagesRequest:prepareCoachRequest}),[]);
-  const chat=useChat<CoachMessage>({id:`money-coach:${locale}:${signature}`,transport,onError:()=>{void localAnswer();},onFinish:({messages})=>{if(pending.current?.locale===locale && pending.current.signature===signature && pending.current.generation===latest.current) {try {const encoded=encodeThread(messages,locale,signature);if(encoded!==null)sessionStorage.setItem(threadKey(locale),encoded);}catch{}}}});
+  const chat=useChat<CoachMessage>({id:`money-coach:conversation:${signature}`,transport,onError:()=>{void localAnswer();}});
   const setMessages=chat.setMessages;
   const [restoredLocale,setRestoredLocale]=useState<string|null>(null);
   const lastScroll=useRef("");
@@ -71,22 +73,23 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
   useEffect(()=>{
     if(!sourceReady)return;
     latest.current++;pending.current=null;sending.current=false;setLocalBusy(false);
-    setChatViews(messageViews.current.get(locale)??createViewStore());
-    try {setMessages(decodeThread(sessionStorage.getItem(threadKey(locale)),locale,signature));}catch{setMessages([]);}
-    setRestoredLocale(locale);
-  },[sourceReady,locale,signature,setMessages]);
-  useEffect(()=>{messageViews.current.set(locale,chatViews);},[locale,chatViews]);
-  useEffect(()=>{if(!sourceReady || restoredLocale!==locale || chat.status!=="ready") return;try {const encoded=encodeThread(chat.messages,locale,signature);if(encoded!==null) sessionStorage.setItem(threadKey(locale),encoded);}catch{}},[sourceReady,chat.messages,chat.status,locale,restoredLocale,signature]);
+    setChatViews(messageViews.current.get(signature)??createViewStore());
+    try {setMessages(decodeThread(sessionStorage.getItem(threadKey('en')),'en',signature));}catch{setMessages([]);}
+    setRestoredLocale(signature);
+  },[sourceReady,signature,setMessages]);
+  useEffect(()=>{messageViews.current.set(signature,chatViews);},[signature,chatViews]);
+  useEffect(()=>{if(!sourceReady || restoredLocale!==signature || chat.status!=="ready") return;try {const encoded=encodeThread(chat.messages,'en',signature);if(encoded!==null) sessionStorage.setItem(threadKey('en'),encoded);}catch{}},[sourceReady,chat.messages,chat.status,signature,restoredLocale]);
   const busy=localBusy || chat.status==="submitted" || chat.status==="streaming";
   useKeyboardViewport((tab==="coach" && !settings && !goal && !controlsOpen));
   async function localAnswer() {
     const current=pending.current;if(!current || current.generation!==latest.current) return;
     pending.current=null;setLocalBusy(true);
     try {
-      const answer={...await new RuleProvider().answer(current.question,current.locale,current.savings,{context:current.context,period:current.period,data:current.data}),metadata:{answerMode:"rule"}};
+      const question=languageCommand(current.question)?.question||current.question;
+      const answer:CoachMessage=['en','fi','et'].includes(current.language)?{...await new RuleProvider().answer(question,current.language as Locale,current.savings,{context:current.context,period:current.period,data:current.data}),metadata:{answerMode:"rule",language:current.language}}:{id:crypto.randomUUID(),role:'assistant',parts:[{type:'text',text:localLanguageUnavailable(current.locale)}],metadata:{answerMode:'rule',language:current.locale}};
       if(current.generation!==latest.current) return;
       const messages:CoachMessage[]=[...current.messages,{id:crypto.randomUUID(),role:"user",parts:[{type:"text",text:current.question}]},answer];
-      chat.setMessages(messages);try{const encoded=encodeThread(messages,current.locale,current.signature);if(encoded!==null)sessionStorage.setItem(threadKey(current.locale),encoded);}catch{}
+      chat.setMessages(messages);try{const encoded=encodeThread(messages,'en',current.signature);if(encoded!==null)sessionStorage.setItem(threadKey('en'),encoded);}catch{}
       setFallback(true);
     } catch {if(current.generation===latest.current) setRequestFailed(true);}
     finally {if(current.generation===latest.current){sending.current=false;setLocalBusy(false);}}
@@ -96,16 +99,32 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
     window.dispatchEvent(new Event("money-coach-stop-listening"));
     sending.current=true;question=question.trim();
     const generation=++latest.current;setInput("");setTab("coach");setSettings(false);setGoal(false);setFallback(false);setRequestFailed(false);
-    const context=isFollowUpQuestion(question) ? displayedContext(chat.messages,chatViews) : undefined;
-    pending.current={question,messages:chat.messages,locale,savings,generation,context,period,data,signature};
+    const requestedAppLanguage=appLanguageCommand(question);
+    if(requestedAppLanguage){
+      setLocalBusy(true);const changed=await setAppLanguage(requestedAppLanguage);if(generation!==latest.current)return;
+      if(['en','fi','et','es','ja'].includes(requestedAppLanguage)&&changed)setConversationLocale(requestedAppLanguage as 'en'|'fi'|'et'|'es'|'ja');
+      chat.setMessages([...chat.messages,{id:crypto.randomUUID(),role:'user',parts:[{type:'text',text:question}]},{id:crypto.randomUUID(),role:'assistant',metadata:{answerMode:'rule'},parts:[{type:'text',text:changed?`Interface language: ${new Intl.DisplayNames([requestedAppLanguage],{type:'language'}).of(requestedAppLanguage)}.`:appLanguageUnavailable(locale)}]}]);setLocalBusy(false);sending.current=false;return;
+    }
+    const command=languageCommand(question),language=command?.language??conversationLocale;
+    let immediate:string|null=null;
+    if(command?.scope==='app'){
+      if(['en','fi','et'].includes(language)){setLocale(language as Locale);setConversationLocale(language);immediate=languageConfirmation[language];}
+      else immediate=appLanguageUnavailable(locale);
+    }else if(command){if(command.scope==='conversation')setConversationLocale(language);if(!command.question)immediate=languageConfirmation[language];}
+    const financialQuestion=command?.question||question;
+    immediate??=acknowledgement(financialQuestion,language);
+    if(!immediate && privacy && !['en','fi','et'].includes(language))immediate=localLanguageUnavailable(locale);
+    if(immediate){chat.setMessages([...chat.messages,{id:crypto.randomUUID(),role:'user',parts:[{type:'text',text:question}]},{id:crypto.randomUUID(),role:'assistant',metadata:{answerMode:'rule',language:command?.scope==='app' && !['en','fi','et'].includes(language)?locale:language},parts:[{type:'text',text:immediate}]}]);sending.current=false;return;}
+    const context=isFollowUpQuestion(financialQuestion) ? displayedContext(chat.messages,chatViews) : undefined;
+    pending.current={question,messages:chat.messages,locale,language,savings,generation,context,period,data,signature};
     try {
       if(!navigator.onLine) {await localAnswer();return;}
-      await chat.sendMessage({text:question},{body:{locale,savingsPercent:savings,privacy,period,scope,dataset,...(context ? {context} : {})}});
+      await chat.sendMessage({text:question},{body:{locale,conversationLanguage:language,savingsPercent:savings,privacy,period,scope,dataset,...(context ? {context} : {})}});
     } catch {if(generation===latest.current) await localAnswer();}
     finally {if(generation===latest.current && pending.current){pending.current=null;sending.current=false;}}
   }
-  function stop() {latest.current++;pending.current=null;sending.current=false;void chat.stop();setLocalBusy(false);}
-  function clear() {try{sessionStorage.removeItem(threadKey(locale));}catch{}stop();setChatViews(createViewStore());chat.setMessages([]);chat.clearError();setFallback(false);setRequestFailed(false);}
+  function stop() {latest.current++;pending.current=null;sending.current=false;window.dispatchEvent(new Event('money-coach-stop-translation'));void chat.stop();setLocalBusy(false);}
+  function clear() {try{sessionStorage.removeItem(threadKey('en'));}catch{}stop();setConversationLocale(locale);setChatViews(createViewStore());chat.setMessages([]);chat.clearError();setFallback(false);setRequestFailed(false);}
   useEffect(()=>{
     const url=new URL(window.location.href),question=url.searchParams.get("question");
     if(question) {setInput(question.slice(0,2000));setTab("coach");url.searchParams.delete("question");window.history.replaceState(window.history.state,"",url);}
@@ -120,6 +139,7 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
   return <div className={`mx-auto min-h-dvh w-full max-w-app navigation-space ${!sourceReady || flat ? "bg-canvas" : "bg-surface"}`}>
     {sourceReady && <header className="pt-safe"><div className="flex min-h-touch items-center justify-between gap-3 px-4"><div className="flex min-w-0 items-center gap-3"><div className="min-w-0"><h1 className="text-xl font-semibold">{t("app")}</h1>{(!flat || embeddedDemo || dataset.startsWith("organizer")) && <p className="mt-1 text-sm text-ink-2">{t(dataset.startsWith("organizer") ? "organizerDate" : "demo",{date:date(snapshot)})}</p>}</div></div>{<Button variant="ghost" size="icon" aria-label={settings || goal || controlsOpen ? t("back") : t("settings")} onClick={()=>{if(controlsOpen){closeControls();}else if(goal){setGoal(false);setSettings(goalOrigin==="settings");}else setSettings(!settings);}}>{settings || goal || controlsOpen ? <ChevronLeft className="size-5"/> : <Settings className="size-5"/>}</Button>}</div></header>}
     <main id="main" tabIndex={-1} className={!sourceReady ? "space-y-6 p-4" : tab==="coach" && !settings && !goal && !controlsOpen ? "px-4 pt-6 conversation-space" : flat ? "px-4" : "space-y-6 px-4 py-6"}>
+      {languageStatus && <p role="status" className="mb-4 text-sm text-ink-2">{languageStatus}</p>}
       {!sourceReady ? <><h1 className="text-xl font-semibold">{t("app")}</h1><p role="status">{t(loadError ? "personaError" : "personaLoading")}</p>{loadError ? <DatasetPicker/> : <Skeleton className="h-64 rounded-3xl"/>}</> : <>
       <Tabs value={settings || goal || controlsOpen ? "" : tab} onValueChange={value=>{if(controlsOpen)closeControls();setSettings(false);setGoal(false);setTab(value);}}>
         {controlsOpen ? <MyDataPanel/> : settings ? <PreferencesScreen legal={embeddedDemo} savedGoal={savedGoal} onPrivacyChange={value=>{stop();setPrivacy(value);}} onGoal={()=>{setGoalOrigin("settings");setSettings(false);setGoal(true);}}/> : goal ? <SavingsGoalFlow initial={savedGoal} onBack={()=>{setGoal(false);setSettings(goalOrigin==="settings");}} onSave={value=>{setSavedGoal(value);setGoal(false);setSettings(goalOrigin==="settings");toast.success(t("goalSaved"));}}/> : <>
@@ -134,7 +154,7 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
           {fallback && <p role="status" className="py-4 text-caption text-ink-2">{t("fallback")}</p>}
           {requestFailed && <p role="alert" className="py-4 text-sm text-neg">{t("requestFailed")}</p>}
           <div ref={end} className="scroll-above-composer"/>
-          <div className="above-navigation pb-safe fixed inset-x-0 z-30 mx-auto w-full max-w-app border-t border-line bg-surface px-4 py-3"><form className="flex flex-wrap items-center gap-2" onSubmit={event=>{event.preventDefault();void ask(input);}}><Input ref={bindQuestionInput} className="min-w-0 flex-1 basis-0" aria-label={t("questionLabel")} placeholder={t("questionLabel")} maxLength={2000} autoComplete="off" value={input} disabled={busy} onChange={e=>{window.dispatchEvent(new Event("money-coach-stop-listening"));setInput(e.target.value);}}/><VoiceInput disabled={busy} onText={setInput}/><Button size="icon" aria-label={t("send")} disabled={busy || !input.trim()}><ArrowUp className="size-5"/></Button></form>{!privacy && onlineCoachEnabled && voiceProvider!=="gemini" && <p className="mt-1 text-caption text-ink-2">{t("geminiCoachNotice")}</p>}{!privacy && <p className="mt-1 text-caption text-ink-2">{t(voiceProvider==="gemini" ? onlineCoachEnabled ? "geminiCoachVoiceNotice" : "geminiVoiceNotice" : "speechOnline")}</p>}<p className="mt-2 text-caption text-ink-2">{t("disclaimer")}</p></div>
+          <div className="above-navigation pb-safe fixed inset-x-0 z-30 mx-auto w-full max-w-app border-t border-line bg-surface px-4 py-3"><form className="flex flex-wrap items-center gap-2" onSubmit={event=>{event.preventDefault();void ask(input);}}><Input ref={bindQuestionInput} className="min-w-0 flex-1 basis-0" aria-label={t("questionLabel")} placeholder={t("questionLabel")} maxLength={2000} autoComplete="off" value={input} disabled={busy} onChange={e=>{window.dispatchEvent(new Event("money-coach-stop-listening"));setInput(e.target.value);}}/><VoiceInput disabled={busy} onText={text=>{setInput(text);focusDraft.current=true;questionInput.current?.focus({preventScroll:true});}} onSend={askFromEntry}/><Button type="submit" size="icon" aria-label={t("send")} disabled={busy || !input.trim()}><ArrowUp className="size-5"/></Button></form>{!privacy && onlineCoachEnabled && voiceProvider!=="gemini" && <p className="mt-1 text-caption text-ink-2">{t("geminiCoachNotice")}</p>}{!privacy && <p className="mt-1 text-caption text-ink-2">{t(voiceProvider==="gemini" ? onlineCoachEnabled ? "geminiCoachVoiceNotice" : "geminiVoiceNotice" : "speechOnline")}</p>}<p className="mt-2 text-caption text-ink-2">{t("disclaimer")}</p></div>
         </TabsContent>
         <TabsContent value="whatif"><ViewScope store={visitViews} name="simulator"><Simulator goal={savedGoal}/></ViewScope></TabsContent>
         <TabsContent value="learn"><PersonalizedLearn onAsk={askFromEntry}/></TabsContent>
@@ -147,9 +167,9 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
 }
 function PreferencesScreen({onGoal,savedGoal,onPrivacyChange,legal}:{onGoal:()=>void;savedGoal:SavingsGoal|null;onPrivacyChange:(value:boolean)=>void;legal:boolean}) {
   const {openControls,data,scope}=useMoneyData(),planning=usePlanning(),income=overviewIncome(planning.period,data,planning.income),banks=bankSummaries(data);
-  const {locale,setLocale,savings,setSavings,privacy,voiceProvider,t}=useCopy(),restricted=scope.excludedAccounts.length>0 || scope.excludedCategories.length>0;
+  const {locale,uiLanguage,setLocale,savings,setSavings,privacy,voiceProvider,t}=useCopy(),restricted=scope.excludedAccounts.length>0 || scope.excludedCategories.length>0;
   return <div className="space-y-6"><h2 className="text-xl font-semibold">{t("settings")}</h2>
-    <SettingsGroup title={t("language")}><RadioGroup aria-label={t("language")} value={locale} onValueChange={v=>setLocale(v as Locale)} className="gap-0 divide-y divide-line">{(["en","fi","et"] as const).map((value,i)=><label key={value} htmlFor={`language-${value}`} className="flex min-h-14 items-center gap-3 px-4"><RadioGroupItem id={`language-${value}`} value={value}/>{t((["english","finnish","estonian"] as const)[i])}</label>)}</RadioGroup></SettingsGroup>
+    <SettingsGroup title={t("language")}><RadioGroup aria-label={t("language")} value={uiLanguage} onValueChange={v=>setLocale(v as Locale)} className="gap-0 divide-y divide-line">{(["en","fi","et"] as const).map((value,i)=><label key={value} htmlFor={`language-${value}`} className="flex min-h-14 items-center gap-3 px-4"><RadioGroupItem id={`language-${value}`} value={value}/>{t((["english","finnish","estonian"] as const)[i])}</label>)}</RadioGroup></SettingsGroup>
     <SettingsGroup title={t("settingsDataSource")}><DatasetPicker/><SettingsSheetRow label={t("aboutData")}><DataSourceDetails embedded/></SettingsSheetRow></SettingsGroup>
     <SettingsGroup title={t("coachVisibility")}><SettingsRow label={t(restricted ? "coachSeesLimited" : "coachSeesAll")} onClick={openControls}/></SettingsGroup>
     <SettingsGroup title={t("settingsAiPrivacy")}>

@@ -4,7 +4,7 @@ import {propsSchemas,type CoachMessage,type ToolName} from "@/coach/catalog";
 import {COACH_REVISION} from "@/coach/transport";
 import type {Locale} from "@/i18n/dictionaries";
 const text=z.object({type:z.literal("text"),text:z.string().max(10000)});
-const row=z.object({id:z.string().min(1).max(200),role:z.enum(["user","assistant"]),parts:z.array(z.unknown()).max(30),metadata:z.object({answerMode:z.enum(["model","rule"])}).optional()});
+const row=z.object({id:z.string().min(1).max(200),role:z.enum(["user","assistant"]),parts:z.array(z.unknown()).max(30),metadata:z.object({answerMode:z.enum(["model","rule"]),language:z.enum(['en','fi','et','es','ja']).optional()}).optional()});
 export const threadKey=(locale:Locale)=>`money-coach-thread.v1.${locale}`;
 /** Browser storage is untrusted and bounded. Never restores different-build tool figures. */
 export function decodeThread(raw:string|null,locale:Locale,signature=JSON.stringify(emptyScope)):CoachMessage[] {

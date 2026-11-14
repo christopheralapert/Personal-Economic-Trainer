@@ -50,7 +50,8 @@ for(const width of [390,360])test(`Finnish organizer presentation at ${width}px 
   await page.getByRole("button",{name:fi.send,exact:true}).click();
   await expect(answers).toHaveCount(2);const scenario=answers.last();
   await expect(scenario).toContainText(/159,58\s€/);
-  await expect(scenario).toContainText("1.9.2026–30.9.2026");
+  await expect(scenario.locator('[data-spoken-answer]')).toContainText("syyskuussa 2026");
+  await expect(scenario).toContainText("1.9.–30.9.");
   await expect(scenario.getByRole("slider")).toHaveAttribute("aria-valuenow","20");
   expect(demoTraffic.chat[1]).toMatchObject({dataset:"organizer1",locale:"fi",period:september});
   await page.getByRole("tab",{name:fi.whatif,exact:true}).click();

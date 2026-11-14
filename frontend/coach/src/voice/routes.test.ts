@@ -15,6 +15,12 @@ function request(body:BodyInit,type="application/json",extra:Record<string,strin
 const speech={dataset:"organizer1",locale:"fi",savingsPercent:10,tool:"showTransactions",input:{period:{start:"2026-08-01",end:"2026-09-01"},category:"taxi"}};
 async function fixture(run:(env:Record<string,string>,file:string)=>Promise<void>){const directory=await mkdtemp(path.join(os.tmpdir(),"money-coach-voice-")),file=path.join(directory,"ledger.json");try{await run({GEMINI_API_KEY:"fake-voice-key",MONEY_COACH_GEMINI_VOICE_ENABLED:"true",MONEY_COACH_VOICE_LEDGER_PATH:file,MONEY_COACH_VOICE_MAX_REQUESTS:"4"},file);}finally{if(path.dirname(directory)!==os.tmpdir() || !path.basename(directory).startsWith("money-coach-voice-"))throw new Error("Unsafe cleanup");await rm(directory,{recursive:true,force:true});}}
 describe("optional Gemini voice boundaries",()=>{
+ for(const locale of ['en','fi','et'] as const)it(`sends the exact chart total and top individual categories in ${locale}`,async()=>fixture(async(env)=>{
+  const network=vi.fn<typeof fetch>(async()=>reply('audio')),routes=createVoiceRoutes({env,network});
+  for(const period of [{start:'2026-09-01',end:'2026-10-01'},{start:'2026-08-01',end:'2026-09-01'}])expect((await routes.speak(request(JSON.stringify({...speech,locale,tool:'showDonut',input:{period}})))).status).toBe(200);
+  const first=JSON.parse(network.mock.calls[0][1]!.body as string).input[0].content[0].text,second=JSON.parse(network.mock.calls[1][1]!.body as string).input[0].content[0].text;
+  expect(first).toContain('7\u00a0017,40');expect(first).toContain('1\u00a0390,20');expect(first).toContain('884,44');expect(first).toContain({en:'Home',fi:'Koti',et:'Kodu'}[locale]);expect(first).not.toMatch(/Other categories|most of/);expect(second).not.toBe(first);
+ }));
  for(const [locale,language,text] of [
   ["fi","fi-FI","Käytit takseihin elokuussa 2026 yhteensä 30,97\u00a0€."],
   ["et","et-EE","Kirjendatud netokulu (Takso): 30,97\u00a0€. Periood: august 2026."],

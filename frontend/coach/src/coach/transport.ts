@@ -5,6 +5,7 @@ import type {HttpChatTransportInitOptions} from "ai";
 import type {CoachMessage} from "./catalog";
 
 import {isFollowUpQuestion,questionContextSchema} from "./question-context";
+import {languageCommand} from './conversation-language';
 
 export const COACH_REVISION=process.env.NEXT_PUBLIC_MONEY_COACH_REVISION ?? "";
 export const REVISION_HEADER="X-Money-Coach-Revision";
@@ -14,10 +15,11 @@ export const prepareCoachRequest:NonNullable<HttpChatTransportInitOptions<CoachM
   const latest=messages.at(-1);
   if(!latest || latest.role!=="user") throw new Error("A final user question is required");
   const question=latest.parts.filter(p=>p.type==="text").map(p=>p.text).join(" ");
-  const context=isFollowUpQuestion(question) && body?.context!==undefined ? questionContextSchema.parse(body.context) : undefined;
+  const context=isFollowUpQuestion(languageCommand(question)?.question||question) && body?.context!==undefined ? questionContextSchema.parse(body.context) : undefined;
   return {body:{...(body?.dataset===undefined ? {} : {dataset:datasetKeySchema.parse(body.dataset)}),...(body?.scope===undefined ? {} : {scope:dataScopeSchema.parse(body.scope)}),...(body?.period===undefined ? {} : {period:periodSchema.parse(body.period)}),...(context ? {context} : {}),messages:[{role:latest.role,parts:latest.parts}],
     ...(body?.privacy===undefined ? {} : {privacy:body.privacy===true}),
     ...(body?.locale===undefined ? {} : {locale:body.locale}),
+    ...(body?.conversationLanguage===undefined ? {} : {conversationLanguage:body.conversationLanguage}),
     ...(body?.savingsPercent===undefined ? {} : {savingsPercent:body.savingsPercent}),
   }};
 };
