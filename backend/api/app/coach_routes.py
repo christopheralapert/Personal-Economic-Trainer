@@ -1,20 +1,23 @@
 """Owned question-to-service bridge: models interpret; server tools compute."""
 from datetime import datetime,timezone
 import time
+import re
+from time import perf_counter
 from typing import Literal
 
-from fastapi import APIRouter,Depends,Request
+from fastapi import APIRouter,Depends,Request,Response
 from pydantic import model_validator
 from starlette.concurrency import run_in_threadpool
 from psycopg.types.json import Jsonb
 from uuid import uuid4
 
 from .analysis_tools import execute_tool
-from .answer_cards import AnswerCardV1,render_answer
+from .answer_cards import AnswerCardV1,render_answer,transaction_sentence
 from .auth_routes import write_principal
-from .coach_intent import CoachInterpretationV1,CoachQuestionV1,interpret_question
+from .coach_intent import CoachInterpretationV1,CoachQuestionV1,interpret_question,interpretation_message,question_has_identifiers
 from .contracts import Contract
-from .model_adapter import ToolCall,TurnBudget
+from .model_adapter import ModelError,ToolCall,TurnBudget
+from .analysis_tools import SpendingToolResultV1
 from .coach_model import interpret_with_model
 from .coach_latest_bank import requested_bank,interpret_latest_bank
 from .identity import authorized_transaction,AuthError
@@ -35,9 +38,14 @@ class CoachAnswerV1(Contract):
     transactions: LedgerPageV1 | None = None
     model_usage: dict[str,int|bool] | None = None
     allow_ai_payment_descriptions: bool = False
+    source: Literal["rule","model"] = "rule"
+    provider: Literal["gemini-direct","openai-responses"] | None = None
+    model_diagnostic: str | None = None
+    answer_text: str = ""
 
     @model_validator(mode="after")
     def coherent_result(self):
+        if (self.source=="model")!=(self.provider is not None): raise ValueError("Only successful model interpretation names a provider")
         intent=self.interpretation.intent
         if intent is None:
             if self.card is not None or self.habits is not None or self.transactions is not None: raise ValueError("Unresolved questions cannot have financial results")
@@ -51,12 +59,22 @@ class CoachAnswerV1(Contract):
 
 
 @router.post("/v1/coach/query",response_model=CoachAnswerV1)
-async def query(body:CoachQuestionV1,request:Request,user=Depends(write_principal)):
+async def query(body:CoachQuestionV1,request:Request,response:Response,user=Depends(write_principal)):
+    started=perf_counter();timings={"model_ms":0.0};source="rule";provider=None;diagnostic=None
+    def finish(**values):
+        answer=CoachAnswerV1(**values,source=source,provider=provider,model_diagnostic=diagnostic,model_usage=usage,allow_ai_payment_descriptions=allow_descriptions)
+        if not answer.answer_text: answer.answer_text=answer.card.summary if answer.card else answer.interpretation.message
+        total=(perf_counter()-started)*1000;model=timings["model_ms"]
+        response.headers["X-Money-Coach-Source"]=source
+        response.headers["X-Money-Coach-Evaluation"]=diagnostic or ("model_tool" if source=="model" else "privacy_rule" if body.privacy else "local_rule")
+        if provider is not None: response.headers["X-Money-Coach-Provider"]=provider
+        response.headers["Server-Timing"]=f"model;dur={model:.1f}, app;dur={max(0,total-model):.1f}, total;dur={total:.1f}"
+        return answer
     config=request.app.state.settings
     now=request.app.state.coach_clock() if hasattr(request.app.state,"coach_clock") else datetime.now(timezone.utc)
     usage=None
     bank=requested_bank(body.question)
-    use_model=config.model_enabled and config.model_billing_policy=="paid_allowed" and not user.synthetic
+    use_model=not body.privacy and config.model_enabled and config.model_billing_policy=="paid_allowed" and not user.synthetic and not question_has_identifiers(body.question)
     if use_model and bank is None:
         key=str(user.scope.user_id);now_seconds=time.monotonic();today=datetime.now(timezone.utc).date().isoformat()
         last,day,total=_model_usage_window.get(key,(0.0,today,0))
@@ -77,8 +95,14 @@ async def query(body:CoachQuestionV1,request:Request,user=Depends(write_principa
         budget=TurnBudget(config)
         complete=False
         try:
-            interpretation=await interpret_with_model(request.app.state.model,body,now,budget)
+            interpretation=await interpret_with_model(request.app.state.model,body,now,budget,timings=timings)
             complete=True
+            if interpretation.method=="structured_model":
+                source="model"
+                provider="gemini-direct" if getattr(config,"model_provider","openai")=="gemini" else "openai-responses"
+        except ModelError as error:
+            diagnostic=error.code if re.fullmatch(r"MODEL_[A-Z0-9_]{1,80}",error.code) else "MODEL_UNAVAILABLE"
+            interpretation=interpret_question(body,now=now)
         finally:
             usage={"calls":budget.calls,"tool_calls":budget.tools,"estimated_cost_microusd":budget.cost,
                 "input_tokens":budget.input_tokens,"output_tokens":budget.output_tokens,
@@ -86,16 +110,19 @@ async def query(body:CoachQuestionV1,request:Request,user=Depends(write_principa
             await run_in_threadpool(record_usage,request,user,usage)
             _model_usage_window[key]=(now_seconds,day,total+budget.input_tokens+budget.output_tokens)
     else:interpretation=interpret_question(body,now=now)
+    interpretation.message=interpretation_message(interpretation.reason,body.card_locale)
     intent=interpretation.intent
-    if intent is None: return CoachAnswerV1(interpretation=interpretation,model_usage=usage,allow_ai_payment_descriptions=allow_descriptions)
+    if intent is None: return finish(interpretation=interpretation)
     call=ToolCall(intent.tool.name,intent.tool.arguments) if intent.kind=="analysis" else ToolCall("spending_totals",intent.arguments)
     secret=config.session_secret.get_secret_value()
     artifact=await run_in_threadpool(execute_tool,request.app.state.pools.finance,user,call,identity=request.app.state.identity,cursor_secret=secret,
         bank_secret=secret,maximum_age_hours=config.balance_maximum_age_hours,now=interpretation.resolved_at)
     if intent.kind=="habits":
-        return CoachAnswerV1(interpretation=interpretation,habits=spending_habits(intent.arguments,artifact.result,now=interpretation.resolved_at),model_usage=usage,allow_ai_payment_descriptions=allow_descriptions)
-    if call.name=="ledger_transactions":return CoachAnswerV1(interpretation=interpretation,transactions=artifact.result,model_usage=usage,allow_ai_payment_descriptions=allow_descriptions)
-    return CoachAnswerV1(interpretation=interpretation,card=render_answer(artifact,body.card_locale),model_usage=usage,allow_ai_payment_descriptions=allow_descriptions)
+        return finish(interpretation=interpretation,habits=spending_habits(intent.arguments,artifact.result,now=interpretation.resolved_at),
+            answer_text=render_answer(SpendingToolResultV1(result=artifact.result),body.card_locale).summary)
+    if call.name=="ledger_transactions":return finish(interpretation=interpretation,transactions=artifact.result,
+        answer_text=transaction_sentence(artifact.result,body.card_locale))
+    return finish(interpretation=interpretation,card=render_answer(artifact,body.card_locale))
 
 
 def record_usage(request,user,usage):

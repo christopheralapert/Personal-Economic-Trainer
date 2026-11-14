@@ -25,7 +25,7 @@ def test_unresolved_partial_entries_never_present_zero_as_established_spending()
 
 
 @pytest.mark.parametrize("locale,title,amount",[("en","Observed spending","250.00 EUR"),
-    ("fi","Havaittu kulutus","250,00 EUR"),("sv","Observerad konsumtion","250,00 EUR")])
+    ("fi","Havaittu kulutus","250,00 EUR"),("sv","Observerad konsumtion","250,00 EUR"),("et","Vaadeldud kulutused","250,00 EUR")])
 def test_localized_cards_reference_exact_grounded_facts_and_keep_scope_and_exclusive_dates(locale,title,amount):
     result=SpendingToolResultV1(result=baseline())
     before=result.model_dump(mode="json")
@@ -36,6 +36,7 @@ def test_localized_cards_reference_exact_grounded_facts_and_keep_scope_and_exclu
     assert card.answer==ground_answer(result) and card.notices
     assert [row.fact_id for row in card.rows]==[fact.fact_id for fact in card.answer.facts]
     assert result.model_dump(mode="json")==before
+    assert amount in card.summary and "2026-10-01" in card.summary and "2026-10-31" in card.summary
 
 
 def test_integer_formatting_preserves_large_money_refund_negative_net_zero_and_unknown_currency_scale():
@@ -93,3 +94,23 @@ def test_untrusted_merchant_text_stays_only_in_attached_evidence_and_cached_card
     assert merchant not in displayed and "unlimited" not in displayed
     with pytest.raises(AuthError,match="GROUNDING_EVIDENCE_INVALID"): render_answer(card)
     with pytest.raises(AuthError,match="ANSWER_LOCALE_UNSUPPORTED"): render_answer(result,"de")
+
+
+@pytest.mark.parametrize("locale",["en","fi","et","sv"])
+def test_full_sentences_keep_comparison_and_scenario_amounts_and_both_evidence_periods(locale):
+    compared=SpendingComparisonToolResultV1(result=compare_spending(totals(net=25000),totals(start="2026-09-01",end="2026-10-01",net=20000),"previous_month"))
+    card=render_answer(compared,locale)
+    for value in ("2026-10-01","2026-10-31","2026-09-01","2026-09-30",card.rows[0].value_text,card.rows[1].value_text,card.rows[2].value_text):
+        assert value in card.summary
+    scenario=render_answer(SpendingReductionToolResultV1(result=spending_reduction(request(),baseline(),now=NOW)),locale)
+    for value in ("2026-10-01","2026-10-31",scenario.rows[1].value_text,scenario.rows[2].value_text): assert value in scenario.summary
+    assert scenario.answer.artifact.result.result_kind=="hypothetical_cost_reduction"
+
+
+@pytest.mark.parametrize("locale,unknown",[("en","unknown, not zero"),("fi","tuntematon, ei nolla"),("et","teadmata, mitte null"),("sv","okänt, inte noll")])
+def test_empty_partial_scope_and_missing_plan_never_turn_into_zero_allowances(locale,unknown):
+    empty=baseline(0,0);empty.expense_count=empty.refund_count=0;empty.scope.dataset_coverage="unverified"
+    card=render_answer(SpendingToolResultV1(result=empty),locale)
+    assert unknown in card.summary and "2026-10-01" in card.summary and "2026-10-31" in card.summary
+    plan=saved_plan();plan.result.plan=None
+    assert unknown in render_answer(plan,locale).summary
