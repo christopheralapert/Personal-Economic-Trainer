@@ -21,8 +21,12 @@ function expected(rows:{booked_on:string;amount_minor:number}[]){expect(rows.map
 for(const format of ['csv','pdf','xlsx','xml','mt940','qif'])test(`${format}: file to saved records and Coach, exact repeat`,async({page})=>{
  await identity(page,'wise-browser-'+format);const name='synthetic.'+format;await choose(page,[name]);await preview(page,[name]);
  await expect(item(page,name)).toContainText('3 entries');
+ await expect(item(page,name)).toContainText(`Statement period: 2026-10-${['csv','xlsx','qif'].includes(format)?'03':'01'} — 2026-10-${['csv','xlsx','qif'].includes(format)?'15':'31'}`);
+ await expect(item(page,name).getByRole('combobox',{name:'Account',exact:true})).toBeVisible();
+ if(format!=='qif')await expect(item(page,name)).toContainText('EUR');
  if(format==='csv'||format==='xlsx'||format==='qif')await newAccount(page,name,'Wise '+format);
  if(format==='qif'){await expect(page.getByRole('button',{name:'Confirm imports',exact:true})).toBeDisabled();await item(page,name).getByLabel('Confirm statement currency').selectOption('EUR');}
+ await expect(item(page,name).getByRole('combobox',{name:'Account',exact:true})).not.toHaveValue('');
  const saved=await confirm(page);expect(saved.added_count).toBe(3);const account=saved.files[0].account_id;
  await item(page,name).getByRole('link',{name:'View transactions'}).click();await expect(page.locator('[data-ledger-row]')).toHaveCount(3);await page.reload();await expect(page.locator('[data-ledger-row]')).toHaveCount(3);
  expected(await coach(page,3,account));await expect(page.locator('[data-statement-date]')).toContainText(format==='csv'||format==='xlsx'||format==='qif'?'2026-10-15':'2026-10-31');

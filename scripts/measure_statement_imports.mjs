@@ -14,7 +14,7 @@ export function syntheticCsv(count=700){
 
 async function signIn(page,origin,subject){
   await page.goto(origin+"/banks");
-  await page.getByRole("link",{name:"Sign in with your identity provider",exact:true}).click();
+  await page.getByRole("link",{name:/^(?:Connect your bank|Sign in with your identity provider)$/}).click();
   await expect(page.getByRole("heading",{name:"Isolated synthetic identity",exact:true})).toBeVisible();
   await page.getByRole("link",{name:subject,exact:true}).click();
   return page.goto(origin+"/banks");

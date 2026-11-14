@@ -2,6 +2,8 @@
 import base64
 import psycopg
 import pytest
+from app import statement_files
+from app.identity import AuthError
 from uuid import uuid4
 from scripts.generate_wise_fixtures import bundle, ROWS
 from identity_support import authenticated_app, login, ORIGIN
@@ -34,6 +36,32 @@ def test_batch_rolls_back_before_foreign_or_missing_preview(database,owners):
         b=headers(client,'mika')
         assert client.post('/v1/statements/wise/confirm',headers=b,json={'previews':[selection(first,new_account_label='Other')]}).status_code==404
         assert client.get('/v1/statements/wise/accounts').json()==[]
+
+
+def test_batch_write_failure_preserves_both_previews_and_retry_publishes_once(database,owners,monkeypatch):
+    with authenticated_app(database,owners,statement_imports_enabled=True) as (client,app,config):
+        h=headers(client); first=stage(client,h); second=stage(client,h,'xml')
+        command={'previews':[selection(first,new_account_label='Synthetic atomic first'),
+            selection(second,new_account_label='Synthetic atomic second')]}
+        original=statement_files.publish_rows
+        calls=[]
+        def fail_second(*args):
+            original(*args)
+            calls.append(True)
+            if len(calls)==2: raise AuthError('INVALID_IMPORT_COMMAND',409)
+        monkeypatch.setattr(statement_files,'publish_rows',fail_second)
+        assert client.post('/v1/statements/wise/confirm',headers=h,json=command).status_code==409
+        with psycopg.connect(database['admin']) as connection:
+            assert connection.execute('SELECT count(*) FROM moneylens.transactions WHERE owner_user_id=%s',(owners[0][1],)).fetchone()==(0,)
+            assert connection.execute('SELECT count(*) FROM moneylens.statement_import_receipts WHERE owner_user_id=%s',(owners[0][1],)).fetchone()==(0,)
+            assert connection.execute('SELECT count(*) FROM moneylens.statement_previews WHERE owner_user_id=%s',(owners[0][1],)).fetchone()==(2,)
+            assert connection.execute('SELECT count(*) FROM moneylens.accounts WHERE owner_user_id=%s',(owners[0][1],)).fetchone()==(1,)
+        monkeypatch.setattr(statement_files,'publish_rows',original)
+        saved=client.post('/v1/statements/wise/confirm',headers=h,json=command)
+        assert saved.status_code==200 and saved.json()['added_count']==6
+        assert client.post('/v1/statements/wise/confirm',headers=h,json=command).json()['added_count']==0
+        with psycopg.connect(database['admin']) as connection:
+            assert connection.execute('SELECT count(*),sum(amount_minor) FROM moneylens.transactions WHERE owner_user_id=%s',(owners[0][1],)).fetchone()==(6,500)
 
 
 def test_cross_format_dedup_and_ambiguous_repeated_reference(database,owners):
