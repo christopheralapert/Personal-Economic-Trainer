@@ -175,7 +175,10 @@ def confirm(body,request,user,cipher,clean_expired,receipt):
                 old=receipt(connection,owner(user),stage[1],account=account)
                 if old:
                     signature=connection.execute('SELECT canonical_sha256 FROM moneylens.statement_import_receipts WHERE tenant_id=%s AND owner_user_id=%s AND id=%s',(*owner(user),old[0])).fetchone()[0]
-                    if signature!=payload['signature']: raise AuthError('STATEMENT_OVERLAP',409)
+                    legacy_fixed_csv=(signature is None and old[5] in ('wise_csv','canonical_csv')
+                        and payload['variant'] in ('wise.csv.transferwise-id.v1','canonical.csv.v1'))
+                    if signature!=payload['signature'] and not legacy_fixed_csv:
+                        raise AuthError('STATEMENT_OVERLAP',409)
                     connection.execute('DELETE FROM moneylens.statement_previews WHERE tenant_id=%s AND owner_user_id=%s AND id=%s',(*owner(user),selection.preview_id))
                     results.append(published(old)); continue
                 signature=payload['signature']; rows=payload['rows']

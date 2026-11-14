@@ -57,7 +57,9 @@ test('mixed files: errors, cross-format repeats, two accounts and owner isolatio
  const stolen=await other.evaluate(async preview_id=>{const s=await(await fetch('/api/v1/auth/session')).json();return(await fetch('/api/v1/statements/wise/confirm',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':s.csrf_token,'X-MoneyLens-Session-ID':s.session_id},body:JSON.stringify({previews:[{preview_id}]})})).status;},saved.files[0].id);expect(stolen).toBe(404);
  expect(await coach(other,0)).toEqual([]);
  const foreign=await other.evaluate(async account=>{return(await fetch('/api/v1/ledger/transactions?'+new URLSearchParams({account_id:account,start:'2026-10-01',end_exclusive:'2026-11-01'}))).status;},main);expect(foreign).toBe(404);
- await choose(page,['synthetic.pdf','synthetic.xlsx']);await page.getByRole('button',{name:'Preview statements',exact:true}).click();for(const name of ['synthetic.pdf','synthetic.xlsx'])await expect(item(page,name)).toContainText('Already saved; no entries added.');expected(await coach(page,3,main));
+ await choose(page,['synthetic.pdf','synthetic.xlsx']);await page.getByRole('button',{name:'Preview statements',exact:true}).click();
+ await item(page,'synthetic.xlsx').getByLabel('Account',{exact:true}).selectOption(main);expect((await confirm(page)).added_count).toBe(0);
+ for(const name of ['synthetic.pdf','synthetic.xlsx'])await expect(item(page,name)).toContainText('Already saved; no entries added.');expected(await coach(page,3,main));
  await choose(page,['second.xml']);await preview(page,['second.xml']);const second=await confirm(page);expect(second.added_count).toBe(3);const secondId=second.files[0].account_id;expect(secondId).not.toBe(main);
  expected(await coach(page,3,main));expected(await coach(page,3,secondId));await coach(page,6);
  await page.goto('/transactions?start=2026-10-01&end=2026-11-01');await expect(page.locator('[data-ledger-row]')).toHaveCount(6);await expect(page.locator('[data-statement-date]')).toHaveCount(2);
