@@ -7,6 +7,7 @@ import {StatementDates,type StatementAccount} from "./statement-dates";
 import {ImportClassification,classificationCopy,type ImportRow,type ImportReview} from "./statement-classification";
 import {demoEntryCopy} from '../i18n/demo-entry';
 import {DemoClassificationPreview} from './demo-classification-preview';
+import {DemoFileUpload} from './demo-file-upload';
 
 const copy={
  en:{title:"Import bank statements",note:"Wise EUR: CSV, text PDF, XLSX, CAMT.053 v10, MT940 and QIF. Up to 10 files, 2 MiB each. Check the account for each file before confirming.",choose:"Choose statements",preview:"Preview statements",confirm:"Confirm imports",remove:"Remove",account:"Account",pick:"Choose an account",auto:"Use the account in this file",new:"Create a separate account",name:"New account name",currency:"Confirm statement currency",pickCurrency:"Choose currency",dates:"Statement period",last:"Last statement date",entries:"entries",repeated:"Repeated references are kept as separate entries.",overlap:"Possible overlap. Exact complete statements on the same account are skipped. Otherwise remove this file or confirm separate purchases.",separate:"These are separate purchases; keep all entries",ready:"entries added. Their purpose needs review.",view:"View transactions",order:"QIF date order",day:"Day / month / year",month:"Month / day / year",datePick:"Choose date order",error:"Could not prepare this file. Check the format and try again.",failed:"Nothing in this batch was imported. Check the account choices and overlapping periods, or preview expired files again.",pdf:"This PDF layout is not supported. Export a Wise EUR CSV instead.",scan:"This PDF has no readable text layer. Export a Wise EUR CSV instead.",encrypted:"This PDF is encrypted. Use an unencrypted Wise statement or CSV.",large:"Choose a file under 2 MiB.",unknown:"Unsupported file type. Choose one of the listed Wise statement formats.",dedup:"Already saved; no entries added.",limit:"Select no more than 10 files."},
@@ -30,6 +31,7 @@ export function StatementImport({request,changed,demo=false}:{request:PrivateReq
   et:{ask:'Küsi Coachilt',draft:'Näita tehinguid alates {start} kuni {end}',canonical:'Toetatud on ka EUR-sentide CSV: reference,booked_on,amount_minor,currency,description (ISO-kuupäevad, kuni 64 KiB).'}
  }[locale]},input=useRef<HTMLInputElement>(null),next=useRef(0),publishedFocus=useRef<HTMLDivElement>(null);
  const [items,setItems]=useState<Item[]>([]),[accounts,setAccounts]=useState<StatementAccount[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState("");
+ const busyNow=useRef(false);
  const [cloudConsent,setCloudConsent]=useState(false),[cloudBusy,setCloudBusy]=useState(false),[cloudStatus,setCloudStatus]=useState('');
  const cloudGeneration=useRef(0),privacyNow=useRef(privacy),consentNow=useRef(cloudConsent);privacyNow.current=privacy;consentNow.current=cloudConsent;
  useEffect(()=>{cloudGeneration.current++;setCloudBusy(false);setCloudStatus('');if(privacy||!cloudConsent)setItems(list=>list.map(item=>({...item,suggestions:undefined,classificationToken:undefined})));},[privacy,cloudConsent]);
@@ -37,14 +39,22 @@ export function StatementImport({request,changed,demo=false}:{request:PrivateReq
  useEffect(()=>{let active=true;void request<StatementAccount[]>("statements/wise/accounts").then(v=>{if(active)setAccounts(v);}).catch(()=>{});return()=>{active=false;};},[request]);
  const update=(id:number,value:Partial<Item>)=>setItems(list=>list.map(x=>x.id===id?{...x,...value}:x));
  function reason(code:string,format?:Format){if(code==='synthetic_sample_required')return demoEntryCopy[locale].sampleOnly;const known=reasons[locale];if(code==='unreadable_pdf'||code==='qif_date_order_required'||code==='unsupported_currency')return known[code];if(code==='file_too_large')return c.large;if(format==='pdf')return code==='no_text_use_csv'?c.scan:code==='encrypted_pdf'?c.encrypted:c.pdf;return c.error;}
- async function preview(){setBusy(true);setError('');try{for(const item of items.filter(x=>!x.result)){
+ function addFiles(files:File[]){
+  if(files.length+items.length>10){setError(c.limit);return [];}
+  const selected:Item[]=files.map(file=>{const ext=file.name.split('.').at(-1)?.toLowerCase(),format=ext==='sta'?'mt940':ext;return {id:++next.current,name:file.name,file,format:format&&['csv','pdf','xlsx','xml','mt940','qif'].includes(format)?format as Format:undefined,choice:'',newName:'Wise EUR',currency:'',order:'',separate:false};});
+  setError('');setItems(old=>[...old,...selected]);return selected;
+ }
+ async function preview(withSample=false){if(busyNow.current)return;busyNow.current=true;setBusy(true);setError('');try{
+  let batch=items.filter(x=>!x.result);
+  if(withSample){const response=await fetch('/api/demo-statements/sample/auto-taxis.csv',{cache:'no-store'});if(!response.ok)throw Error();batch=addFiles([new File([await response.blob()],'auto-taxis.csv',{type:'text/csv'})]);}
+  for(const item of batch){
   if(!item.file||!item.format){update(item.id,{error:c.unknown});continue;}if(item.file.size>2*1024*1024){update(item.id,{error:c.large});continue;}
   try{const bytes=new Uint8Array(await item.file.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
    const result=await request<Preview|Published|{state:'invalid';code:string}>('statements/wise/preview',{format:item.format,content_base64:btoa(binary),date_order:item.order||null});
    if(result.state==='invalid'){update(item.id,{error:reason(result.code,item.format)});continue;}
    update(item.id,{result,error:undefined,file:undefined,choice:result.state==='preview'?result.account_id??(result.requires_account?'':'auto'):'',currency:result.state==='preview'&&result.requires_currency?'':'EUR'});
   }catch(e){update(item.id,{error:e instanceof PrivateApiError&&e.code==='IMPORT_UNAVAILABLE'?e.message:c.error});}
- }}finally{setBusy(false);}}
+ }}catch{setError(c.error);}finally{busyNow.current=false;setBusy(false);}}
  const pending=items.filter((x):x is Item&{result:Preview}=>x.result?.state==='preview');
  async function suggest(){
   if(privacy||!cloudConsent||cloudBusy)return;const generation=++cloudGeneration.current;setCloudBusy(true);setCloudStatus('');
@@ -55,16 +65,16 @@ export function StatementImport({request,changed,demo=false}:{request:PrivateReq
   }catch{if(generation===cloudGeneration.current)setCloudStatus(classification.cloudFailed);}finally{if(generation===cloudGeneration.current)setCloudBusy(false);}
  }
  const canConfirm=pending.length>0&&pending.every(x=>x.choice&&(x.choice!=='new'||x.newName.trim())&&(!x.result.requires_currency||x.currency==='EUR'));
- async function confirm(){setBusy(true);setError('');try{
+ async function confirm(){if(busyNow.current)return;busyNow.current=true;setBusy(true);setError('');try{
   const result=await request<{files:Published[]}>('statements/wise/confirm',{previews:pending.map(x=>({preview_id:x.result.id,account_id:!['auto','new'].includes(x.choice)?x.choice:null,new_account_label:x.choice==='new'?x.newName.trim():null,currency:x.currency||null,keep_separate:x.separate,reviews:x.reviews??[],classification_token:privacy||!cloudConsent?null:x.classificationToken??null,privacy}))});
   for(let i=0;i<pending.length;i++)update(pending[i].id,{result:result.files[i]});changed();requestAnimationFrame(()=>publishedFocus.current?.focus());setAccounts(await request<StatementAccount[]>('statements/wise/accounts'));
- }catch(e){setError(e instanceof PrivateApiError&&e.code==='STATEMENT_OVERLAP'?c.overlap:c.failed);}finally{setBusy(false);}}
+ }catch(e){setError(e instanceof PrivateApiError&&e.code==='STATEMENT_OVERLAP'?c.overlap:c.failed);}finally{busyNow.current=false;setBusy(false);}}
  function coachLink(result:Published){return demo?'/demo/import?'+new URLSearchParams({view:'coach',tab:'coach',question:demoEntryCopy[locale].question}):'/coach?'+new URLSearchParams({account_id:result.account_id,start:result.start,end:result.end_exclusive,question:c.draft.replace('{start}',result.start).replace('{end}',result.end_exclusive)});}
  return <section className="space-y-4 border-t border-line py-4" aria-busy={busy}><h2 className="text-lg font-semibold">{c.title}</h2>{!demo&&<><p className="text-sm text-ink-2">{c.note}</p><p className="wrap-anywhere text-caption text-ink-2">{c.canonical}</p><p className="text-caption text-ink-2">{reasons[locale].period}</p>
   <label className="flex min-h-12 items-center gap-3 text-sm"><input type="checkbox" checked={privacy} onChange={event=>setPrivacy(event.target.checked)}/>{classification.privacy}</label>
   <label className="flex min-h-12 items-center gap-3 text-sm"><input type="checkbox" disabled={privacy||busy} checked={cloudConsent&&!privacy} onChange={event=>setCloudConsent(event.target.checked)}/>{classification.cloud}</label></>}
   <p className="text-sm text-ink-2">{demo||privacy?classification.local:classification.disclosure}</p>
-  <label className="grid gap-2 text-sm">{c.choose}<input ref={input} type="file" multiple accept={demo?'.csv':'.csv,.pdf,.xlsx,.xml,.mt940,.sta,.qif'} disabled={busy} onChange={e=>{const files=Array.from(e.target.files??[]);if(files.length+items.length>10){setError(c.limit);e.target.value='';return;}setError('');setItems(old=>[...old,...files.map(file=>{const ext=file.name.split('.').at(-1)?.toLowerCase(),format=ext==='sta'?'mt940':ext;return {id:++next.current,name:file.name,file,format:format&&['csv','pdf','xlsx','xml','mt940','qif'].includes(format)?format as Format:undefined,choice:'',newName:'Wise EUR',currency:'',order:'',separate:false};})]);e.target.value='';}}/></label>
+  {demo?<DemoFileUpload busy={busy} onFiles={files=>{if(!busyNow.current)addFiles(files);}} onSample={()=>void preview(true)}/>:<label className="grid gap-2 text-sm">{c.choose}<input ref={input} type="file" multiple accept=".csv,.pdf,.xlsx,.xml,.mt940,.sta,.qif" disabled={busy} onChange={e=>{if(!busyNow.current)addFiles(Array.from(e.target.files??[]));e.target.value='';}}/></label>}
   {items.length>0&&<ul className="divide-y divide-line">{items.map(item=><li key={item.id} data-statement-file={item.name} className="space-y-3 py-4"><div className="flex items-start justify-between gap-3"><h3 className="min-w-0 wrap-anywhere text-sm font-semibold">{item.name}</h3><Button variant="ghost" size="chip" disabled={busy} aria-label={`${c.remove} ${item.name}`} onClick={()=>setItems(old=>old.filter(x=>x.id!==item.id))}>{c.remove}</Button></div>
    {!item.result&&item.format==='qif'&&<label className="grid gap-1 text-sm">{c.order}<select aria-label={c.order} className={field} value={item.order} disabled={busy} onChange={e=>update(item.id,{order:e.target.value,error:undefined})}><option value="">{c.datePick}</option><option value="day_first">{c.day}</option><option value="month_first">{c.month}</option></select></label>}
    {item.error&&<p role="alert" className="text-sm text-neg">{item.error}</p>}
