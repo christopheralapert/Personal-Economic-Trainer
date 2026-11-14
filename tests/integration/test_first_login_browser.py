@@ -79,7 +79,7 @@ def test_phone_login_with_signed_issuer_and_isolated_memberships(database,monkey
             assert client.get('/v1/live-banking/callback',params={'state':provider.state,'code':'offline'},follow_redirects=False).status_code==303
         denied[0]=True
         env=dict(os.environ,MONEYLENS_FIRST_LOGIN_TEST_API=base,MONEYLENS_FIRST_LOGIN_BROWSER_ORIGIN=origin)
-        result=subprocess.run(['node','node_modules/@playwright/test/cli.js','test','--config','playwright.first-login.config.ts','--reporter=list'],cwd=ROOT,env=env)
+        result=subprocess.run(['node','node_modules/@playwright/test/cli.js','test','--config','tests/config/playwright.first-login.config.ts','--reporter=list'],cwd=ROOT,env=env)
         assert result.returncode==0,'First-login browser checks failed; inspect ignored test artifacts'
         with psycopg.connect(database['admin']) as connection:
             assert connection.execute("SELECT count(*) FROM moneylens_identity.sessions s JOIN moneylens.users u ON (u.tenant_id,u.id)=(s.tenant_id,s.user_id) WHERE u.subject_id='auth0|test-browser-unknown'").fetchone()[0]==0

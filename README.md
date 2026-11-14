@@ -12,16 +12,26 @@ frontend/
 backend/
   api/          Python API and dependency definitions
   workers/      Scoped background job runner
-  db/           Database migrations and SQL
+  db/           Alembic configuration, database migrations, and SQL
 packages/
   contracts/    Shared API schemas and generated TypeScript types
 fixtures/       Public reference data and synthetic test inputs
-tests/          API, integration, browser, PWA, and structure checks
+tests/
+  config/       Shared Playwright configuration and runner paths
+  api/          Database-free API unit tests
+  integration/  Opt-in database and service checks
+  browser/      Main application browser checks
+  finance-browser/  Isolated account and planning browser journey
+  pwa/          Public service-worker tests
+  web/          Web utility unit tests
+  structure/    Workspace and configuration path checks
 scripts/        Repository-level development and data utilities
-deploy/         Container images and isolated preview configuration
+deploy/         Dockerfiles and local infrastructure/preview Compose files
 ```
 
 Run the commands below from the repository root. JavaScript workspaces share the root `package-lock.json`; Python uses the root `.venv`. App-local tests remain alongside their owning application in `frontend/coach`.
+
+Only repository-wide files stay at the top level: this README, npm manifests, `.env.example`, and Git/Docker ignore settings. Test configuration lives with tests, migration configuration lives with the database, and container configuration lives in `deploy/`.
 
 ## Run the web app
 
@@ -50,7 +60,9 @@ npm run dev:demo-api
 
 The database-free synthetic API listens on http://127.0.0.1:8001. On macOS/Linux use `.venv/bin/python` to install dependencies. `npm run dev:api` starts the configured API on port 8000; it reads optional root `.env` settings. Secrets stay outside Git.
 
-`compose.yaml` provides local PostgreSQL and object storage. `deploy/compose.local.yaml` runs an isolated synthetic preview. Real sign-in, bank access, and private storage require explicit service configuration and credentials; the demo enables none of these integrations.
+`npm run infra:up` starts local PostgreSQL and object storage using `deploy/compose.yaml`; `npm run infra:down` stops them without deleting volumes. Validate both Compose files with `npm run infra:check`. `deploy/compose.local.yaml` runs an isolated synthetic preview. See [deployment commands](deploy/README.md) for details. Real sign-in, bank access, and private storage require explicit service configuration and credentials; the demo enables none of these integrations.
+
+Migration configuration is in `backend/db/alembic.ini`. To inspect the revision history without connecting to a database, run `.venv\Scripts\python.exe -m alembic -c backend/db/alembic.ini history` on Windows (use `.venv/bin/python` on macOS/Linux).
 
 ## Build and verify
 
@@ -62,6 +74,6 @@ npm run test:worker
 npm run test:structure
 ```
 
-Run API checks on Windows with `.venv\Scripts\python.exe -m pytest -c backend/api/pyproject.toml tests/api`. Browser checks use `npx playwright test`; they need an installed Chrome browser or Playwright Chromium. The `tests/integration` suite additionally requires isolated database and service configuration.
+Run API checks on Windows with `.venv\Scripts\python.exe -m pytest -c backend/api/pyproject.toml tests/api`. Browser checks use `npm run test:web`; they need an installed Chrome browser or Playwright Chromium. See the [test guide](tests/README.md) for suite commands and configuration locations. The `tests/integration` suite additionally requires isolated database and service configuration.
 
 Builds generate PWA assets and exclude local secrets, caches, and agent working files. Public statistical fixtures retain their source and license metadata. Transactions and source observations retain their original dates for correct financial calculations.

@@ -27,7 +27,7 @@ ENTRYPOINT ["python", "backend/workers/run.py"]
 
 # A separate one-shot image; administrative credentials never reach the API.
 FROM runtime AS migration
-COPY alembic.ini ./alembic.ini
+COPY backend/db/alembic.ini backend/db/alembic.ini
 COPY backend/db/migrations backend/db/migrations
-ENTRYPOINT ["python", "-m", "alembic"]
+ENTRYPOINT ["python", "-m", "alembic", "-c", "backend/db/alembic.ini"]
 CMD ["current"]

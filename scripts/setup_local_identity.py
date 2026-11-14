@@ -26,7 +26,7 @@ def main():
         raise RuntimeError("This setup command is restricted to the local moneylens database")
     engine = create_engine("postgresql+psycopg://",creator=lambda:psycopg.connect(url),poolclass=NullPool)
     with engine.begin() as connection:
-        config = Config(str(ROOT / "alembic.ini"))
+        config = Config(str(ROOT / "backend/db/alembic.ini"))
         config.attributes["connection"] = connection
         command.upgrade(config,"head")
     engine.dispose()

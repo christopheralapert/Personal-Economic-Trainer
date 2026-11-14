@@ -32,7 +32,7 @@ def database():
     params["dbname"] = name
     test_url = make_conninfo(**params)
     engine = create_engine("postgresql+psycopg://", creator=lambda: psycopg.connect(test_url), poolclass=NullPool)
-    config = Config(str(ROOT / "alembic.ini"))
+    config = Config(str(ROOT / "backend/db/alembic.ini"))
     try:
         with engine.begin() as connection:
             config.attributes["connection"] = connection

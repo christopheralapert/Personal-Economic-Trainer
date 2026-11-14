@@ -59,9 +59,9 @@ fixtures/synthetic/**
 !fixtures/public/**
 !backend/db/
 backend/db/**
+!backend/db/alembic.ini
 !backend/db/migrations/
 !backend/db/migrations/**
-!alembic.ini
 !deploy/
 deploy/**
 !deploy/*.Dockerfile

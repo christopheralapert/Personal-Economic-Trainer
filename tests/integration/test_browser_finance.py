@@ -60,7 +60,7 @@ def test_real_two_bank_browser_planning_and_revocation(database,owners):
     try:
         coaching=subprocess.Popen([sys.executable,str(ROOT/"backend/workers/run.py"),"--tenant",str(owners[0][0]),
             "--user",str(owners[0][1]),"--coaching"],**process_options)
-        browser=subprocess.Popen([node,str(ROOT/"node_modules/@playwright/test/cli.js"),"test","--config=playwright.finance.config.ts"],**process_options)
+        browser=subprocess.Popen([node,str(ROOT/"node_modules/@playwright/test/cli.js"),"test","--config=tests/config/playwright.finance.config.ts"],**process_options)
         try:
             output,_=browser.communicate(timeout=180)
         except subprocess.TimeoutExpired:

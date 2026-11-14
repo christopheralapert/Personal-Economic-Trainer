@@ -3,7 +3,7 @@ import {mkdir} from "node:fs/promises";
 
 // Configuration fixtures belong to the isolated servers, never the user's .env.
 test.beforeEach(async({page},info)=>{
-  test.skip(!info.project.name.startsWith("legal-"),"Run with playwright.legal.config.ts for isolated legal configuration fixtures.");
+  test.skip(!info.project.name.startsWith("legal-"),"Run npm run test:web:legal for isolated legal configuration fixtures.");
   await page.context().clearCookies();
 });
 
