@@ -1069,7 +1069,8 @@
             "enum": [
               "en",
               "fi",
-              "sv"
+              "sv",
+              "et"
             ],
             "title": "Locale",
             "type": "string"
@@ -3009,6 +3010,11 @@
             "title": "Allow Ai Payment Descriptions",
             "type": "boolean"
           },
+          "answer_text": {
+            "default": "",
+            "title": "Answer Text",
+            "type": "string"
+          },
           "card": {
             "anyOf": [
               {
@@ -3031,6 +3037,17 @@
           },
           "interpretation": {
             "$ref": "#/components/schemas/CoachInterpretationV1"
+          },
+          "model_diagnostic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Diagnostic"
           },
           "model_usage": {
             "anyOf": [
@@ -3059,6 +3076,21 @@
             "title": "Persisted",
             "type": "boolean"
           },
+          "provider": {
+            "anyOf": [
+              {
+                "enum": [
+                  "gemini-direct",
+                  "openai-responses"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
           "read_only": {
             "const": true,
             "default": true,
@@ -3069,6 +3101,15 @@
             "const": "coach-answer.v1",
             "default": "coach-answer.v1",
             "title": "Response Version",
+            "type": "string"
+          },
+          "source": {
+            "default": "rule",
+            "enum": [
+              "rule",
+              "model"
+            ],
+            "title": "Source",
             "type": "string"
           },
           "transactions": {
@@ -3176,7 +3217,8 @@
               "CHANGE_REQUIRED",
               "COMPARISON_REQUIRES_FULL_MONTH",
               "PLANNING_REVIEW_REQUIRED",
-              "UNSUPPORTED_QUESTION"
+              "UNSUPPORTED_QUESTION",
+              "IDENTIFIER_NOT_ALLOWED"
             ],
             "title": "Reason",
             "type": "string"
@@ -3238,7 +3280,8 @@
             "enum": [
               "en",
               "fi",
-              "sv"
+              "sv",
+              "et"
             ],
             "title": "Card Locale",
             "type": "string"
@@ -3273,6 +3316,11 @@
               }
             ],
             "title": "Expected Data Version"
+          },
+          "privacy": {
+            "default": true,
+            "title": "Privacy",
+            "type": "boolean"
           },
           "question": {
             "maxLength": 2000,
@@ -13533,6 +13581,43 @@
         "title": "StartImportV1",
         "type": "object"
       },
+      "StatementUpload": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
+          },
+          "csv": {
+            "maxLength": 65536,
+            "minLength": 1,
+            "title": "Csv",
+            "type": "string"
+          },
+          "format": {
+            "enum": [
+              "wise_csv",
+              "canonical_csv"
+            ],
+            "title": "Format",
+            "type": "string"
+          }
+        },
+        "required": [
+          "csv",
+          "format"
+        ],
+        "title": "StatementUpload",
+        "type": "object"
+      },
       "SyntheticBankScenarioV1": {
         "additionalProperties": false,
         "properties": {
@@ -13776,6 +13861,49 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "WiseConfirm": {
+        "additionalProperties": false,
+        "properties": {
+          "preview_id": {
+            "format": "uuid",
+            "title": "Preview Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "preview_id"
+        ],
+        "title": "WiseConfirm",
+        "type": "object"
+      },
+      "WiseUpload": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
+          },
+          "csv": {
+            "maxLength": 65536,
+            "minLength": 1,
+            "title": "Csv",
+            "type": "string"
+          }
+        },
+        "required": [
+          "csv"
+        ],
+        "title": "WiseUpload",
         "type": "object"
       }
     },
@@ -20284,6 +20412,150 @@
         "summary": "Ai Payment Descriptions"
       }
     },
+    "/v1/statements/confirm": {
+      "post": {
+        "operationId": "confirm_v1_statements_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WiseConfirm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm"
+      }
+    },
+    "/v1/statements/preview": {
+      "post": {
+        "operationId": "preview_statement_v1_statements_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatementUpload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preview Statement"
+      }
+    },
+    "/v1/statements/wise/confirm": {
+      "post": {
+        "operationId": "confirm_v1_statements_wise_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WiseConfirm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm"
+      }
+    },
+    "/v1/statements/wise/preview": {
+      "post": {
+        "operationId": "preview_v1_statements_wise_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WiseUpload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preview"
+      }
+    },
     "/v2/analysis/tools": {
       "get": {
         "operationId": "catalog_v2_v2_analysis_tools_get",
@@ -20462,7 +20734,8 @@
               "enum": [
                 "en",
                 "fi",
-                "sv"
+                "sv",
+                "et"
               ],
               "title": "Locale",
               "type": "string"

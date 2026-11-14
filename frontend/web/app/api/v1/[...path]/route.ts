@@ -43,6 +43,7 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
     (path.length === 3 && path[2] === "dismiss" && request.method === "POST"));
   const permittedEducation=endpoint==="public/education" && request.method==="GET";
   const permittedCoach=endpoint==="coach/query" && request.method==="POST";
+  const permittedStatement=["statements/preview","statements/confirm"].includes(endpoint)&&request.method==="POST";
   const headers=privateHeaders();
   const permittedGoal = (endpoint === "goals" && ["GET", "POST"].includes(request.method)) ||
     (path[0] === "goals" && job.test(path[1] ?? "") && ((path.length === 2 && request.method === "GET") ||
@@ -50,8 +51,8 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
       (path.length === 3 && path[2] === "allocations" && request.method === "GET") ||
       (path.length === 5 && path[2] === "allocations" && job.test(path[3] ?? "") &&
         ["link", "unlink"].includes(path[4]) && request.method === "POST")));
-  if (!fixed.has(`${request.method}:${endpoint}`) && !permittedClassification && !permittedAccount && !permittedJob && !permittedPlan && !permittedBank && !permittedLiveBank && !permittedGoal && !permittedInsight && !permittedImport && !permittedEducation && !permittedCoach) return NextResponse.json({ error: { code: "NOT_FOUND" } }, { status: 404, headers });
-  return proxyPrivate(request,`/v1/${endpoint}`,endpoint === "statements/wise/preview" ? 400000 : endpoint === "plans" && request.method === "POST" ? 65536 : 8192);
+  if (!fixed.has(`${request.method}:${endpoint}`) && !permittedClassification && !permittedAccount && !permittedJob && !permittedPlan && !permittedBank && !permittedLiveBank && !permittedGoal && !permittedInsight && !permittedImport && !permittedEducation && !permittedCoach && !permittedStatement) return NextResponse.json({ error: { code: "NOT_FOUND" } }, { status: 404, headers });
+  return proxyPrivate(request,`/v1/${endpoint}`,["statements/wise/preview","statements/preview"].includes(endpoint) ? 400000 : endpoint === "plans" && request.method === "POST" ? 65536 : 8192);
 }
 
 export const GET = proxy;

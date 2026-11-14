@@ -13,7 +13,7 @@ class PlanningBodyLimit:
         if scope["type"] != "http" or scope["method"] != "POST" or not bounded:
             await self.app(scope, receive, send)
             return
-        limit = 400000 if path == "/v1/statements/wise/preview" else 65536 if path == "/v1/plans" else 8192
+        limit = 400000 if path in ("/v1/statements/wise/preview","/v1/statements/preview") else 65536 if path == "/v1/plans" else 8192
         chunks, size = [], 0
         while True:
             message = await receive()

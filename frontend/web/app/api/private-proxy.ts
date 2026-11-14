@@ -35,7 +35,7 @@ export async function proxyPrivate(request:NextRequest,endpoint:string,bodyLimit
       method: request.method, headers: forwarded, body, redirect: "manual", cache: "no-store",
       signal: AbortSignal.timeout(/^\/v1\/live-banking\/connections\/[0-9a-f-]{36}\/refresh$/.test(endpoint)?75000:endpoint==="/v1/coach/query"?45000:15000),
     });
-    for (const name of ["content-type", "location", "x-request-id", "clear-site-data", "retry-after"]) {
+    for (const name of ["content-type", "location", "x-request-id", "clear-site-data", "retry-after", "x-money-coach-source", "x-money-coach-provider", "x-money-coach-evaluation", "server-timing"]) {
       const value = response.headers.get(name);
       if (value) headers.set(name, value);
     }

@@ -49,6 +49,12 @@ def test_free_form_language_uses_one_closed_model_decision_and_server_owned_auth
     assert schema["additionalProperties"] is False and set(schema["required"])==set(BASE)
 
 
+@pytest.mark.parametrize("question",["What about reducing dining by 20% in October 2026?","Entä jos vähennän ravintolakuluja 20% lokakuussa 2026?","Aga kui vähendan restoranikulusid 20% oktoobris 2026?"])
+def test_standalone_conditional_is_not_mistaken_for_missing_followup_context(question):
+    result,sent,_,_=interpret(question,values={**BASE,"intent":"reduction","category":"dining","reduction_basis_points":2000})
+    assert len(sent)==1 and result.method=="structured_model" and result.intent.tool.name=="spending_reduction"
+
+
 @pytest.mark.parametrize("changes,reason",[
     ({"start":None},"PERIOD_REQUIRED"),({"start":"2026-11-01"},"PERIOD_INVALID"),
     ({"start":"2024-01-01"},"PERIOD_INVALID"),({"merchant":" "},"FILTER_REQUIRED"),

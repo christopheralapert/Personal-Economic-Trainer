@@ -48,7 +48,7 @@ docker stop moneylens-test-db
 
 ## 3. Optional real Auth0 / Gemini
 
-These are independent integrations. Auth0 serves private account screens through the Python API; public Gemini chat serves the synthetic main-web `/demo` through Next.js.
+These are independent integrations. Auth0 serves private account screens through the Python API; public Gemini chat serves the synthetic main-web `/demo` through Next.js. The optional private Gemini interpreter below uses the Python API and is configured separately.
 
 **Auth0, local database bootstrap.** After cases 1 and 2's dependency installation, run:
 
@@ -93,7 +93,11 @@ MONEY_COACH_PUBLIC_AI_ORIGINS=http://127.0.0.1:3000
 MONEY_COACH_MODEL_USAGE_PATH=C:/example/checkout/.cache/model-usage.json
 ```
 
-Use this checkout's actual absolute `.cache` path; the server creates the ledger. Restart `npm run dev`, open `/demo?dataset=organizer1` and turn Privacy mode off before hosted chat. A key alone enables nothing. `MONEYLENS_MODEL_ENABLED` and `MONEYLENS_MODEL_BILLING_POLICY` configure the Python/OpenAI path, not this Gemini path. Public Gemini chat records usage but has no request or monetary cap; `free_only` does not constrain it.
+Use this checkout's actual absolute `.cache` path; the server creates the ledger. Restart `npm run dev`, open `/demo?dataset=organizer1` and turn Privacy mode off before hosted chat. A key alone enables nothing. `MONEYLENS_MODEL_ENABLED` and `MONEYLENS_MODEL_BILLING_POLICY` configure the authenticated Python interpreter, not this public Gemini path. Public Gemini chat records usage but has no request or monetary cap; `free_only` does not constrain it.
+
+**Private Gemini Coach.** After the authenticated database setup above, enable `MONEYLENS_STATEMENT_IMPORTS_ENABLED=true` for bounded CSV previews and publication. To use the existing root `GEMINI_API_KEY` with the private interpreter, set `MONEYLENS_MODEL_PROVIDER=gemini`, `MONEYLENS_MODEL_NAME=gemini-3.5-flash`, `MONEYLENS_MODEL_ENABLED=true` and `MONEYLENS_MODEL_BILLING_POLICY=paid_allowed`. A changed model also requires explicit operator-reviewed `MONEYLENS_MODEL_INPUT_MICROUSD_PER_TOKEN` and `MONEYLENS_MODEL_OUTPUT_MICROUSD_PER_TOKEN`; these admission assumptions are not provider price quotes. Retain the existing technical, rate, token and turn-budget limits. Restart the API using `npm run dev:api`, which loads this same root `.env`; restart the main web if its upstream/origin changed.
+
+Open `/banks` with a verified membership, preview and confirm a supported EUR CSV, then choose **View transactions** or **Ask Coach**. Imported payment purposes are initially unreviewed; review them before treating outgoing cash as category spending. The private Coach defaults to Privacy mode and local EN/FI/ET interpretation. Only disabling Privacy mode opts a question into the configured model. Synthetic demo identities still do not get private hosted interpretation. The API sends only the question and validated non-authority selectors to Gemini, never uploaded files, ledger rows or account IDs; existing authenticated server tools calculate the result. A successful hosted interpretation reports `source=model`, `provider=gemini-direct`. The separate `/demo` switch remains unchanged by this setup. Usage is recorded through the existing private audit path, not the public demo's file ledger.
 
 Optional hosted voice needs `MONEY_COACH_GEMINI_VOICE_ENABLED=true` and a separate absolute `MONEY_COACH_VOICE_LEDGER_PATH` such as `C:/example/checkout/.cache/voice-usage.json`. Keep `MONEY_COACH_VOICE_REQUEST_POLICY=bounded` and `MONEY_COACH_VOICE_MAX_REQUESTS=20` (valid range 1–100); this is a persistent attempt limit, not a currency budget. Keep existing ledgers when restarting. Privacy must be off for hosted voice too.
 

@@ -367,6 +367,22 @@ export interface paths {
     /** Ai Payment Descriptions */
     post: operations["ai_payment_descriptions_v1_settings_ai_payment_descriptions_post"];
   };
+  "/v1/statements/confirm": {
+    /** Confirm */
+    post: operations["confirm_v1_statements_confirm_post"];
+  };
+  "/v1/statements/preview": {
+    /** Preview Statement */
+    post: operations["preview_statement_v1_statements_preview_post"];
+  };
+  "/v1/statements/wise/confirm": {
+    /** Confirm */
+    post: operations["confirm_v1_statements_wise_confirm_post"];
+  };
+  "/v1/statements/wise/preview": {
+    /** Preview */
+    post: operations["preview_v1_statements_wise_preview_post"];
+  };
   "/v2/analysis/tools": {
     /** Catalog V2 */
     get: operations["catalog_v2_v2_analysis_tools_get"];
@@ -812,7 +828,7 @@ export interface components {
        * Locale
        * @enum {string}
        */
-      locale: "en" | "fi" | "sv";
+      locale: "en" | "fi" | "sv" | "et";
       /** Notices */
       notices: string[];
       /** Rows */
@@ -1508,9 +1524,16 @@ export interface components {
        * @default false
        */
       allow_ai_payment_descriptions?: boolean;
+      /**
+       * Answer Text
+       * @default
+       */
+      answer_text?: string;
       card?: components["schemas"]["AnswerCardV1"] | null;
       habits?: components["schemas"]["SpendingHabitsV1"] | null;
       interpretation: components["schemas"]["CoachInterpretationV1"];
+      /** Model Diagnostic */
+      model_diagnostic?: string | null;
       /** Model Usage */
       model_usage?: ({
         [key: string]: number | boolean;
@@ -1521,6 +1544,8 @@ export interface components {
        * @constant
        */
       persisted?: false;
+      /** Provider */
+      provider?: ("gemini-direct" | "openai-responses") | null;
       /**
        * Read Only
        * @default true
@@ -1533,6 +1558,12 @@ export interface components {
        * @constant
        */
       response_version?: "coach-answer.v1";
+      /**
+       * Source
+       * @default rule
+       * @enum {string}
+       */
+      source?: "rule" | "model";
       transactions?: components["schemas"]["LedgerPageV1"] | null;
     };
     /** CoachHabitsIntentV1 */
@@ -1569,7 +1600,7 @@ export interface components {
        * Reason
        * @enum {string}
        */
-      reason: "SUPPORTED_QUERY" | "PERIOD_REQUIRED" | "PERIOD_INVALID" | "FILTER_REQUIRED" | "CHANGE_REQUIRED" | "COMPARISON_REQUIRES_FULL_MONTH" | "PLANNING_REVIEW_REQUIRED" | "UNSUPPORTED_QUESTION";
+      reason: "SUPPORTED_QUERY" | "PERIOD_REQUIRED" | "PERIOD_INVALID" | "FILTER_REQUIRED" | "CHANGE_REQUIRED" | "COMPARISON_REQUIRES_FULL_MONTH" | "PLANNING_REVIEW_REQUIRED" | "UNSUPPORTED_QUESTION" | "IDENTIFIER_NOT_ALLOWED";
       /**
        * Resolved At
        * Format: date-time
@@ -1596,7 +1627,7 @@ export interface components {
        * @default en
        * @enum {string}
        */
-      card_locale?: "en" | "fi" | "sv";
+      card_locale?: "en" | "fi" | "sv" | "et";
       /** Conversation Context */
       conversation_context?: string | null;
       /**
@@ -1606,6 +1637,11 @@ export interface components {
       currency?: string;
       /** Expected Data Version */
       expected_data_version?: number | null;
+      /**
+       * Privacy
+       * @default true
+       */
+      privacy?: boolean;
       /** Question */
       question: string;
     };
@@ -5811,6 +5847,18 @@ export interface components {
       key: string;
       manifest: components["schemas"]["ImportManifestV1"];
     };
+    /** StatementUpload */
+    StatementUpload: {
+      /** Account Id */
+      account_id?: string | null;
+      /** Csv */
+      csv: string;
+      /**
+       * Format
+       * @enum {string}
+       */
+      format: "wise_csv" | "canonical_csv";
+    };
     /** SyntheticBankScenarioV1 */
     SyntheticBankScenarioV1: {
       /**
@@ -5914,6 +5962,21 @@ export interface components {
       msg: string;
       /** Error Type */
       type: string;
+    };
+    /** WiseConfirm */
+    WiseConfirm: {
+      /**
+       * Preview Id
+       * Format: uuid
+       */
+      preview_id: string;
+    };
+    /** WiseUpload */
+    WiseUpload: {
+      /** Account Id */
+      account_id?: string | null;
+      /** Csv */
+      csv: string;
     };
   };
   responses: never;
@@ -8393,6 +8456,94 @@ export interface operations {
       };
     };
   };
+  /** Confirm */
+  confirm_v1_statements_confirm_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WiseConfirm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Preview Statement */
+  preview_statement_v1_statements_preview_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["StatementUpload"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Confirm */
+  confirm_v1_statements_wise_confirm_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WiseConfirm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Preview */
+  preview_v1_statements_wise_preview_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["WiseUpload"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   /** Catalog V2 */
   catalog_v2_v2_analysis_tools_get: {
     parameters: {
@@ -8444,7 +8595,7 @@ export interface operations {
   answer_card_v2_v2_analysis_tools_answer_card_post: {
     parameters: {
       query?: {
-        locale?: "en" | "fi" | "sv";
+        locale?: "en" | "fi" | "sv" | "et";
       };
       header: {
         /** @description Optional expected session ID; a cookie/profile switch rejects the request instead of returning another session's data. */

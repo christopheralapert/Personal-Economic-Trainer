@@ -253,4 +253,7 @@ class OpenAIResponses:
 
 
 def build_model(settings, **kwargs) -> StructuredModel:
+    if settings.model_provider=="gemini":
+        from .gemini_adapter import GeminiFunctions
+        return GeminiFunctions(settings,**kwargs)
     return OpenAIResponses(settings, **kwargs)

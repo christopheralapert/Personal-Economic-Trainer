@@ -2,7 +2,7 @@ from functools import lru_cache
 from typing import Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, SecretStr, ValidationError, model_validator
+from pydantic import AliasChoices, Field, SecretStr, ValidationError, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     # User's zero-charge requirement: a complimentary quota is not a free-only API.
     model_billing_policy: Literal["free_only", "paid_allowed"] = "free_only"
     openai_api_key: SecretStr | None = None
+    model_provider: Literal["openai", "gemini"] = "openai"
+    gemini_api_key: SecretStr | None = Field(default=None,validation_alias=AliasChoices("MONEYLENS_GEMINI_API_KEY","GEMINI_API_KEY"))
     model_name: str = Field(default="gpt-5.4-mini-2026-03-17", pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,99}$")
     model_timeout_seconds: int = Field(default=10, ge=1, le=30)
     model_max_concurrency: int = Field(default=4, ge=1, le=32)
@@ -65,12 +67,20 @@ class Settings(BaseSettings):
     model_daily_token_cap: int = Field(default=100000, ge=1, le=10000000)
     model_user_rate_seconds: int = Field(default=5, ge=1, le=3600)
 
+    @field_validator("gemini_api_key",mode="before")
+    @classmethod
+    def optional_gemini_key(cls,value):
+        return None if value=="" else value
+
     @model_validator(mode="after")
     def safe_mode(self):
+        if self.model_provider=="gemini" and self.model_name!="gemini-3.5-flash":
+            raise ValueError("The Gemini interpreter requires the reviewed gemini-3.5-flash model")
         if self.model_name!="gpt-5.4-mini-2026-03-17" and not {"model_input_microusd_per_token", "model_output_microusd_per_token"}<=self.model_fields_set:
             raise ValueError("A different model requires explicitly reviewed input/output cost rates")
-        if self.openai_api_key is not None:
-            value = self.openai_api_key.get_secret_value()
+        for credential in (self.openai_api_key,self.gemini_api_key):
+            if credential is None: continue
+            value = credential.get_secret_value()
             if not value or len(value)>512 or not value.isascii() or any(c.isspace() for c in value):
                 raise ValueError("The model credential must be a nonempty ASCII token without whitespace")
         if self.environment == "production" and self.allow_demo:

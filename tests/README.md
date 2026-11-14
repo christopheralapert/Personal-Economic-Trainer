@@ -59,7 +59,7 @@ The fixture creates and removes a unique database and restricted runtime/identit
 
 Verified on 2026-11-14: native file selection, preview without creating an account, confirmation, reopening the page, reload, repeated confirmation, same-page and reopened-file repeats, saved Coach records, and two-user isolation. The two repeated-reference EUR rows remain separate; repeated imports do not add rows. Each user can independently import the same bytes. The file picker clears after a successful preview so the same file can be selected again.
 
-A verified identity without an administrator-provisioned membership reaches `/access`; login does **not** automatically create a workspace. Provisioning creates the private tenant and user state. PDF does **not** reach saved transactions: the upload flow accepts Wise EUR CSV only; `statement_pdf.py` is an offline text extractor with separate unit tests. Coach verification uses local rules and owned server tools, without a hosted model.
+A verified identity without an administrator-provisioned membership reaches `/access`; login does **not** automatically create a workspace. Provisioning creates the private tenant and user state. PDF does **not** reach saved transactions: upload supports Wise EUR CSV and the explicit canonical EUR-cents CSV; `statement_pdf.py` is an offline text extractor with separate unit tests. The Wise browser regression uses local rules and owned server tools, without a hosted model.
 
 The regression additionally rejects a different CSV covering an already saved period with HTTP 409 and checks that rows remain unchanged. Its PDF rejection case uses a valid, generated PDF whose exact text layer is verified before the browser starts. This proves rejection of an unsupported text PDF, not successful PDF import or CSV/PDF transaction matching.
 
@@ -70,3 +70,16 @@ To implement a Wise PDF adapter, the missing sample is **one English Wise EUR ac
 The coach's `playwright.public.config.ts` checks speech and privacy controls against an already running main web build. Start `npm start -- --port 33110`, then run `npx playwright test --config frontend/coach/playwright.public.config.ts`. Set `MONEY_COACH_PUBLIC_ORIGIN` if the preview uses another local origin. Keep hosted services disabled: the suite mocks microphone input, speech output, and hosted voice responses and forces local-rule answers for mocked voice cases. It does not establish physical-device speech support or live provider availability.
 
 Run `npm run test:web-coach` for the main `/demo?dataset=organizer1` Coach in English, Estonian and Finnish. This suite starts its own web development server on an OS-selected free loopback port, with a separate `.next/coach-chat` directory and hosted services disabled. It checks the visible August 2026 taxi answer (30,97 €), transaction details, selector-only follow-ups and session restoration. `frontend/coach/src/coach/public-chat-route.test.ts` separately exercises the main web `/api/chat` export through the native Gemini adapter using an injected test transport and the real AI SDK stream decoder; it makes no live model calls.
+
+## Saved imports and private Gemini
+
+See [the import/Coach verification record](import-coach-review.md) for supported CSV schemas, source/ownership boundaries, browser proof and timing methodology. Hosted inference is opt-in; use the existing root key and the separate private configuration in [local setup](../deploy/local-setup.md). Privacy mode defaults to local answers.
+
+With `MONEYLENS_TEST_DATABASE_URL` pointing to a disposable isolated administrator database, run:
+
+```powershell
+.venv\Scripts\python.exe -m pytest -c backend/api/pyproject.toml tests/api -p no:cacheprovider
+.venv\Scripts\python.exe -m pytest -c backend/api/pyproject.toml tests/integration/test_statement_publication.py tests/integration/test_statement_migration.py tests/integration/test_coach_languages.py tests/integration/test_private_gemini.py -p no:cacheprovider
+```
+
+The private Gemini tests inject Google's native HTTP response shape, but execute actual authenticated server tools against PostgreSQL. They do not contact Google. The language matrix separately verifies search, category totals, month comparison, follow-ups, a 20% reduction, missing-data spending/saving requests, empty results, and another user's isolation. Source-equivalence tests preserve the distinction between equal amounts and unequal history coverage; newly imported unknown flows must be explicitly reviewed before becoming spending.

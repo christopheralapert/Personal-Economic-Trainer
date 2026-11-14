@@ -34,7 +34,9 @@ TOOLS=(ToolDefinition("interpret_money_question",
 async def interpret_with_model(model,body,now,budget,*,timings=None):
     if question_has_identifiers(body.question): return interpret_question(body,now=now)
     context=question_context(body.conversation_context)
-    if context is None and re.match(r"^(?:and|what about|entä|aga)(?:\s|\?|$)",body.question.strip(),re.I):
+    followup=re.match(r"^(?:and|what about|entä|aga)(?:\s|\?|$)",body.question.strip(),re.I)
+    standalone_intent=re.search(r"\b(?:spend\w*|sav\w*|reduc\w*|cut\w*|transaction\w*|kulut\w*|käyt\w*|vähenn\w*|tapahtum\w*|sääst\w*|tehing\w*|vähend\w*)\b",body.question,re.I)
+    if context is None and followup and not standalone_intent:
         return interpret_question(body,now=now)
     # Only the user's question, a server date and static schema/copy are sent.
     instructions=(f"Interpret an English, Finnish or Estonian personal-finance question. Today is {now.astimezone(ZoneInfo('Europe/Helsinki')).date().isoformat()} (Europe/Helsinki). "

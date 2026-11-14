@@ -82,7 +82,7 @@ test('signed OIDC: CSV persistence, Coach, repeats, overlap, text-PDF rejection 
 
   // Different bytes covering the saved period must never append duplicate rows.
   await preview(page,true,csv.replaceAll('shared','another-reference'),409);
-  await expect(page.getByRole('alert').filter({hasText:'This period overlaps other Wise records'})).toBeVisible();
+  await expect(page.getByRole('alert').filter({hasText:'This period overlaps other records'})).toBeVisible();
   await expect(page.getByRole('button',{name:'Confirm import',exact:true})).toHaveCount(0);
   await page.goto(history);await seeRows(page);
 
