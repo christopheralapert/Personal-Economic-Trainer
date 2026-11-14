@@ -6,7 +6,7 @@ const config: NextConfig = {
   output:"standalone",
   // Keep the verified synthetic release immutable across requests and restarts.
   experimental:{isrFlushToDisk:false},
-  outputFileTracingRoot:path.resolve(__dirname),
+  outputFileTracingRoot:path.resolve(__dirname,".."),
   poweredByHeader: false,
   agentRules: false,
   env:{NEXT_PUBLIC_MONEY_COACH_REVISION:revision},

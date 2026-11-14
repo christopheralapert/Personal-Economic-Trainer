@@ -20,6 +20,6 @@ export function coachRevision() {
     }
   }
   for(const dir of ["src","data","scripts"]) directory(dir);
-  for(const name of ["next.config.ts","package.json","package-lock.json","public/icon.svg"]) file(name);
+  for(const name of ["next.config.ts","package.json","../package-lock.json","public/icon.svg"]) file(name);
   return hash.digest("hex");
 }

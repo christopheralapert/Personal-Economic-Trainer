@@ -1,0 +1,31 @@
+{
+  "name": "@moneylens/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "16.4.5",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "@tailwindcss/postcss": "^4.3.4",
+    "tailwindcss": "^4.3.4",
+    "lucide-react": "^1.70.0",
+    "recharts": "^3.10.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.7.0",
+    "radix-ui": "^1.8.1",
+    "vaul": "^1.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "24.12.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "typescript": "7.0.2"
+  }
+}
