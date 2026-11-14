@@ -16,6 +16,7 @@ export const prepareCoachRequest:NonNullable<HttpChatTransportInitOptions<CoachM
   const question=latest.parts.filter(p=>p.type==="text").map(p=>p.text).join(" ");
   const context=isFollowUpQuestion(question) && body?.context!==undefined ? questionContextSchema.parse(body.context) : undefined;
   return {body:{...(body?.dataset===undefined ? {} : {dataset:datasetKeySchema.parse(body.dataset)}),...(body?.scope===undefined ? {} : {scope:dataScopeSchema.parse(body.scope)}),...(body?.period===undefined ? {} : {period:periodSchema.parse(body.period)}),...(context ? {context} : {}),messages:[{role:latest.role,parts:latest.parts}],
+    ...(body?.privacy===undefined ? {} : {privacy:body.privacy===true}),
     ...(body?.locale===undefined ? {} : {locale:body.locale}),
     ...(body?.savingsPercent===undefined ? {} : {savingsPercent:body.savingsPercent}),
   }};

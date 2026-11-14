@@ -48,6 +48,14 @@ For the standalone coach, run `npm run dev:coach` and open http://127.0.0.1:3001
 
 The Vite prototype is separate: use `npm run dev:prototype`, `npm run build:prototype`, or `npm run preview`. Its source, public assets, and build output live under `frontend/prototype`.
 
+### Speech and privacy
+
+The coach supports editable microphone drafts and read-aloud responses in English, Finnish, and Estonian. Privacy mode defaults on; subsequent visits restore your saved choice. While enabled, it permits only browser-confirmed on-device speech support; when that is unavailable, the app keeps text input available instead of silently using a remote service. Microphone recording and playback require an explicit user action.
+
+Optional hosted chat and voice routes remain disabled in `.env.example`. They require separate server opt-ins, a server-only key, and absolute private usage-ledger paths; adding a key alone enables nothing. Hosted chat also requires an exact allowed browser origin. Users must turn Privacy mode off before hosted processing is allowed. Voice requests are bounded by default; the opt-in public chat path records usage but has no monetary cap, so enabling it can incur ongoing provider charges. No live-provider availability or billing behavior is established by the mocked tests.
+
+Usage reservations are fail-closed. A forced process termination can leave a ledger lock requiring operator review; do not automatically delete locks or reset usage ledgers to bypass request limits.
+
 ## Run the API
 
 Requires Python 3.12 or newer. On Windows:

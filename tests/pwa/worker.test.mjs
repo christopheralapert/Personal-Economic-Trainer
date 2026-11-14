@@ -49,6 +49,16 @@ for (const path of ["/api/v1/dashboard", "/api/v1/accounts/00000000-0000-0000-00
     assert.deepEqual(app.writes, []);
   });
 }
+for (const endpoint of ["/api/voice/capabilities", "/api/voice/transcribe", "/api/voice/speak"]) {
+  for (const method of ["GET", "POST"]) {
+    test(`voice ${method} ${endpoint} never enters a cache or replay queue`, () => {
+      const app = harness();
+      assert.equal(app.request(endpoint, {method}), undefined);
+      assert.deepEqual(app.writes, []);
+    });
+  }
+}
+
 test("POST requests never enter the cache or an offline replay queue", () => {
   const app = harness();
   assert.equal(app.request("/api/demo/plan", {method:"POST"}), undefined);

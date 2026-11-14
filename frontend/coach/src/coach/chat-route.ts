@@ -8,7 +8,7 @@ import {questionContextSchema} from "@/coach/question-context";
 import {dataScopeSchema,scopedDataset} from "@/engine/data-scope";
 import {loadDataset,datasetKeySchema} from "@/engine/datasets";
 import {periodSchema} from "@/engine";
-const bodySchema=z.object({dataset:datasetKeySchema.optional(),scope:dataScopeSchema.optional(),period:periodSchema.optional(),context:questionContextSchema.optional(),messages:z.array(z.object({role:z.enum(["user","assistant","system"]),parts:z.array(z.object({type:z.string(),text:z.string().max(2000).optional()}).passthrough()).max(30)}).passthrough()).min(1).max(50),locale:z.enum(["en","fi","et"]).default("en"),savingsPercent:z.number().int().min(0).max(100).default(10)}).passthrough();
+const bodySchema=z.object({dataset:datasetKeySchema.optional(),scope:dataScopeSchema.optional(),period:periodSchema.optional(),context:questionContextSchema.optional(),privacy:z.boolean().default(true),messages:z.array(z.object({role:z.enum(["user","assistant","system"]),parts:z.array(z.object({type:z.string(),text:z.string().max(2000).optional()}).passthrough()).max(30)}).passthrough()).min(1).max(50),locale:z.enum(["en","fi","et"]).default("en"),savingsPercent:z.number().int().min(0).max(100).default(10)}).passthrough();
 const latestSchema=z.object({role:z.literal("user"),parts:z.array(z.object({type:z.literal("text"),text:z.string().max(2000)}).strict()).min(1).max(30)}).passthrough();
 function rejected(status:number) {return new Response(null,{status,headers:{"Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff",[REVISION_HEADER]:COACH_REVISION}});}
 export function createChatRoute(execute=executeCoach) {
@@ -23,12 +23,12 @@ export function createChatRoute(execute=executeCoach) {
   const question=latest.data.parts.map(p=>p.text).join(" ").trim();if(!question || question.length>2000) return rejected(400);
   if(request.signal.aborted) return rejected(400);
   let outcome;
-  try {outcome=await execute(request,question,body.locale,body.savingsPercent,body.context,body.period,body.scope,body.dataset);}
+  try {outcome=await execute(request,question,body.locale,body.savingsPercent,body.context,body.period,body.scope,body.dataset,body.privacy);}
   catch(error) {if(error instanceof CoachCancelledError) return rejected(400);throw error;}
   if(request.signal.aborted) return rejected(400);
   const answer=outcome.message;
   const stream=createUIMessageStream({execute:({writer})=>{
-    writer.write({type:"start",messageId:answer.id});
+    writer.write({type:"start",messageId:answer.id,messageMetadata:{answerMode:outcome.source}});
     writer.write({type:"start-step"});
     for(const [i,part] of answer.parts.entries()) {
       if(part.type==="text") {const id=`${answer.id}-${i}`;writer.write({type:"text-start",id});writer.write({type:"text-delta",id,delta:part.text});writer.write({type:"text-end",id});}

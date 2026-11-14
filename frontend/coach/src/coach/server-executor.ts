@@ -19,10 +19,11 @@ import {privateHTTPSOrigin,phoneCookieMatches} from "../../scripts/phone-ai-acce
 type Dependencies={env?:Record<string,string|undefined>;open?:typeof openBudget;network?:typeof fetch};
 /** Server-only, loopback evaluation composition. A flag/key never grants a request. */
 export function createCoachExecutor({env=process.env,open=openBudget,network=globalThis.fetch}:Dependencies={}) {
-  return async(request:Request,question:string,locale:Locale,savingsPercent:number,context?:QuestionContext,period?:Period,scope?:DataScope,dataset?:DatasetKey)=>{
+  return async(request:Request,question:string,locale:Locale,savingsPercent:number,context?:QuestionContext,period?:Period,scope?:DataScope,dataset?:DatasetKey,privacy=false)=>{
     const execution={signal:request.signal,context,period,data:scope===undefined && dataset===undefined ? undefined : scopedDataset(await loadDataset(dataset??"starter"),scope)};
     const fallback=async(diagnostic="local_rule")=>({message:await new RuleProvider().answer(question,locale,savingsPercent,execution),source:"rule" as const,diagnostic});
     throwIfCancelled(request.signal);
+    if(privacy) return fallback("privacy_rule");
     const gemini=env.MONEY_COACH_LOCAL_GEMINI==="true",origin=env.MONEY_COACH_LOCAL_AI_ORIGIN,directory=env.MONEY_COACH_EVALUATION_DIRECTORY,key=gemini ? env.GEMINI_API_KEY : env.MONEYLENS_OPENAI_API_KEY;
     if(env.MONEY_COACH_LOCAL_AI_EVALUATION!=="true" || !origin || !key || !COACH_REVISION || (!gemini && (env.MONEYLENS_MODEL_BILLING_POLICY!=="free_only" || !directory || !path.isAbsolute(directory))) || (gemini && (dataset!=="organizer1" || env.MONEY_COACH_PHONE_AI_EVALUATION==="true"))) return fallback("local_configuration");
     try {

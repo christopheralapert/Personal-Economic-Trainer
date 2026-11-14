@@ -7,5 +7,5 @@ export const geminiCases={
   spend:[{question:"What is safe for me to spend this week?",tool:"showSafeToSpend",input:{purpose:"spend"}}],
   save:[{question:"What is safe for me to save this week?",tool:"showSafeToSpend",input:{purpose:"save"}}],
   et:[{question:"Kui palju kulutasin septembris taksole?",tool:"showTransactions",input:{period:september,category:"taxi"}}],
-  fi:[{question:"Paljonko käytin syyskuussa takseihin?",tool:"showTransactions",input:{period:september,category:"taxi"}}],
+  fi:[{question:"Paljonko käytin takseihin viime kuussa?",tool:"showTransactions",input:{period:august,category:"taxi"}}],
 };

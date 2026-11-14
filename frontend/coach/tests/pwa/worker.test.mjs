@@ -27,6 +27,13 @@ const req=path=>new Request(new URL(path,origin));
 test("only exact public GET resources can enter the cache; no API, query, RSC or user-bearing requests",()=>{
   const {subject,handlers}=harness();
   assert.equal(subject.allowed(req("/")),true);assert.equal(subject.allowed(req("/_next/static/chunks/abc.js")),true);
+  for(const endpoint of ["/api/voice/capabilities","/api/voice/transcribe","/api/voice/speak"]) {
+    for(const method of ["GET","POST"]) {
+      const request=new Request(origin+endpoint,{method});
+      assert.equal(subject.allowed(request),false);
+      handlers.fetch({request,respondWith:()=>assert.fail("voice request was intercepted")});
+    }
+  }
   for(const request of [req("/api/chat"),req("/settings"),req("/?question=taxi"),req("/?_rsc=abc"),new Request(origin+"/",{method:"POST",body:"private"}),new Request(origin+"/",{headers:{rsc:"1"}}),new Request(origin+"/",{headers:{authorization:"Bearer private"}}),new Request("https://other.example/")]) {
     assert.equal(subject.allowed(request),false);
     handlers.fetch({request,respondWith:()=>assert.fail("excluded request was intercepted")});

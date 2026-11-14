@@ -5,6 +5,7 @@ import {useMemo} from "react";
 import {useViewState} from "@/lib/view-state";
 import type {z} from "zod";
 import {propsSchemas,type ToolName} from "@/coach/catalog";
+import {spokenAnswer} from "@/coach/spoken-answer";
 import {useCopy,categoryLabel,basketLabel} from "@/i18n/context";
 import {spendByCategory,simulateReduction,transactionHistory,monthPeriod,type TransactionFilters} from "@/engine";
 import {money} from "@/lib/format";
@@ -36,10 +37,10 @@ function ScopeSummary({filters}:{filters:TransactionFilters}) {
   return filters.basket!==undefined || filters.category!==undefined || filters.merchant!==undefined ? <dl className="space-y-2 text-caption text-ink-2">{filters.basket!==undefined && <div className="flex flex-wrap gap-2"><dt>{t("basket")}:</dt><dd className="min-w-0 wrap-anywhere">{basketLabel(filters.basket,t)}</dd></div>}{filters.category!==undefined && <div className="flex flex-wrap gap-2"><dt>{t("category")}:</dt><dd className="min-w-0 wrap-anywhere">{categoryLabel(filters.category,t)}</dd></div>}{filters.merchant!==undefined && <div className="flex flex-wrap gap-2"><dt>{t("merchant")}:</dt><dd className="min-w-0 wrap-anywhere">{filters.merchant}</dd></div>}</dl> : <p className="text-caption text-ink-2">{t("scopeAll")}</p>;
 }
 function TransactionsAnswer({period,filters,onAsk,...initial}:z.infer<typeof propsSchemas.showTransactions>&Ask) {
-  const {t}=useCopy(),history=useHistorySnapshot(initial);
+  const {t,locale}=useCopy(),history=useHistorySnapshot(initial);
 
-  const framing=history.total===0 ? t("emptyRecords") : history.netExpenses===null ? t("noExpenseRecords") : t(filters.category==="taxi" ? "taxiAnswer" : "spendAnswer",{amount:money(history.netExpenses)});
-  return <section className="space-y-4"><div className="space-y-2">{history.netExpenses!==null && <p className="text-3xl font-bold tabular-nums">{money(history.netExpenses)}</p>}<p className="text-sm text-ink-2">{history.netExpenses===null ? framing : t(filters.category==="taxi" ? "ridesSentence" : "purchasesSentence",{count:history.total})}</p></div><h3 className="font-semibold">{t("transactions")}</h3><HistoryResult initial={history} period={period} filters={filters} status="booked" onAsk={onAsk}/><BasisChip period={period} count={history.total}/></section>;
+  const description=spokenAnswer("showTransactions",{period,...filters},{...history,period,filters},locale);
+  return <section className="space-y-4"><div className="space-y-2">{history.netExpenses!==null && <p className="text-3xl font-bold tabular-nums">{money(history.netExpenses)}</p>}<p data-spoken-answer className="text-sm text-ink-2">{description}</p></div><h3 className="font-semibold">{t("transactions")}</h3><HistoryResult initial={history} period={period} filters={filters} status="booked" onAsk={onAsk} openDetails/><BasisChip period={period} count={history.total}/></section>;
 }
 function PeriodAnswer({period:initial,groups,onAsk}:z.infer<typeof propsSchemas.showDetails>&Ask) {
   const {data}=useMoneyData(),[period,setPeriod]=useViewState("period",initial);

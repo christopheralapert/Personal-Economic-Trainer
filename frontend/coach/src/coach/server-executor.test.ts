@@ -32,6 +32,21 @@ async function fixture(run:(context:{env:Record<string,string|undefined>;file:st
 }
 
 describe("server-only local model composition",()=>{
+  it("public composition never opens a budget or transport, with privacy on or off",async()=>{
+    const network=vi.fn<typeof fetch>(),open=vi.fn(openBudget),execute=createCoachExecutor({env:{},network,open});
+    for(const privacy of [true,false]) {
+      const result=await execute(request(),question,"fi",10,undefined,undefined,undefined,"organizer1",privacy);
+      expect(result.source).toBe("rule");expect(result.diagnostic).toBe(privacy ? "privacy_rule" : "local_configuration");
+      expect(result.message.parts[0]).toMatchObject({text:expect.stringContaining("30,97")});
+    }
+    expect(network).not.toHaveBeenCalled();expect(open).not.toHaveBeenCalled();
+  });
+  it("privacy mode bypasses the model and budget even when Gemini is configured",async()=>fixture(async({env})=>{
+    const settings={...env,MONEY_COACH_LOCAL_GEMINI:"true",GEMINI_API_KEY:"fake-key"};
+    const network=vi.fn<typeof fetch>(),open=vi.fn(openBudget);
+    const result=await createCoachExecutor({env:settings,network,open})(request(),question,"fi",10,undefined,undefined,undefined,"organizer1",true);
+    expect(result.source).toBe("rule");expect(result.diagnostic).toBe("privacy_rule");expect(network).not.toHaveBeenCalled();expect(open).not.toHaveBeenCalled();
+  }));
   it("Gemini uses the local organizer data without the OpenAI grant and rejects other origins or data",async()=>fixture(async({env})=>{
     const settings={...env,MONEY_COACH_LOCAL_GEMINI:"true",GEMINI_API_KEY:"fake-key",MONEYLENS_MODEL_BILLING_POLICY:"paid",MONEY_COACH_EVALUATION_DIRECTORY:undefined};
     const network=vi.fn<typeof fetch>(mockGeminiFetch),open=vi.fn(openBudget),execute=createCoachExecutor({env:settings,network,open});
