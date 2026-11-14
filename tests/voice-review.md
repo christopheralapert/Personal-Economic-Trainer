@@ -1,31 +1,59 @@
 # Main demo voice review
 
-Run `npm run test:web:voice` from the repository root. The suite uses the main application's `/demo?dataset=organizer1` entry point at phone width, a free local server port, synthetic records, and mocked speech APIs. It checks editable drafts, exact visible read-aloud sentences, permission denial, absent recognition/local language support, remote-only or absent synthesis voices, cancellation, and privacy enforcement. It does not establish physical microphone accuracy, installed device language packs, sound quality, or live provider availability.
+The phone flow uses the main web entry point `/demo?dataset=organizer1`. This work starts at integrated commit `32c5877` in worktree `agent/voice-polish`. Changes cover voice controls, composer integration, translations and tests. The Gemini text route and the main checkout's `.env` remain coordinator work.
 
-Verified commands:
+## Behavior
 
-- `npm run test:web:voice`: 33 browser tests passed; the server used a free loopback port and stopped after the suite.
-- `npm exec --workspace @moneylens/coach -- vitest run src/voice/routes.test.ts src/coach/spoken-answer.test.ts`: 16 unit tests passed using a mocked provider transport.
-- `npm run typecheck`: both applications passed.
-- `npm run test:structure`: 8 tests passed.
-- The new browser test, mock helper, and configuration also passed a separate TypeScript check.
+- The microphone sits beside the question field. Recording exposes visible Stop and Cancel buttons with at least 48 px touch targets: **Lõpeta** and **Tühista** in Estonian.
+- Stop finishes capture and places the transcript in the editable field. Cancel preserves the previous draft, including when recognition already produced a result. Only Send submits the question.
+- Typing or sending cancels pending capture/transcription. Old results cannot overwrite a newer draft. A microphone stream granted after cancellation is immediately released.
+- Each answer has one **Kuula vastust** / **Listen to answer** / **Kuuntele vastaus** button, changing to **Peata** / **Stop** / **Pysäytä** during playback. Listening after Stop restarts the sentence. Recording interrupts playback; playback cancels capture.
+- Privacy mode requires confirmed on-device recognition for the chosen language and a synthesis voice with `localService === true`. Missing support produces a short reason and leaves typing available. A saved Gemini preference cannot override Privacy mode.
+- Outside Privacy mode, Gemini voice shows the recording disclosure before microphone access. `/api/voice/transcribe` fills the editable draft. `/api/voice/speak` derives speech from the authored financial sentence also used on screen. Changed answer selectors invalidate cached audio.
 
-## Interruption fix
+## Automated review
 
-Previously, interrupted browser speech and hosted audio could deliver late completion or error events after the user had started another reading. This changed the new reading's button back to idle and could show an incorrect failure message while audio was still playing. Browser playback now invalidates callbacks on stop, unmount, and completion; hosted playback accepts events only from the current uncancelled request. Regression tests start, stop, and restart both playback paths, deliver stale completion and error events, and check that only the current playback can finish.
+Run from the repository root after `npm ci`:
 
-## Coordinator reproduction: Estonian taxi inflection
+```powershell
+npm run test:web:voice
+npm run typecheck
+npm run test:structure
+npm exec --workspace @moneylens/coach -- vitest run src/voice/routes.test.ts src/coach/spoken-answer.test.ts
+node node_modules/typescript/bin/tsc --noEmit --strict --target es2022 --module esnext --moduleResolution bundler --esModuleInterop --skipLibCheck --types node tests/browser/demo-voice.spec.ts tests/browser/voice-support.ts tests/config/playwright.voice.config.ts
+```
 
-The voice review found that the shared Coach grammar rejected the natural plural form **taksodele**, although speech accepted the draft. Integration adds this explicit taxi alias, a local-rule unit regression, and natural-plural browser coverage in both Coach and voice suites. The original reproduction below is retained for context; the expected 30,97 € answer is now required by the tests.
+The runner starts this worktree's main Next application on an OS-selected free loopback port, disables hosted services and provider keys, and stops its server afterward. It does not read the main checkout's `.env`. Chrome is used locally; CI uses Playwright Chromium.
 
-1. Open the main web application's `/demo?dataset=organizer1` in a clean browser session.
-2. Select Estonian in Settings, keep Privacy mode enabled, and return to Coach.
-3. Type or dictate `Kui palju kulutasin taksodele eelmisel kuul?` and send it.
-4. `/api/chat` returns HTTP 200 with `X-Money-Coach-Evaluation: privacy_rule`.
-5. The visible `[data-spoken-answer]` is `Vali sobiv periood või vähendus 0–100%. Puuduvaid andmeid ei oletata.`
+Verified on 2026-11-14:
 
-Expected: the answer identifies taxi spending for August 2026 as **30,97 €**, as it does for `Kui palju kulutasin taksole eelmisel kuul?` and Finnish `Paljonko käytin takseihin viime kuussa?`.
+- Before changes: **33 browser tests passed**.
+- Final voice journey: **74 browser tests passed**, including 24 EN/ET/FI × device/Gemini × 360/390 px × light/dark cases. Also covered playback restarts, cancellation, denied microphone permission, missing local languages/voices, stale events, pending permission and edited answer selectors. Final port: **12195**.
+- Voice routes and spoken answers: **16 unit tests passed** with fake provider transport, checking EN/ET/FI language codes, exact sentences, privacy refusal, bounded uploads and provider errors. On Windows the successful command was `node ../../node_modules/vitest/vitest.mjs run src/voice/routes.test.ts src/coach/spoken-answer.test.ts` from `frontend/coach`, using cmd outside the filesystem sandbox because esbuild could not read its config there.
+- Both application typechecks and the separate browser/config TypeScript check passed. **9 structure tests passed**.
+- Recording and playback screenshots for all 24 phone combinations were visually reviewed, together with a 1440 px desktop capture. Phone captures are ignored under `.cache/voice-review/`; failures go to `test-results/voice/`.
 
-The relevant selector list is `categoryAliases` in `frontend/coach/src/coach/query-language.ts`: it now contains both `taksole` and `taksodele`. This is independent of the browser speech language setting (`et-EE`) and also applies to typed text.
+The normal demo page, synthetic dataset, local financial tools, chat stream and rendered sentences run for real. Browser speech recognition, synthesis, microphone capture, playback and Gemini endpoint replies are mocked. Voice-handler tests use fake provider transport. **No physical microphone, real device voice, physical phone or live Gemini audio was used.** Accuracy, sound quality, language packs, mobile browser media behavior and live Gemini availability require the phone check.
 
-The attempts to deliver this reproduction to the coordinator and Coach task through the task messaging tool returned `already has an active writer`; this document preserves the handoff in the local commit.
+## Physical phone check after integration
+
+Use the coordinator's HTTPS preview with this commit integrated. Open `/demo?dataset=organizer1` in the phone's browser. Plain LAN HTTP is unsuitable for microphone access. The coordinator configures real Gemini audio; this work does not change `.env`. Before the Gemini pass, `/api/voice/capabilities` must report `enabled: true` and Settings must allow the Gemini voice choice.
+
+Repeat for EN/ET/FI, in the phone's light and dark appearance. Check 360/390 CSS px where the device permits; automated tests cover both exact widths.
+
+| Language | Dictate, then correct manually before sending |
+| --- | --- |
+| EN | How much did I spend on taxis last month? |
+| ET | Kui palju kulutasin taksodele eelmisel kuul? |
+| FI | Paljonko käytin takseihin viime kuussa? |
+
+1. In Settings choose the language, enable Privacy mode and return to Coach. Tap the microphone beside the question field. If local recognition cannot be confirmed, expect the unavailable reason and verify that typing and sending still work. Do not count that as successful local dictation.
+2. Where supported, allow the microphone, dictate the table's question and tap Stop. Confirm that the draft is editable and no new user message appears yet. Change a word, correct it, then Send. The August 2026 taxi answer must show **30,97 €**. Open the keyboard again and check that the composer and recording controls remain reachable.
+3. Tap Listen to answer. Compare the heard sentence with the financial sentence visible on screen, including amount and month. Stop midway, then Listen again: the sentence must restart. Start dictation during playback: playback must stop.
+4. Type a draft, record different words and Cancel. The typed draft must remain. Record again, then type while capture/transcription is pending. The recording must cancel and its late result must not replace the typed text. Repeat with a fresh dictation immediately afterward.
+5. Deny microphone access in the phone's site permissions. Retry capture: expect a short denial message and usable typing. Restore permission for the next pass.
+6. Turn Privacy mode off and select Gemini voice in Settings. Confirm that the notice about sending the recording to Gemini is visible **before** tapping the microphone. Record the same question, Stop, edit the returned transcript and explicitly Send. Compare Gemini playback to the visible sentence; stop and restart it. Cancel another recording and verify it creates no transcript request. Use remote browser debugging to inspect `/api/voice/transcribe` and `/api/voice/speak` traffic.
+7. With Gemini selected, enable Privacy mode again. Hosted capture/playback must stop. Retrying speech must use confirmed device support or show the local-language reason, with no call to either audio endpoint. Typing must remain usable.
+8. Ask `What if I cut taxis by 20% last month?`, listen once, then move the answer slider to 50%. The visible saving must change to **15,49 €**. Listen again and confirm the updated sentence is spoken. Record device, OS, browser version, language, provider, actual heard sentence and failures separately for device and Gemini audio.
+
+If Gemini returns an unavailable/busy/allowance error, expect one short message and usable typing/reading. Record that as a live-integration failure; the mocked pass does not establish hosted-service availability.

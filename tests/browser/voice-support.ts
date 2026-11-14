@@ -13,6 +13,7 @@ export type SpeechHarness={
  stops:number;aborts:number;cancels:number;media:number;tracksStopped:number;recordings:number;plays:number;pauses:number;
  spoken:Array<{text:string;lang:string;local:boolean}>;
  result:(text:string)=>void;error:(error:string)=>void;end:()=>void;finishSpeech:()=>void;settleSpeech:(index:number,failed?:boolean)=>void;settleHosted:(index:number,failed?:boolean)=>void;
+ recognitionResult:(index:number,text:string)=>void;recognitionEnd:(index:number)=>void;
 };
 declare global {interface Window {voiceTest:SpeechHarness}}
 
@@ -34,14 +35,16 @@ export async function setupVoice(page:Page,locale:Locale,scenario:Scenario="avai
   localStorage.setItem("money-coach-privacy.v1",String(privacy));
   localStorage.setItem("money-coach-voice-provider.v1",provider);
   localStorage.setItem("money-coach-preferences.v1",JSON.stringify({locale,savings:10,savingsSource:"user"}));
-  const state:SpeechHarness={recognitions:[],checks:[],stops:0,aborts:0,cancels:0,media:0,tracksStopped:0,recordings:0,plays:0,pauses:0,spoken:[],result:()=>{},error:()=>{},end:()=>{},finishSpeech:()=>{},settleSpeech:()=>{},settleHosted:()=>{}};
+  const state:SpeechHarness={recognitions:[],checks:[],stops:0,aborts:0,cancels:0,media:0,tracksStopped:0,recordings:0,plays:0,pauses:0,spoken:[],result:()=>{},error:()=>{},end:()=>{},finishSpeech:()=>{},settleSpeech:()=>{},settleHosted:()=>{},recognitionResult:()=>{},recognitionEnd:()=>{}};
   window.voiceTest=state;
+  const recognizers:Recognition[]=[];
   class Recognition {
    static async available(options:{langs:string[];processLocally:boolean}){state.checks.push(options);return scenario==="missing" ? "unavailable" : "available";}
    lang="";interimResults=false;processLocally=false;
    onresult:((event:unknown)=>void)|null=null;onerror:((event:unknown)=>void)|null=null;onend:(()=>void)|null=null;
    constructor(){if(scenario==="legacy")delete (this as Partial<Recognition>).processLocally;}
    start(){
+    recognizers.push(this);
     state.recognitions.push({lang:this.lang,local:this.processLocally});
     state.result=text=>this.onresult?.({resultIndex:0,results:[[{transcript:text}]]});
     state.error=error=>this.onerror?.({error});state.end=()=>this.onend?.();
@@ -50,6 +53,8 @@ export async function setupVoice(page:Page,locale:Locale,scenario:Scenario="avai
    stop(){state.stops++;this.onend?.();}
    abort(){state.aborts++;this.onend?.();}
   }
+  state.recognitionResult=(index,text)=>recognizers[index].onresult?.({resultIndex:0,results:[[{transcript:text}]]});
+  state.recognitionEnd=index=>recognizers[index].onend?.();
   Object.defineProperty(window,"SpeechRecognition",{configurable:true,value:scenario==="unsupported" ? undefined : Recognition});
   Object.defineProperty(window,"webkitSpeechRecognition",{configurable:true,value:undefined});
   Object.defineProperty(window,"SpeechSynthesisUtterance",{configurable:true,value:class {
