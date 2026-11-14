@@ -1,0 +1,35 @@
+name: moneylens
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_DB: moneylens
+      POSTGRES_USER: moneylens
+      POSTGRES_PASSWORD: moneylens_local
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U moneylens -d moneylens"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  object-store:
+    image: chrislusf/seaweedfs:4.52
+    command: mini -dir=/data -s3.port=9000
+    environment:
+      AWS_ACCESS_KEY_ID: moneylens_local
+      AWS_SECRET_ACCESS_KEY: moneylens_local_only
+    ports:
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - object_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9000/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  postgres_data:
+  object_data:
