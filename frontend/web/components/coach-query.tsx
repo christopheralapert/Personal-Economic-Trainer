@@ -11,6 +11,7 @@ import {coachCopy} from "../i18n/private-coach";
 import {CoachEvidence,CoachRecord} from "./coach-evidence";
 import {euros} from "./plan-format";
 import {Drawer,DrawerContent,DrawerHeader,DrawerTitle,DrawerTrigger} from "@/components/ui/drawer";
+import {StatementDates} from "./statement-dates";
 
 type Schema=components["schemas"];
 type Answer=Schema["CoachAnswerV1"];
@@ -120,6 +121,7 @@ export function CoachQuery({request,initialQuestion=""}:{request:PrivateRequest;
   function resetConversation(){latest.current++;setTurns([]);setSearchRows([]);setSearchCursor(null);setBusy(false);setError("");}
   return <section className="space-y-5 pb-24" aria-label="Coach conversation">
     <div className="space-y-3 border-b border-line pb-4"><div className="grid gap-3"><label className="grid gap-1 text-sm">{c.language}<select aria-label={c.language} className="min-h-12 rounded-xl border border-input bg-surface px-3 text-base" value={locale} onChange={event=>{resetConversation();setLocale(event.target.value as "en"|"fi"|"et");}}><option value="en">English</option><option value="fi">Suomi</option><option value="et">Eesti</option></select></label><label className="grid gap-1 text-sm">{c.account}<select aria-label={c.account} aria-describedby="coach-scope-note" className="min-h-12 w-full rounded-xl border border-input bg-surface px-3 text-base" value={account} disabled={scopeError} onChange={event=>{resetConversation();setAccount(event.target.value);setImportedPeriod("");}}><option value="">{c.all}</option>{accounts.map(value=><option key={value.id} value={value.id}>{value.name} · {value.currency}</option>)}</select></label></div><p id="coach-scope-note" className="text-caption text-ink-2">{c.change}</p>{scopeError&&<p role="alert" className="text-sm text-neg">{c.scopeError}</p>}{importedPeriod&&<p className="text-sm text-ink-2">{c.period}: {importedPeriod}</p>}<label className="flex min-h-12 items-center gap-3 text-sm"><input type="checkbox" checked={privacy} onChange={event=>{resetConversation();setPrivacy(event.target.checked);}}/>{c.privacy}</label><p className="text-caption text-ink-2">{privacy?c.privacyNote:c.onlineNote}</p></div>
+    <StatementDates request={request} accountId={account}/>
     <div className="space-y-5" aria-live="polite" aria-relevant="additions" aria-busy={busy}>
       {!turns.length&&<p className="text-sm text-ink-2">{c.empty}</p>}
       {turns.map((turn,index)=><article key={turn.id} className="space-y-3" data-coach-turn><div className="ml-8 rounded-bubble rounded-br-sm bg-brand p-4 text-brand-ink"><p className="wrap-anywhere text-sm">{turn.question}</p></div>{turn.answer&&<div className="message-arrival rounded-bubble rounded-bl-sm bg-surface p-4">{answerView(turn.answer,index===turns.length-1)}</div>}</article>)}

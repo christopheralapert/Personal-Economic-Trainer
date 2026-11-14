@@ -1,138 +1,68 @@
 import {test,expect,type Page} from '@playwright/test';
-import {mkdir,readFile} from 'node:fs/promises';
+import {mkdir} from 'node:fs/promises';
+import path from 'node:path';
 
-test.skip(process.env.MONEYLENS_STATEMENT_BROWSER_TEST !== 'true','Run through test_wise_browser.py with isolated PostgreSQL and test OIDC');
-const csv='TransferWise ID,Date,Amount,Currency,Description\nshared,03-10-2026,-5.00,EUR,Synthetic shop\nshared,03-10-2026,-5.00,EUR,Synthetic shop\n';
-
-async function testIdentity(page:Page,subject:string) {
-  // App calls use the real BFF/API. Only the issuer page is simulated.
-  // The API verifies signed JWTs, nonce and PKCE through an offline transport.
-  await page.route('https://**',route=>route.abort());
-  await page.route('**/api/v1/auth/login',async route=>{
-    const response=await route.fetch({maxRedirects:0});
-    expect(response.status()).toBe(303);
-    const headers=response.headers(),target=headers.location;
-    expect(new URL(target).origin).toBe('https://identity.example');
-    delete headers.location;delete headers['content-length'];headers['content-type']='text/html';
-    await route.fulfill({status:200,headers,body:'<a href="'+target.replaceAll('&','&amp;')+'">Open test issuer</a>'});
-  });
-  await page.route('https://identity.example/authorize**',async route=>{
-    const state=new URL(route.request().url()).searchParams.get('state')!;
-    const callback=new URL('/api/v1/auth/callback','http://127.0.0.1:33111');
-    callback.search=new URLSearchParams({code:subject+':'+state,state,iss:'https://identity.example'}).toString();
-    await route.fulfill({contentType:'text/html',body:'<a href="'+callback.href.replaceAll('&','&amp;')+'">Continue with test identity</a>'});
-  });
+test.skip(process.env.MONEYLENS_STATEMENT_BROWSER_TEST!=='true','Run through test_wise_browser.py with isolated PostgreSQL and signed test OIDC');
+const fixture=(name:string)=>path.join(process.env.MONEYLENS_TEST_STATEMENT_FIXTURES!,name);
+const item=(page:Page,name:string)=>page.locator(`[data-statement-file="${name}"]`);
+async function identity(page:Page,subject:string){
+ await page.route('https://**',route=>route.abort());
+ await page.route('**/api/v1/auth/login',async route=>{const response=await route.fetch({maxRedirects:0});expect(response.status()).toBe(303);const headers=response.headers(),target=headers.location;expect(new URL(target).origin).toBe('https://identity.example');delete headers.location;delete headers['content-length'];headers['content-type']='text/html';await route.fulfill({status:200,headers,body:'<a href="'+target.replaceAll('&','&amp;')+'">Open test issuer</a>'});});
+ await page.route('https://identity.example/authorize**',async route=>{const state=new URL(route.request().url()).searchParams.get('state')!;const callback=new URL('/api/v1/auth/callback','http://127.0.0.1:33111');callback.search=new URLSearchParams({code:subject+':'+state,state,iss:'https://identity.example'}).toString();await route.fulfill({contentType:'text/html',body:'<a href="'+callback.href.replaceAll('&','&amp;')+'">Continue with test identity</a>'});});
+ await page.goto('/');await page.getByRole('link',{name:'Sign in with your identity provider',exact:true}).click();await page.getByRole('link',{name:'Open test issuer'}).click();await page.getByRole('link',{name:'Continue with test identity'}).click();
 }
-async function login(page:Page) {
-  await page.goto('/');
-  await page.getByRole('link',{name:'Sign in with your identity provider',exact:true}).click();
-  await page.getByRole('link',{name:'Open test issuer'}).click();
-  await page.getByRole('link',{name:'Continue with test identity'}).click();
-}
-async function preview(page:Page,openBanks=true,content=csv,status=200) {
-  if(openBanks)await page.goto('/banks');
-  const chooser=page.waitForEvent('filechooser');
-  await page.getByLabel('Choose CSV').click();
-  await (await chooser).setFiles({name:'synthetic-wise.csv',mimeType:'text/csv',buffer:Buffer.from(content)});
-  const response=page.waitForResponse(r=>r.url().endsWith('/statements/wise/preview')&&r.request().method()==='POST');
-  await page.getByRole('button',{name:'Preview statement',exact:true}).click();
-  const result=await response;expect(result.status()).toBe(status);return result.json();
-}
-async function confirmAs(page:Page,id:string) {
-  return page.evaluate(async preview_id=>{
-    const s=await (await fetch('/api/v1/auth/session')).json();
-    return (await fetch('/api/v1/statements/wise/confirm',{method:'POST',headers:{'Content-Type':'application/json',
-      'X-CSRF-Token':s.csrf_token,'X-MoneyLens-Session-ID':s.session_id},body:JSON.stringify({preview_id})})).status;
-  },id);
-}
-const ready='2 entries available. Their purpose needs review.';
-async function seeRows(page:Page) {await expect(page.locator('[data-ledger-row]')).toHaveCount(2);}
+async function choose(page:Page,names:string[]){await page.goto('/banks');const chooser=page.waitForEvent('filechooser');await page.getByLabel('Choose statements').click();await(await chooser).setFiles(names.map(fixture));if(names.includes('synthetic.qif'))await item(page,'synthetic.qif').getByLabel('QIF date order').selectOption('day_first');}
+async function preview(page:Page,names:string[]){await page.getByRole('button',{name:'Preview statements',exact:true}).click();for(const name of names)await expect(item(page,name).getByText(/Statement period:/)).toBeVisible();await expect(page.getByLabel('Choose statements')).toHaveValue('');}
+async function newAccount(page:Page,name:string,label:string){await item(page,name).getByLabel('Account',{exact:true}).selectOption('new');await item(page,name).getByLabel('New account name').fill(label);}
+async function confirm(page:Page){const response=page.waitForResponse(r=>r.url().endsWith('/statements/wise/confirm')&&r.request().method()==='POST');await page.getByRole('button',{name:'Confirm imports',exact:true}).click();const result=await response;expect(result.status()).toBe(200);return result.json();}
+async function coach(page:Page,count:number,account?:string){await page.goto('/coach');if(account)await page.getByLabel('Account scope',{exact:true}).selectOption(account);await page.locator('#coach-question').fill('Show transactions from 2026-10-01 until 2026-11-01');const response=page.waitForResponse(r=>r.url().endsWith('/coach/query')&&r.request().method()==='POST');await page.getByRole('button',{name:'Read my records',exact:true}).click();const r=await response;expect(r.status()).toBe(200);const answer=await r.json();expect(answer.transactions.rows).toHaveLength(count);await expect(page.locator('[data-coach-ledger-row]')).toHaveCount(count);return answer.transactions.rows;}
+function expected(rows:{booked_on:string;amount_minor:number}[]){expect(rows.map(r=>[r.booked_on,r.amount_minor]).sort()).toEqual([['2026-10-03',-500],['2026-10-03',-500],['2026-10-15',1250]].sort());}
 
-test('signed OIDC: CSV persistence, Coach, repeats, overlap, text-PDF rejection and owner isolation',async({browser})=>{
-  const unknown=await browser.newContext();const denied=await unknown.newPage();
-  await testIdentity(denied,'wise-browser-unknown');await login(denied);
-  await expect(denied).toHaveURL(/\/access$/);
-  expect((await unknown.cookies()).filter(c=>c.name.includes('moneylens_session'))).toHaveLength(0);
-  await unknown.close();
+for(const format of ['csv','pdf','xlsx','xml','mt940','qif'])test(`${format}: file to saved records and Coach, exact repeat`,async({page})=>{
+ await identity(page,'wise-browser-'+format);const name='synthetic.'+format;await choose(page,[name]);await preview(page,[name]);
+ await expect(item(page,name)).toContainText('3 entries');
+ if(format==='csv'||format==='xlsx'||format==='qif')await newAccount(page,name,'Wise '+format);
+ if(format==='qif'){await expect(page.getByRole('button',{name:'Confirm imports',exact:true})).toBeDisabled();await item(page,name).getByLabel('Confirm statement currency').selectOption('EUR');}
+ const saved=await confirm(page);expect(saved.added_count).toBe(3);const account=saved.files[0].account_id;
+ await item(page,name).getByRole('link',{name:'View transactions'}).click();await expect(page.locator('[data-ledger-row]')).toHaveCount(3);await page.reload();await expect(page.locator('[data-ledger-row]')).toHaveCount(3);
+ expected(await coach(page,3,account));await expect(page.locator('[data-statement-date]')).toContainText(format==='csv'||format==='xlsx'||format==='qif'?'2026-10-15':'2026-10-31');
+ if(format==='csv'){
+  // A later export has different bytes and encoding; match the chosen account
+  // and the complete reference/date/amount/description multiset, preserving repeats.
+  await choose(page,['synthetic.pdf','synthetic.xlsx']);await preview(page,['synthetic.pdf','synthetic.xlsx']);
+  for(const cross of ['synthetic.pdf','synthetic.xlsx'])await item(page,cross).getByLabel('Account',{exact:true}).selectOption(account);
+  expect((await confirm(page)).added_count).toBe(0);expected(await coach(page,3,account));
+ }
+ await choose(page,[name]);await page.getByRole('button',{name:'Preview statements',exact:true}).click();
+ if(format==='csv'||format==='xlsx'||format==='qif'){
+  await item(page,name).getByLabel('Account',{exact:true}).selectOption(account);
+  if(format==='qif')await item(page,name).getByLabel('Confirm statement currency').selectOption('EUR');
+  expect((await confirm(page)).added_count).toBe(0);
+ }
+ await expect(item(page,name).getByText('Already saved; no entries added.')).toBeVisible();await expect(page.getByRole('button',{name:'Confirm imports',exact:true})).toHaveCount(0);
+ expected(await coach(page,3,account));
+});
 
-  const a=await browser.newContext({viewport:{width:390,height:844}});let page=await a.newPage();
-  await testIdentity(page,'wise-browser-a');await login(page);
-  await expect(page.locator('[data-first-bank]')).toBeVisible();
-  const staged=await preview(page);
-  await expect(page.getByLabel('Choose CSV')).toHaveValue('');
-  await expect(page.getByText('Wise CSV · EUR · 2 entries')).toBeVisible();
-  await expect(page.getByText('Repeated references are kept as separate entries.')).toBeVisible();
-  expect(await page.evaluate(async()=>await (await fetch('/api/v1/accounts')).json())).toEqual([]);
-  await mkdir('test-results/statement',{recursive:true});
-  await page.screenshot({path:'test-results/statement/wise-preview.png',fullPage:true});
-
-  const b=await browser.newContext({viewport:{width:390,height:844}});const other=await b.newPage();
-  await testIdentity(other,'wise-browser-b');await login(other);
-  expect(await confirmAs(other,staged.id)).toBe(404);
-  await page.getByRole('button',{name:'Confirm import',exact:true}).click();
-  await expect(page.getByText(ready)).toBeVisible();
-  expect(await confirmAs(page,staged.id)).toBe(200);
-  expect(await confirmAs(other,staged.id)).toBe(404);
-  expect((await preview(page,false)).state).toBe('published');
-  await expect(page.getByText(ready)).toBeVisible();
-  await page.getByRole('link',{name:'View transactions',exact:true}).click();await seeRows(page);
-  const history=page.url();
-  await page.close();page=await a.newPage();await testIdentity(page,'wise-browser-a');await page.goto(history);await seeRows(page);
-  await page.reload();await seeRows(page);
-
-  // Different bytes covering the saved period must never append duplicate rows.
-  await preview(page,true,csv.replaceAll('shared','another-reference'),409);
-  await expect(page.getByRole('alert').filter({hasText:'This period overlaps other records'})).toBeVisible();
-  await expect(page.getByRole('button',{name:'Confirm import',exact:true})).toHaveCount(0);
-  await page.goto(history);await seeRows(page);
-
-  await page.goto('/coach');
-  await page.getByLabel('Question (English)').fill('Show transactions from 2026-10-01 until 2026-11-01');
-  const coach=page.waitForResponse(r=>r.url().endsWith('/coach/query')&&r.request().method()==='POST');
-  await page.getByRole('button',{name:'Read my records',exact:true}).click();
-  expect((await coach).status()).toBe(200);
-  await expect(page.locator('[data-coach-ledger-row]')).toHaveCount(2);
-  for(const text of ['5,00','2026-10-03','Synthetic shop']) await expect(page.locator('[data-coach-ledger-row]').first()).toContainText(text);
-  await page.screenshot({path:'test-results/statement/wise-coach.png',fullPage:true});
-
-  expect((await preview(page)).state).toBe('published');
-  await expect(page.getByText(ready)).toBeVisible();
-  await page.getByRole('link',{name:'View transactions',exact:true}).click();await seeRows(page);
-  const foreignLedger=await other.evaluate(async url=>{
-    const account=new URL(url).searchParams.get('account_id')!;
-    return (await fetch('/api/v1/ledger/transactions?'+new URLSearchParams({account_id:account,start:'2026-10-01',end_exclusive:'2026-11-01'}))).status;
-  },history);
-  expect(foreignLedger).toBe(404);
-  const ownLedger=other.waitForResponse(r=>r.url().includes('/ledger/transactions?'));
-  await other.goto('/transactions?start=2026-10-01&end=2026-11-01');
-  const empty=await ownLedger;expect(empty.status()).toBe(200);expect((await empty.json()).rows).toEqual([]);
-  await expect(other.locator('[data-ledger-row]')).toHaveCount(0);
-  await expect(other.getByText('Synthetic shop',{exact:true})).toHaveCount(0);
-  await other.goto('/coach');
-  await other.getByLabel('Question (English)').fill('Show transactions from 2026-10-01 until 2026-11-01');
-  const ownCoach=other.waitForResponse(r=>r.url().endsWith('/coach/query')&&r.request().method()==='POST');
-  await other.getByRole('button',{name:'Read my records',exact:true}).click();
-  const emptyAnswer=await ownCoach;expect(emptyAnswer.status()).toBe(200);
-  expect((await emptyAnswer.json()).transactions.rows).toEqual([]);
-  // Identical bytes belong to each owner independently.
-  expect((await preview(other)).state).toBe('preview');
-  await other.getByRole('button',{name:'Confirm import',exact:true}).click();
-  await expect(other.getByText(ready)).toBeVisible();
-  await other.getByRole('link',{name:'View transactions',exact:true}).click();await seeRows(other);
-
-  await page.goto('/banks');
-  await expect(page.getByLabel('Choose CSV')).toHaveAttribute('accept','.csv,text/csv');
-  // The Python fixture verifies this is a readable PDF with a controlled text layer.
-  const pdf=await readFile(process.env.MONEYLENS_TEST_STATEMENT_PDF!);
-  let pdfSubmitted=false;
-  page.on('request',r=>{if(r.url().endsWith('/statements/wise/preview')&&r.method()==='POST')pdfSubmitted=true;});
-  await page.getByLabel('Choose CSV').setInputFiles({name:'synthetic.pdf',mimeType:'application/pdf',buffer:pdf});
-  await page.getByRole('button',{name:'Preview statement',exact:true}).click();
-  await expect(page.getByRole('alert').filter({hasText:'Choose a valid Wise EUR CSV under 64 KiB and try again.'})).toBeVisible();
-  expect(pdfSubmitted).toBe(false);
-  await expect(page.getByRole('button',{name:'Confirm import',exact:true})).toHaveCount(0);
-  await page.goto(history);await seeRows(page);
-  await other.reload();await seeRows(other);
-  expect(await confirmAs(other,staged.id)).toBe(404);
-  await b.close();await a.close();
+test('mixed files: errors, cross-format repeats, two accounts and owner isolation',async({browser})=>{
+ const unknown=await browser.newContext();const denied=await unknown.newPage();await identity(denied,'wise-browser-unknown');await expect(denied).toHaveURL(/\/access$/);expect((await unknown.cookies()).filter(c=>c.name.includes('moneylens_session'))).toHaveLength(0);await unknown.close();
+ const a=await browser.newContext({viewport:{width:390,height:844}}),b=await browser.newContext({viewport:{width:1280,height:900}});const page=await a.newPage(),other=await b.newPage();await identity(page,'wise-browser-a');await identity(other,'wise-browser-b');
+ await choose(page,['synthetic.csv','synthetic.pdf','synthetic.xlsx','scanned.pdf','unknown.pdf','broken.pdf']);await preview(page,['synthetic.csv','synthetic.pdf','synthetic.xlsx']);
+ await expect(item(page,'scanned.pdf').getByRole('alert')).toContainText('no readable text layer');await expect(item(page,'unknown.pdf').getByRole('alert')).toContainText('CSV');await expect(item(page,'broken.pdf').getByRole('alert')).toContainText('CSV');
+ for(const bad of ['scanned.pdf','unknown.pdf','broken.pdf'])await page.getByRole('button',{name:'Remove '+bad,exact:true}).click();
+ expect(await page.evaluate(async()=>await(await fetch('/api/v1/accounts')).json())).toEqual([]);
+ const staged=await page.locator('[data-statement-file]').count();expect(staged).toBe(3);
+ for(const name of ['synthetic.csv','synthetic.pdf','synthetic.xlsx'])await newAccount(page,name,'Wise main');
+ const saved=await confirm(page);expect(saved.added_count).toBe(3);expect(saved.files.map((f:{added_count:number})=>f.added_count)).toEqual([3,0,0]);const main=saved.files[0].account_id;
+ await mkdir('test-results/statement',{recursive:true});await page.screenshot({path:'test-results/statement/mixed-import-mobile.png',fullPage:true,animations:'disabled'});
+ const stolen=await other.evaluate(async preview_id=>{const s=await(await fetch('/api/v1/auth/session')).json();return(await fetch('/api/v1/statements/wise/confirm',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':s.csrf_token,'X-MoneyLens-Session-ID':s.session_id},body:JSON.stringify({previews:[{preview_id}]})})).status;},saved.files[0].id);expect(stolen).toBe(404);
+ expect(await coach(other,0)).toEqual([]);
+ const foreign=await other.evaluate(async account=>{return(await fetch('/api/v1/ledger/transactions?'+new URLSearchParams({account_id:account,start:'2026-10-01',end_exclusive:'2026-11-01'}))).status;},main);expect(foreign).toBe(404);
+ await choose(page,['synthetic.pdf','synthetic.xlsx']);await page.getByRole('button',{name:'Preview statements',exact:true}).click();for(const name of ['synthetic.pdf','synthetic.xlsx'])await expect(item(page,name)).toContainText('Already saved; no entries added.');expected(await coach(page,3,main));
+ await choose(page,['second.xml']);await preview(page,['second.xml']);const second=await confirm(page);expect(second.added_count).toBe(3);const secondId=second.files[0].account_id;expect(secondId).not.toBe(main);
+ expected(await coach(page,3,main));expected(await coach(page,3,secondId));await coach(page,6);
+ await page.goto('/transactions?start=2026-10-01&end=2026-11-01');await expect(page.locator('[data-ledger-row]')).toHaveCount(6);await expect(page.locator('[data-statement-date]')).toHaveCount(2);
+ await page.goto('/transactions?account_id='+main+'&start=2026-10-01&end=2026-11-01');await expect(page.locator('[data-ledger-row]')).toHaveCount(3);
+ await page.goto('/');await expect(page.getByRole('combobox',{name:'Accounts',exact:true})).toBeVisible();await page.getByRole('combobox',{name:'Accounts',exact:true}).selectOption(main);await expect(page.locator('[data-statement-date]')).toHaveCount(1);await page.getByRole('combobox',{name:'Accounts',exact:true}).selectOption('');await expect(page.locator('[data-statement-date]')).toHaveCount(2);
+ await choose(other,['synthetic.xml']);await preview(other,['synthetic.xml']);expect((await confirm(other)).added_count).toBe(3);expected(await coach(other,3));await other.screenshot({path:'test-results/statement/coach-desktop.png',fullPage:true,animations:'disabled'});
+ await a.close();await b.close();
 });

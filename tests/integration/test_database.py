@@ -120,8 +120,8 @@ def test_every_owned_table_forces_rls_and_has_scoped_references(database):
             pg_get_userbyid(c.relowner) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
             WHERE n.nspname='moneylens' AND c.relkind='r' AND c.relname <> 'public_benchmark_releases'""").fetchall()
         # 0024 adds the two owned staging/receipt tables; 0025 adds row provenance.
-        assert len(tables) == 41
-        assert {"statement_previews","statement_import_receipts"}<={row[0] for row in tables}
+        assert len(tables) == 42
+        assert {"statement_previews","statement_import_receipts","statement_accounts"}<={row[0] for row in tables}
         assert all(enabled and forced and owner != "moneylens_runtime" for _, enabled, forced, owner in tables)
         refs = connection.execute("""SELECT pg_get_constraintdef(c.oid), target.relname FROM pg_constraint c
             JOIN pg_namespace n ON n.oid=c.connamespace

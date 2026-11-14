@@ -16,6 +16,7 @@ import {aborted,type PrivateRequest} from "./private-session";
 import {date} from "@/lib/format";
 import {euros,sumMinor} from "./plan-format";
 import {FirstBankCard} from "./first-bank";
+import {StatementDates} from "./statement-dates";
 import {lastMonth} from "./money-tools";
 type Schema=components["schemas"];
 type Period=ReturnType<typeof lastMonth>;
@@ -52,6 +53,7 @@ export function PrivateOverview({request}:{request:PrivateRequest}) {
  const month=new Intl.DateTimeFormat(locale,{month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(period.start+"T12:00:00Z"));
  if(data&&!accountsLoading&&!accountError&&data.accounts.length===0&&!data.connected_bank_count)return <FirstBankCard/>;
  return <div className="overview-flow">
+  <StatementDates request={request} accountId={account}/>
   <section data-overview-block="period" className="flex items-center justify-between gap-3"><Button variant="ghost" size="icon" aria-label={c.previous} onClick={()=>move(-1)}><ChevronLeft className="size-5"/></Button><h2 className="text-sm font-semibold">{month}</h2><Button variant="ghost" size="icon" aria-label={c.next} disabled={period.start>=new Date().toISOString().slice(0,7)+"-01"} onClick={()=>move(1)}><ChevronRight className="size-5"/></Button></section>
   {data&&data.accounts.filter(a=>a.included&&a.currency==="EUR").length>1&&<label className="grid gap-1 text-sm">{t("accounts")}<select aria-label={t("accounts")} className="min-h-12 rounded-xl border border-line bg-surface px-3 text-ink" value={account} onChange={e=>{setResult(null);setInventory(null);setPreview([]);setCategory(null);setAccount(e.target.value);}}><option value="">{c.allAccounts}</option>{data.accounts.filter(a=>a.included&&a.currency==="EUR").map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></label>}
   <section data-overview-block="hero" className="space-y-1"><h2 className="text-sm font-normal text-ink-2">{recordedBalance!==null?c.balanceTitle:c.hero}</h2><p className="text-3xl font-bold">{recordedBalance!==null?euros(recordedBalance):c.needs}</p>{balanceDate&&<p className="text-caption text-ink-2">{c.balanceObserved.replace("{date}",date(balanceDate))} · {observedAccounts.length} {t("accounts").toLowerCase()}</p>}<p className="text-sm text-ink-2">{recordedBalance!==null?c.balanceNote:c.note}</p><Drawer><DrawerTrigger asChild><Button variant="link" size="chip">{c.why}</Button></DrawerTrigger><DrawerContent><DrawerHeader><DrawerTitle>{c.basis}</DrawerTitle><DrawerDescription>{c.basisNote}</DrawerDescription></DrawerHeader><DrawerFooter><Button asChild><a href="/plan">{c.review}</a></Button></DrawerFooter></DrawerContent></Drawer></section>

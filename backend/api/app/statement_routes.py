@@ -8,17 +8,18 @@ from uuid import UUID, uuid4, uuid5
 from cryptography.fernet import Fernet, InvalidToken
 from fastapi import APIRouter, Depends, Request
 from pydantic import Field, StrictStr
-from psycopg.types.json import Jsonb
 from typing import Annotated, Literal
-from .auth_routes import write_principal
+from .auth_routes import write_principal, principal
+from . import statement_files
 from .database import TrustedScope, tenant_transaction
 from .contracts import Contract
 from .identity import AuthError, authorized_transaction
 from .statement_wise import WiseStatementError
 from .statement_normalization import (
     MAX_UPLOAD_BYTES, PUBLIC_FORMATS, StatementNormalizationError, decode_normalized,
-    normalize_statement, row_sha256,
+    normalize_statement,
 )
+from .statement_publication import publish_rows as publish_normalized_rows
 
 router=APIRouter()
 
@@ -48,11 +49,12 @@ def clean(connection,owner):
     connection.execute('DELETE FROM moneylens.statement_previews WHERE tenant_id=%s AND owner_user_id=%s AND expires_at<=clock_timestamp()',owner)
 
 
-def receipt(connection,owner,digest,normalized_digest=None):
+def receipt(connection,owner,digest,normalized_digest=None,account=None):
     return connection.execute('''SELECT id,account_id,row_count,period_from,period_to_exclusive,source_format
         FROM moneylens.statement_import_receipts WHERE tenant_id=%s AND owner_user_id=%s
-        AND (file_sha256=%s OR normalized_sha256=%s)''',
-        (*owner,digest,normalized_digest)).fetchone()
+        AND (file_sha256=%s OR normalized_sha256=%s)
+        AND (%s::uuid IS NULL OR account_id=%s) ORDER BY published_at,id LIMIT 1''',
+        (*owner,digest,normalized_digest,account,account)).fetchone()
 
 
 def published(row):
@@ -108,21 +110,14 @@ def same_destination(old,requested):
 
 def publish_rows(connection,owner,identifier,account,digest,document):
     """One atomic insert of normalized values, preserving every row occurrence."""
-    rows=[{'id':str(uuid5(identifier,str(index))),'source_id':digest+':'+str(index),
-        'amount_minor':row.amount_minor,'currency':row.currency,'booked_on':row.booked_on.isoformat(),
-        'merchant':row.description or 'Unknown counterparty','source_payload_hash':row_sha256(row)}
-        for index,row in enumerate(document.rows)]
-    connection.execute('''INSERT INTO moneylens.transactions
-        (tenant_id,owner_user_id,id,account_id,source_id,amount_minor,currency,booked_on,status,
-            merchant,category,basket,economic_flow,statement_receipt_id,source_payload_hash)
-        SELECT %s,%s,r.id,%s,r.source_id,r.amount_minor,r.currency,r.booked_on,'booked',
-            r.merchant,'unclassified','unresolved','unknown',%s,r.source_payload_hash
-        FROM jsonb_to_recordset(%s) AS r(id uuid,source_id text,amount_minor bigint,currency text,
-            booked_on date,merchant text,source_payload_hash text)''',(*owner,account,identifier,Jsonb(rows)))
+    publish_normalized_rows(connection,owner,identifier,account,digest,document.rows)
 
 
 @router.post('/v1/statements/wise/preview')
-def preview(body:WiseUpload,request:Request,user=Depends(write_principal)):
+def preview(body:WiseUpload | statement_files.FileUpload,request:Request,user=Depends(write_principal)):
+    if isinstance(body,statement_files.FileUpload):
+        enabled(request)
+        return statement_files.preview(body,request,user,cipher,clean,receipt)
     return stage_preview(body,request,user,'wise_csv')
 
 
@@ -145,7 +140,7 @@ def stage_preview(body,request,user,source_format):
     with request.app.state.pools.finance.connection() as connection:
         with authorized_transaction(connection,user,write=True):
             clean(connection,owner)
-            old=receipt(connection,owner,digest,normalized_digest)
+            old=receipt(connection,owner,digest,normalized_digest,body.account_id)
             if old: return same_destination(old,body.account_id)
             account,label=target_account(connection,owner,body.account_id,source_format)
             check_overlap(connection,owner,account,low,high)
@@ -166,7 +161,10 @@ def stage_preview(body,request,user,source_format):
 
 @router.post('/v1/statements/wise/confirm')
 @router.post('/v1/statements/confirm')
-def confirm(body:WiseConfirm,request:Request,user=Depends(write_principal)):
+def confirm(body:WiseConfirm | statement_files.FileConfirm,request:Request,user=Depends(write_principal)):
+    if isinstance(body,statement_files.FileConfirm):
+        enabled(request)
+        return statement_files.confirm(body,request,user,cipher,clean,receipt)
     enabled(request);owner=(user.scope.tenant_id,user.scope.user_id)
     with request.app.state.pools.finance.connection() as connection:
         with authorized_transaction(connection,user,write=True):
@@ -180,7 +178,7 @@ def confirm(body:WiseConfirm,request:Request,user=Depends(write_principal)):
                 AND expires_at>clock_timestamp()''',(*owner,body.preview_id)).fetchone()
             if not stage or stage[0]!=user.session_id: raise AuthError('NOT_FOUND',404)
             if stage[6] not in PUBLIC_FORMATS: raise AuthError('INVALID_IMPORT_COMMAND',409)
-            existing=receipt(connection,owner,stage[1],stage[7])
+            existing=receipt(connection,owner,stage[1],stage[7],stage[5])
             if existing:
                 result=same_destination(existing,stage[5])
                 connection.execute('DELETE FROM moneylens.statement_previews WHERE tenant_id=%s AND owner_user_id=%s AND id=%s',(*owner,body.preview_id))
@@ -198,12 +196,19 @@ def confirm(body:WiseConfirm,request:Request,user=Depends(write_principal)):
                     (tenant_id,owner_user_id,id,name,currency,account_type) VALUES (%s,%s,%s,%s,'EUR','current')''',(*owner,account,label))
             publish_rows(connection,owner,body.preview_id,account,stage[1],data)
             connection.execute('''INSERT INTO moneylens.statement_import_receipts
-                (tenant_id,owner_user_id,id,account_id,file_sha256,period_from,period_to_exclusive,row_count,source_format,normalized_sha256)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''',
-                (*owner,body.preview_id,account,stage[1],stage[2],stage[3],len(data.rows),data.source_format,data.sha256))
+                (tenant_id,owner_user_id,id,account_id,file_sha256,period_from,period_to_exclusive,row_count,source_format,normalized_sha256,canonical_sha256)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''',
+                (*owner,body.preview_id,account,stage[1],stage[2],stage[3],len(data.rows),data.source_format,data.sha256,
+                    statement_files.fingerprint([dict(ref=r.reference,date=r.booked_on.isoformat(),amount=r.amount_minor,description=r.description) for r in data.rows])))
             connection.execute('UPDATE moneylens.user_state SET data_version=data_version+1 WHERE tenant_id=%s AND owner_user_id=%s',owner)
             connection.execute('DELETE FROM moneylens.statement_previews WHERE tenant_id=%s AND owner_user_id=%s AND id=%s',(*owner,body.preview_id))
     return published((body.preview_id,account,len(data.rows),stage[2],stage[3],data.source_format))
+
+
+@router.get('/v1/statements/wise/accounts')
+def statement_accounts(request:Request,user=Depends(principal)):
+    enabled(request)
+    return statement_files.accounts(request,user)
 
 
 def purge_expired_batch(pools, after=None):

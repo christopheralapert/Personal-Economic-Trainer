@@ -20,10 +20,10 @@ def response_for(path,size):
     return messages[0]['status']
 
 
-def test_both_preview_adapters_share_same_json_budget():
-    for path in ('/v1/statements/preview','/v1/statements/wise/preview'):
-        assert response_for(path,400000)==204
-        assert response_for(path,400001)==413
+def test_preview_budgets_bound_each_supported_upload_contract():
+    for path,limit in (('/v1/statements/preview',400000),('/v1/statements/wise/preview',2800000)):
+        assert response_for(path,limit)==204
+        assert response_for(path,limit+1)==413
 
 
 def test_confirm_and_unrecognized_statement_commands_stay_small():

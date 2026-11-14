@@ -375,6 +375,10 @@ export interface paths {
     /** Preview Statement */
     post: operations["preview_statement_v1_statements_preview_post"];
   };
+  "/v1/statements/wise/accounts": {
+    /** Statement Accounts */
+    get: operations["statement_accounts_v1_statements_wise_accounts_get"];
+  };
   "/v1/statements/wise/confirm": {
     /** Confirm */
     post: operations["confirm_v1_statements_wise_confirm_post"];
@@ -2156,6 +2160,42 @@ export interface components {
       transaction_count?: number;
       /** Transaction Ids */
       transaction_ids?: string[];
+    };
+    /** FileConfirm */
+    FileConfirm: {
+      /** Previews */
+      previews: components["schemas"]["FileSelection"][];
+    };
+    /** FileSelection */
+    FileSelection: {
+      /** Account Id */
+      account_id?: string | null;
+      /** Currency */
+      currency?: "EUR" | null;
+      /**
+       * Keep Separate
+       * @default false
+       */
+      keep_separate?: boolean;
+      /** New Account Label */
+      new_account_label?: string | null;
+      /**
+       * Preview Id
+       * Format: uuid
+       */
+      preview_id: string;
+    };
+    /** FileUpload */
+    FileUpload: {
+      /** Content Base64 */
+      content_base64: string;
+      /** Date Order */
+      date_order?: ("day_first" | "month_first") | null;
+      /**
+       * Format
+       * @enum {string}
+       */
+      format: "csv" | "pdf" | "xlsx" | "xml" | "mt940" | "qif";
     };
     /** FinancialResult */
     FinancialResult: {
@@ -8460,7 +8500,7 @@ export interface operations {
   confirm_v1_statements_confirm_post: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["WiseConfirm"];
+        "application/json": components["schemas"]["WiseConfirm"] | components["schemas"]["FileConfirm"];
       };
     };
     responses: {
@@ -8500,11 +8540,22 @@ export interface operations {
       };
     };
   };
+  /** Statement Accounts */
+  statement_accounts_v1_statements_wise_accounts_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+    };
+  };
   /** Confirm */
   confirm_v1_statements_wise_confirm_post: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["WiseConfirm"];
+        "application/json": components["schemas"]["WiseConfirm"] | components["schemas"]["FileConfirm"];
       };
     };
     responses: {
@@ -8526,7 +8577,7 @@ export interface operations {
   preview_v1_statements_wise_preview_post: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["WiseUpload"];
+        "application/json": components["schemas"]["WiseUpload"] | components["schemas"]["FileUpload"];
       };
     };
     responses: {
