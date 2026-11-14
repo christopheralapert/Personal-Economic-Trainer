@@ -49,7 +49,7 @@ export function Simulator({goal=null}:{goal?:SavingsGoal|null}) {
    {result.monthly>0 && <Button className="h-auto min-h-12 w-full" onClick={()=>setCreating(true)}>{t("setAside",{amount:money(result.monthly)})}</Button>}
   </section>}
   {goal && <section className="space-y-2 rounded-2xl border border-line bg-surface p-4"><h3 className="wrap-anywhere font-semibold">{t("goalSummary",{name:goal.name,amount:money(goal.amountMinor)})}</h3><p role="status" className="text-sm">{goalMonths===null ? t("goalScenarioUnavailable") : t("goalScenarioMonths",{months:goalMonths})}</p><p className="text-caption text-ink-2">{t("goalScenarioNote")}</p></section>}
-  <div className="space-y-1"><p className="text-caption text-ink-2">{t("assumption")}</p><BasisChip period={period}/></div>
+  <BasisChip period={period}/>
   {creating && result.monthly!==null && result.monthly>0 && <MonthlyPlanSheet amount={result.monthly} onClose={()=>setCreating(false)}/>}
  </div>;
 }

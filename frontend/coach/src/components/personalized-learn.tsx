@@ -9,7 +9,7 @@ import {money,percent} from "@/lib/format";
 import {transactionQuestion} from "@/coach/explore-question";
 import {BasisChip} from "./basis-chip";
 import {LearnTopics} from "./learn-topics";
-import {learningCopy,type LearnConcept} from "@/i18n/learning";
+import type {LearnConcept} from "@/i18n/learning";
 const topics=[
  {concept:"regular",title:"regularShort",basket:"mandatory_regular",question:"qBaskets",dot:"bg-basket-regular"},
  {concept:"irregular",title:"surprisesShort",basket:"mandatory_irregular",question:"qBaskets",dot:"bg-basket-surprises"},
@@ -42,5 +42,5 @@ export function PersonalizedLearn({onAsk}:{onAsk:(question:string)=>void}) {
  }
  return <section className="space-y-4"><div className="space-y-1"><h2 className="text-xl font-semibold">{t("learn")}</h2><p className="text-sm text-ink-2">{t("startHere")}</p></div>
   <LearnTopics topics={topics.map(topic=>({id:`learn-${basketTopic(topic.concept)?topic.basket:topic.concept}`,concept:topic.concept,title:topic.title as Key,dot:topic.dot,fact:fact(topic),question:question(topic),...(topic.basket&&basketTopic(topic.concept)?{onRecords:()=>onAsk(question(topic))}:{})}))} read={read} onRead={markRead} onAsk={onAsk}/>
-  <p className="text-caption text-ink-2">{learningCopy[locale].note}</p><BasisChip period={period}/></section>;
+  <BasisChip period={period}/></section>;
 }
