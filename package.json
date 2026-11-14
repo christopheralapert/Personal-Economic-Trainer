@@ -20,6 +20,7 @@
     "typecheck": "npm run typecheck --workspace @moneylens/web && npm run typecheck --workspace @moneylens/coach",
     "test:structure": "node --test tests/structure/*.test.mjs",
     "test:web": "playwright test --config tests/config/playwright.config.ts",
+    "test:web-coach": "playwright test --config tests/config/playwright.coach.config.ts",
     "test:web:legal": "playwright test --config tests/config/playwright.legal.config.ts",
     "test:demo": "playwright test --config tests/config/playwright.demo.config.ts",
     "test:web:container": "playwright test --config tests/config/playwright.container.config.ts",
