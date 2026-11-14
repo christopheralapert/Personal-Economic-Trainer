@@ -1,0 +1,26 @@
+{
+  "claimed_from": "2026-10-01",
+  "claimed_to_exclusive": "2026-11-01",
+  "currency": "EUR",
+  "files": [
+    {
+      "role": "accounts",
+      "sha256": "53bdf1425fa1e8b2a925526e1b63ac47352f2971a8df62d37b5c674e24d864c3",
+      "size_bytes": 232
+    },
+    {
+      "role": "balances",
+      "sha256": "137e45acfedeb548110f208ea136a19d1f979b4f7ba36210b0faaeabe1546493",
+      "size_bytes": 219
+    },
+    {
+      "role": "transactions",
+      "sha256": "122e8e59b3c618f4f9569b8305c24d591a4fc389f4db4b1fd0ea6af7c35c9d88",
+      "size_bytes": 1739
+    }
+  ],
+  "mapping_version": "moneylens.synthetic-csv.v1",
+  "source_customer_ref": "authored-customer-1",
+  "source_version": "authored-coffee-12-v1",
+  "timezone": "Europe/Helsinki"
+}

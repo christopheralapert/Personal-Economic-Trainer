@@ -1,0 +1,20 @@
+{
+  "as_of": "2026-11-04T00:00:00+02:00",
+  "files": [
+    {
+      "path": "acceptance.v1.json",
+      "sha256": "cb5d3ebcd623cdf6a757db61f431c0628d5798736b45050162eb02e8fc77ea75",
+      "size_bytes": 58835
+    }
+  ],
+  "fixture_version": "acceptance.v1",
+  "generator": "scripts/generate_acceptance_fixture.py",
+  "mapping": "moneylens.domain.v1+planning-inputs.v1",
+  "runtime": {
+    "money": "integer minor units",
+    "python": "3.12",
+    "randomness": "none; UUIDv5 named identities"
+  },
+  "seed": 311045,
+  "timezone": "Europe/Helsinki"
+}

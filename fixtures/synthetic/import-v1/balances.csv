@@ -1,0 +1,2 @@
+source_customer_ref,account_ref,source_id,amount_minor,currency,balance_kind,pending_reflection,included_credit_minor,observed_at
+authored-customer-1,daily,balance-1,250000,EUR,available,included,0,2026-11-04T10:00:00Z

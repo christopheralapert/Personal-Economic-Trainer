@@ -1,0 +1,155 @@
+{
+  "version": "education.v1",
+  "locales": {
+    "en": {
+      "cash_flow": {
+        "title": "Cash flow",
+        "summary": "Cash flow describes when money enters and leaves an account. Timing matters as well as the total.",
+        "details": ["A bill due before payday can cause a shortfall even if the month ends with money left over.", "Money in another account does not automatically pay that bill. A transfer needs its own amount, date and account choice."],
+        "practical_choice": "Check the dates of upcoming bills and confirmed income before reviewing a spending plan."
+      },
+      "protected_money": {
+        "title": "Money kept for a purpose",
+        "summary": "Money set aside for essentials, a repair or a buffer is already needed for that purpose, even while it remains in your account.",
+        "details": ["A buffer helps with unexpected costs. A planned repair and a general buffer serve different purposes; the same money cannot cover both at once.", "A MoneyLens reservation records an intention. It does not move money to a savings account or prove that a bank transfer happened."],
+        "practical_choice": "Review what each reserved amount is meant to cover before assigning it to another goal."
+      },
+      "shared_surplus": {
+        "title": "Spending and saving share one amount",
+        "summary": "In your reviewed MoneyLens plan, extra spending and new saving use the same estimated surplus.",
+        "details": ["The estimate protects dated commitments and reviewed reserves across the plan's protection period, which can extend beyond the week you asked about.", "A missing balance or unreviewed essential cost leaves the amount unknown. A calculated zero means the known plan has no extra room; it is a different result."],
+        "practical_choice": "Try a spending and saving combination in your reviewed plan, then inspect what remains."
+      },
+      "opportunity_cost": {
+        "title": "What a choice leaves out",
+        "summary": "Using money for one purpose means it cannot be used for another at the same time. This is called opportunity cost.",
+        "details": ["Choosing more everyday spending can leave less for a savings goal. Choosing more saving can leave less flexible spending now.", "The useful comparison is between choices that fit your own needs and commitments. Your priorities can change, and you can revisit a choice."],
+        "practical_choice": "Compare two choices and decide which purpose matters more to you right now."
+      },
+      "scenario_assumptions": {
+        "title": "A scenario is a what-if",
+        "summary": "A scenario changes an assumption to explore its effect. It does not change your transaction history or predict what will happen.",
+        "details": ["Reducing a historical dining total shows a hypothetical cost reduction for that period. It does not prove that the same reduction will repeat next month.", "A lower expense does not automatically become money safe to save. Current balances, bill dates and other protected needs still matter."],
+        "practical_choice": "Check the baseline dates and changed assumption, then compare the result with your current plan."
+      },
+      "spending_baskets": {
+        "title": "Three spending baskets",
+        "summary": "Separate regular essentials, irregular essentials and everyday spending to understand what each expense is for.",
+        "details": ["Rent can be a regular essential; a necessary appliance repair can be an irregular essential. Flexible everyday purchases form the third basket.", "A repeating subscription is not automatically essential. The merchant or payment frequency may not reveal why you needed a purchase, so uncertain classifications stay open for review."],
+        "practical_choice": "Look at an uncertain purchase and consider its purpose before deciding on a basket."
+      },
+      "observed_spending": {
+        "title": "What observed spending tells you",
+        "summary": "Observed spending describes matching entries in a named period and account scope. It is not your account balance or spending allowance.",
+        "details": ["Gross booked expenses show purchases before refunds. Refunds reduce net spending in the period when the refund was booked.", "No matching entries means zero observed matches in that scope. Missing history or an excluded account can still leave the wider picture unknown."],
+        "practical_choice": "Inspect the matching transactions, dates and source coverage before drawing a conclusion from a total."
+      },
+      "population_mean": {
+        "title": "A population average is context",
+        "summary": "A survey mean describes a group of households. It is not a recommended budget or a judgment about your choices.",
+        "details": ["Household size, category definitions, reference year and the survey's units affect whether a comparison is meaningful.", "A monthly equivalent of an annual mean is a reference conversion, not an observed month. Missing or suppressed survey values remain unavailable, not zero."],
+        "practical_choice": "Check the household group, year and comparison limitations before using an average as context."
+      }
+    },
+    "fi": {
+      "cash_flow": {
+        "title": "Rahavirta",
+        "summary": "Rahavirta kertoo, milloin rahaa tulee tilille ja milloin sitä lähtee. Summan lisäksi myös ajoitus merkitsee.",
+        "details": ["Ennen palkkapäivää erääntyvä lasku voi aiheuttaa rahavajeen, vaikka kuukauden lopussa rahaa olisi jäljellä.", "Toisella tilillä oleva raha ei maksa laskua automaattisesti. Siirrolle tarvitaan oma summa, ajankohta ja tilivalinta."],
+        "practical_choice": "Tarkista tulevien laskujen eräpäivät ja vahvistettujen tulojen ajankohdat ennen rahankäytön suunnittelua."
+      },
+      "protected_money": {
+        "title": "Tiettyyn tarkoitukseen varattu raha",
+        "summary": "Välttämättömiin menoihin, korjaukseen tai puskuriin varattua rahaa tarvitaan jo siihen tarkoitukseen, vaikka se on yhä tililläsi.",
+        "details": ["Puskuri auttaa yllättävissä menoissa. Suunniteltu korjaus ja yleinen puskuri palvelevat eri tarpeita; samaa rahaa ei voi käyttää molempiin yhtä aikaa.", "MoneyLensin varaus kirjaa aikomuksen. Se ei siirrä rahaa säästötilille eikä osoita, että pankkisiirto olisi tehty."],
+        "practical_choice": "Tarkista varatun rahan käyttötarkoitus ennen kuin kohdistat sen toiseen tavoitteeseen."
+      },
+      "shared_surplus": {
+        "title": "Rahankäyttö ja säästäminen jakavat saman summan",
+        "summary": "Tarkistetussa MoneyLens-suunnitelmassa lisäkulutus ja uusi säästäminen käyttävät samaa arvioitua liikkumavaraa.",
+        "details": ["Arvio huomioi eräpäivälliset velvoitteet ja tarkistetut varaukset koko suoja-ajalta. Jakso voi jatkua kysymääsi viikkoa pidemmälle.", "Puuttuva saldo tai tarkistamaton välttämätön meno jättää summan tuntemattomaksi. Laskettu nolla tarkoittaa, ettei tunnetussa suunnitelmassa ole lisävaraa; kyse on eri tuloksesta."],
+        "practical_choice": "Kokeile suunnitelmassa kulutuksen ja säästämisen yhdistelmää ja katso, mitä jää jäljelle."
+      },
+      "opportunity_cost": {
+        "title": "Mitä valinta jättää pois",
+        "summary": "Kun käytät rahaa yhteen tarkoitukseen, et voi käyttää sitä samaan aikaan toiseen. Tätä kutsutaan vaihtoehtoiskustannukseksi.",
+        "details": ["Suurempi arjen kulutus voi jättää vähemmän säästötavoitteeseen. Suurempi säästö taas voi vähentää tämänhetkistä joustavaa rahankäyttöä.", "Vertaa vaihtoehtoja omien tarpeidesi ja velvoitteidesi pohjalta. Tarpeesi voivat muuttua, ja voit palata valintaan myöhemmin."],
+        "practical_choice": "Vertaa kahta vaihtoehtoa ja mieti, kumpi tarkoitus on sinulle nyt tärkeämpi."
+      },
+      "scenario_assumptions": {
+        "title": "Skenaario on mitä jos -kokeilu",
+        "summary": "Skenaario muuttaa oletusta ja tarkastelee sen vaikutusta. Se ei muuta tilitapahtumiasi eikä ennusta tulevaa.",
+        "details": ["Aiempien ravintolamenojen pienentäminen näyttää kyseisen jakson kuvitteellisen kuluvähennyksen. Se ei osoita, että sama vähennys toistuisi ensi kuussa.", "Pienempi meno ei automaattisesti tarkoita rahaa, jonka voi turvallisesti säästää. Nykyiset saldot, laskujen eräpäivät ja muut varatut tarpeet vaikuttavat edelleen."],
+        "practical_choice": "Tarkista lähtöjakso ja muutettu oletus ja vertaa tulosta nykyiseen suunnitelmaasi."
+      },
+      "spending_baskets": {
+        "title": "Kolme menokoria",
+        "summary": "Jaa menot säännöllisiin välttämättömiin, epäsäännöllisiin välttämättömiin ja arjen joustaviin menoihin, jotta niiden tarkoitus selviää.",
+        "details": ["Vuokra voi olla säännöllinen välttämätön meno ja tarpeellinen kodinkonekorjaus epäsäännöllinen välttämätön meno. Joustavat arjen ostokset muodostavat kolmannen korin.", "Toistuva tilaus ei ole automaattisesti välttämätön. Kauppiaan nimi tai maksutiheys ei aina kerro ostoksen tarvetta, joten epävarma luokitus jää tarkistettavaksi."],
+        "practical_choice": "Katso epävarmaa ostosta ja pohdi sen tarkoitusta ennen korin valintaa."
+      },
+      "observed_spending": {
+        "title": "Mitä havaitut menot kertovat",
+        "summary": "Havaitut menot kuvaavat rajattuun jaksoon ja tileihin sopivia tapahtumia. Ne eivät ole tilisi saldo tai käytettävissä oleva kulutusvara.",
+        "details": ["Kirjattujen ostojen bruttosumma näyttää menot ennen hyvityksiä. Hyvitykset pienentävät nettomenoja sillä jaksolla, jolla ne kirjattiin.", "Jos sopivia tapahtumia ei löydy, havaittuja osumia on rajauksessa nolla. Puuttuva historia tai rajauksen ulkopuolinen tili voi silti jättää kokonaisuuden tuntemattomaksi."],
+        "practical_choice": "Tarkista tapahtumat, päivämäärät ja lähteen kattavuus ennen johtopäätöksen tekemistä summasta."
+      },
+      "population_mean": {
+        "title": "Väestön keskiarvo antaa taustaa",
+        "summary": "Tutkimuksen keskiarvo kuvaa kotitalouksien ryhmää. Se ei ole suositusbudjetti eikä arvio valinnoistasi.",
+        "details": ["Kotitalouden koko, menoluokkien määritelmät, viitevuosi ja tutkimuksen yksiköt vaikuttavat vertailun mielekkyyteen.", "Vuosikeskiarvosta laskettu kuukausivastaavuus on taustaluvun muunnos, ei havaittu kuukausi. Puuttuvat tai salatut tutkimusarvot jäävät puuttuviksi, eivät nollaksi."],
+        "practical_choice": "Tarkista kotitalousryhmä, vuosi ja vertailun rajoitukset ennen keskiarvon käyttöä taustatietona."
+      }
+    },
+    "sv": {
+      "cash_flow": {
+        "title": "När pengar kommer in och går ut",
+        "summary": "Kassaflöde beskriver när pengar kommer in på och lämnar ett konto. Tidpunkten spelar roll, liksom beloppet.",
+        "details": ["En räkning som förfaller före lönedagen kan orsaka ett underskott även om det finns pengar kvar vid månadens slut.", "Pengar på ett annat konto betalar inte räkningen automatiskt. En överföring behöver ett eget belopp, datum och kontoval."],
+        "practical_choice": "Kontrollera kommande förfallodagar och tidpunkter för bekräftade inkomster innan du ser över din plan."
+      },
+      "protected_money": {
+        "title": "Pengar avsatta för ett ändamål",
+        "summary": "Pengar som avsatts för nödvändiga utgifter, en reparation eller en buffert behövs redan för det ändamålet, även när de finns kvar på kontot.",
+        "details": ["En buffert hjälper vid oväntade utgifter. En planerad reparation och en allmän buffert fyller olika behov; samma pengar kan inte täcka båda samtidigt.", "En reservation i MoneyLens visar en avsikt. Den flyttar inte pengar till ett sparkonto och visar inte att en banköverföring har gjorts."],
+        "practical_choice": "Se över vad ett reserverat belopp ska täcka innan du kopplar det till ett annat mål."
+      },
+      "shared_surplus": {
+        "title": "Konsumtion och sparande delar på ett belopp",
+        "summary": "I din granskade MoneyLens-plan använder extra konsumtion och nytt sparande samma uppskattade utrymme.",
+        "details": ["Uppskattningen skyddar daterade åtaganden och granskade reservationer under hela skyddsperioden. Perioden kan vara längre än veckan du frågade om.", "Ett saknat saldo eller en ogranskad nödvändig utgift gör beloppet okänt. En beräknad nolla betyder att den kända planen saknar extra utrymme; det är ett annat resultat."],
+        "practical_choice": "Prova en kombination av konsumtion och sparande i planen och se vad som återstår."
+      },
+      "opportunity_cost": {
+        "title": "Vad ett val lämnar utanför",
+        "summary": "När du använder pengar till ett ändamål kan du inte använda dem till ett annat samtidigt. Det kallas alternativkostnad.",
+        "details": ["Mer vardagskonsumtion kan lämna mindre till ett sparmål. Mer sparande kan i stället ge mindre utrymme för flexibel konsumtion nu.", "Jämför alternativ som passar dina egna behov och åtaganden. Dina prioriteringar kan förändras, och du kan ompröva ditt val."],
+        "practical_choice": "Jämför två alternativ och fundera på vilket ändamål som betyder mest för dig just nu."
+      },
+      "scenario_assumptions": {
+        "title": "Ett scenario är ett tänk om",
+        "summary": "Ett scenario ändrar ett antagande för att undersöka effekten. Det ändrar inte dina kontohändelser och förutsäger inte framtiden.",
+        "details": ["En minskning av tidigare restaurangutgifter visar en tänkt kostnadsminskning för den perioden. Det bevisar inte att samma minskning upprepas nästa månad.", "En lägre utgift blir inte automatiskt pengar som är trygga att spara. Nuvarande saldon, förfallodagar och andra skyddade behov spelar fortfarande roll."],
+        "practical_choice": "Kontrollera grundperioden och det ändrade antagandet och jämför med din nuvarande plan."
+      },
+      "spending_baskets": {
+        "title": "Tre utgiftskorgar",
+        "summary": "Skilj mellan regelbundna nödvändiga utgifter, oregelbundna nödvändiga utgifter och vardagsutgifter för att förstå deras syfte.",
+        "details": ["Hyra kan vara en regelbunden nödvändig utgift och en nödvändig vitvarureparation en oregelbunden nödvändig utgift. Flexibla vardagsköp bildar den tredje korgen.", "Ett återkommande abonnemang är inte automatiskt nödvändigt. Butiksnamn eller betalningsfrekvens visar inte alltid varför köpet behövdes, så osäkra klassificeringar lämnas för granskning."],
+        "practical_choice": "Titta på ett osäkert köp och fundera på syftet innan du väljer en korg."
+      },
+      "observed_spending": {
+        "title": "Vad observerade utgifter visar",
+        "summary": "Observerade utgifter beskriver matchande kontohändelser för en angiven period och vissa konton. De är inte ditt saldo eller ditt konsumtionsutrymme.",
+        "details": ["Bokförda bruttoutgifter visar köp före återbetalningar. Återbetalningar minskar nettoutgifterna under perioden då de bokfördes.", "Inga matchande händelser betyder noll observerade träffar inom avgränsningen. Saknad historik eller ett uteslutet konto kan ändå lämna helheten okänd."],
+        "practical_choice": "Granska händelserna, datumen och källans täckning innan du drar en slutsats av en totalsumma."
+      },
+      "population_mean": {
+        "title": "Ett befolkningsmedelvärde ger sammanhang",
+        "summary": "Ett medelvärde från en undersökning beskriver en grupp hushåll. Det är ingen rekommenderad budget eller bedömning av dina val.",
+        "details": ["Hushållsstorlek, kategoridefinitioner, referensår och undersökningens enheter påverkar om en jämförelse är meningsfull.", "Ett månadsbelopp omräknat från ett årsmedelvärde är ett referensmått, ingen observerad månad. Saknade eller undertryckta undersökningsvärden förblir otillgängliga, inte noll."],
+        "practical_choice": "Kontrollera hushållsgruppen, året och begränsningarna innan du använder medelvärdet som bakgrund."
+      }
+    }
+  }
+}

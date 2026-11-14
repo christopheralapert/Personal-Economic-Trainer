@@ -1,0 +1,1702 @@
+{
+  "as_of": "2026-11-04T00:00:00+02:00",
+  "classification_evidence": [
+    {
+      "confidence_basis_points": 3500,
+      "necessity": "unknown",
+      "owner": {
+        "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+        "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+      },
+      "reason": "Transport label alone does not establish purpose.",
+      "recurrence": "unknown",
+      "rule_version": "claims.v1",
+      "source": "authored-uncertainty-example",
+      "transaction_id": "2e3fde25-2dd1-5dfb-be89-21882bc1085b"
+    },
+    {
+      "confidence_basis_points": 3500,
+      "necessity": "unknown",
+      "owner": {
+        "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+        "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+      },
+      "reason": "Transport label alone does not establish purpose.",
+      "recurrence": "unknown",
+      "rule_version": "claims.v1",
+      "source": "authored-uncertainty-example",
+      "transaction_id": "d56c5248-ccd0-5cc5-b516-ad96f1725fa2"
+    }
+  ],
+  "conversations": [
+    {
+      "id": "4b5fe7e7-4556-5390-a18f-b9e11e57298d",
+      "messages": [
+        {
+          "content": "How much did I spend on taxis last month?",
+          "created_at": "2026-11-04T00:00:00+02:00",
+          "id": "40bcf52c-5d94-5d5c-be5e-09d0dfb5a165",
+          "role": "user"
+        }
+      ],
+      "owner": {
+        "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+        "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+      }
+    },
+    {
+      "id": "c697b9a4-6308-58cd-895d-c2056407b64e",
+      "messages": [
+        {
+          "content": "What is safe for me to spend this week?",
+          "created_at": "2026-11-04T00:00:00+02:00",
+          "id": "04095fd9-d328-5976-ae46-d8d24f9a2197",
+          "role": "user"
+        }
+      ],
+      "owner": {
+        "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+        "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+      }
+    }
+  ],
+  "currency": "EUR",
+  "fixture_version": "acceptance.v1",
+  "historical_expectations": {
+    "dining": {
+      "gross_minor": 25000,
+      "reduction_percent": 20,
+      "savings_minor": 5000
+    },
+    "groceries": {
+      "gross_minor": 12100,
+      "net_minor": 11800,
+      "refunds_minor": 300
+    },
+    "identical_purchases": {
+      "count": 2,
+      "gross_minor": 250
+    },
+    "internal_transfer": {
+      "consolidated_consumption_minor": 0,
+      "credit_minor": 10000,
+      "debit_minor": -10000
+    },
+    "period": {
+      "end_exclusive": "2026-11-01",
+      "start": "2026-10-01"
+    },
+    "taxi": {
+      "count": 2,
+      "gross_minor": 4000
+    }
+  },
+  "notice": "Independently authored synthetic acceptance data, not organizer/customer records or executable source code.",
+  "planning_cases": [
+    {
+      "expected": {
+        "amount_minor": 20000,
+        "blocker_codes": [],
+        "horizon_reason": "minimum_fallback",
+        "protection_through": "2026-12-04T00:00:00+02:00",
+        "shortfall_minor": 0,
+        "status": "estimated"
+      },
+      "inputs": {
+        "accounts": [
+          {
+            "account_type": "current",
+            "coverage": "user_confirmed",
+            "coverage_through": "2026-11-04T00:00:00+02:00",
+            "currency": "EUR",
+            "id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+            "liability_covered": null,
+            "liquid": true,
+            "material": true,
+            "synced_at": "2026-11-04T00:00:00+02:00"
+          },
+          {
+            "account_type": "current",
+            "coverage": "user_confirmed",
+            "coverage_through": "2026-11-04T00:00:00+02:00",
+            "currency": "EUR",
+            "id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+            "liability_covered": null,
+            "liquid": true,
+            "material": true,
+            "synced_at": "2026-11-04T00:00:00+02:00"
+          }
+        ],
+        "as_of": "2026-11-04T00:00:00+02:00",
+        "balances": [
+          {
+            "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+            "amount_minor": 50000,
+            "currency": "EUR",
+            "id": "95cffd15-4ff9-5796-ad6c-7a83cc5794c2",
+            "inaccessible_minor": 0,
+            "included_credit_minor": 0,
+            "kind": "available",
+            "observed_at": "2026-11-04T00:00:00+02:00",
+            "pending_reflection": "included"
+          },
+          {
+            "account_id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+            "amount_minor": 30000,
+            "currency": "EUR",
+            "id": "e8da06a4-d69a-5450-bf33-08401522c79b",
+            "inaccessible_minor": 0,
+            "included_credit_minor": 0,
+            "kind": "available",
+            "observed_at": "2026-11-04T00:00:00+02:00",
+            "pending_reflection": "included"
+          }
+        ],
+        "costs": [
+          {
+            "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+            "amount_basis": "reviewed",
+            "amount_minor": 35000,
+            "at": "2026-12-02T00:00:00+02:00",
+            "consumes": [],
+            "economic_cost_id": "bf7ea7f9-be65-592b-99dc-e4549eacdbdc",
+            "id": "a6e373a5-fd0e-5356-b6ec-1deebe516633",
+            "kind": "bill",
+            "lower_amount_minor": null,
+            "opening_reflected": false
+          }
+        ],
+        "data_version": 1,
+        "incomes": [],
+        "obligations_reviewed_through": "2026-12-04T00:00:00+02:00",
+        "pending": [],
+        "plan_version": 1,
+        "protections": [
+          {
+            "amount_minor": 15000,
+            "id": "78b7c72e-4f40-5ac2-a905-84238342c75c",
+            "kind": "essentials",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": [
+              {
+                "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+                "amount_minor": 15000
+              }
+            ]
+          },
+          {
+            "amount_minor": 0,
+            "id": "2994dd89-0714-5518-bee1-92eff2258263",
+            "kind": "irregular",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          },
+          {
+            "amount_minor": 0,
+            "id": "6d79eb48-c346-5d18-9be4-304ae0afdfe0",
+            "kind": "savings",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          },
+          {
+            "amount_minor": 10000,
+            "id": "41c85452-d663-5647-b38a-a6e0e2f16855",
+            "kind": "buffer",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": [
+              {
+                "account_id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+                "amount_minor": 10000
+              }
+            ]
+          }
+        ],
+        "requested_to_exclusive": "2026-11-09T00:00:00+02:00",
+        "source": "synthetic_user_confirmed",
+        "transfers": []
+      },
+      "name": "base",
+      "owner": {
+        "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+        "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+      }
+    },
+    {
+      "expected": {
+        "amount_minor": 0,
+        "blocker_codes": [],
+        "horizon_reason": "minimum_fallback",
+        "minimum_headroom_at": "2026-11-05T00:00:00+02:00",
+        "protection_through": "2026-12-04T00:00:00+02:00",
+        "shortfall_minor": 5000,
+        "status": "estimated"
+      },
+      "inputs": {
+        "accounts": [
+          {
+            "account_type": "current",
+            "coverage": "user_confirmed",
+            "coverage_through": "2026-11-04T00:00:00+02:00",
+            "currency": "EUR",
+            "id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+            "liability_covered": null,
+            "liquid": true,
+            "material": true,
+            "synced_at": "2026-11-04T00:00:00+02:00"
+          },
+          {
+            "account_type": "current",
+            "coverage": "user_confirmed",
+            "coverage_through": "2026-11-04T00:00:00+02:00",
+            "currency": "EUR",
+            "id": "f29ef32e-4ef7-5d0e-8c46-e37bcdedd88f",
+            "liability_covered": null,
+            "liquid": true,
+            "material": true,
+            "synced_at": "2026-11-04T00:00:00+02:00"
+          }
+        ],
+        "as_of": "2026-11-04T00:00:00+02:00",
+        "balances": [
+          {
+            "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+            "amount_minor": 10000,
+            "currency": "EUR",
+            "id": "9949ee07-f573-581d-9a92-f03d18e0a6b8",
+            "inaccessible_minor": 0,
+            "included_credit_minor": 0,
+            "kind": "available",
+            "observed_at": "2026-11-04T00:00:00+02:00",
+            "pending_reflection": "included"
+          },
+          {
+            "account_id": "f29ef32e-4ef7-5d0e-8c46-e37bcdedd88f",
+            "amount_minor": 0,
+            "currency": "EUR",
+            "id": "c297b126-5844-5e2f-a5b6-deff468d1540",
+            "inaccessible_minor": 0,
+            "included_credit_minor": 0,
+            "kind": "available",
+            "observed_at": "2026-11-04T00:00:00+02:00",
+            "pending_reflection": "included"
+          }
+        ],
+        "costs": [
+          {
+            "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+            "amount_basis": "reviewed",
+            "amount_minor": 15000,
+            "at": "2026-11-05T00:00:00+02:00",
+            "consumes": [],
+            "economic_cost_id": "17e28b1b-38fe-5129-9c9e-06787a9dfce8",
+            "id": "331517e4-5ec7-5114-9242-a2f8de1f1dbf",
+            "kind": "bill",
+            "lower_amount_minor": null,
+            "opening_reflected": false
+          }
+        ],
+        "data_version": 1,
+        "incomes": [
+          {
+            "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+            "amount_minor": 20000,
+            "at": "2026-11-07T00:00:00+02:00",
+            "confirmed": false,
+            "id": "6900641e-ea1f-5beb-83c9-9db4c6ce3ea5"
+          }
+        ],
+        "obligations_reviewed_through": "2026-12-04T00:00:00+02:00",
+        "pending": [],
+        "plan_version": 1,
+        "protections": [
+          {
+            "amount_minor": 0,
+            "id": "96b10637-2b71-5ccd-a879-7c847565791c",
+            "kind": "essentials",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          },
+          {
+            "amount_minor": 0,
+            "id": "44a4470f-1d07-56d1-a0fe-65b4416cdfcf",
+            "kind": "irregular",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          },
+          {
+            "amount_minor": 0,
+            "id": "e81c7cbe-32b3-5839-8121-2b92cad49dad",
+            "kind": "savings",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          },
+          {
+            "amount_minor": 0,
+            "id": "ec802019-f88c-52b2-889b-bca13dcb9f6c",
+            "kind": "buffer",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          }
+        ],
+        "requested_to_exclusive": "2026-11-09T00:00:00+02:00",
+        "source": "synthetic_user_confirmed",
+        "transfers": []
+      },
+      "name": "uncertain_income",
+      "owner": {
+        "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+        "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+      }
+    },
+    {
+      "expected": {
+        "amount_minor": 0,
+        "blocker_codes": [],
+        "horizon_reason": "confirmed_income_plus_seven_days",
+        "minimum_headroom_at": "2026-11-05T00:00:00+02:00",
+        "protection_through": "2026-11-14T00:00:00+02:00",
+        "shortfall_minor": 5000,
+        "status": "estimated"
+      },
+      "inputs": {
+        "accounts": [
+          {
+            "account_type": "current",
+            "coverage": "user_confirmed",
+            "coverage_through": "2026-11-04T00:00:00+02:00",
+            "currency": "EUR",
+            "id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+            "liability_covered": null,
+            "liquid": true,
+            "material": true,
+            "synced_at": "2026-11-04T00:00:00+02:00"
+          },
+          {
+            "account_type": "current",
+            "coverage": "user_confirmed",
+            "coverage_through": "2026-11-04T00:00:00+02:00",
+            "currency": "EUR",
+            "id": "f29ef32e-4ef7-5d0e-8c46-e37bcdedd88f",
+            "liability_covered": null,
+            "liquid": true,
+            "material": true,
+            "synced_at": "2026-11-04T00:00:00+02:00"
+          }
+        ],
+        "as_of": "2026-11-04T00:00:00+02:00",
+        "balances": [
+          {
+            "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+            "amount_minor": 10000,
+            "currency": "EUR",
+            "id": "9949ee07-f573-581d-9a92-f03d18e0a6b8",
+            "inaccessible_minor": 0,
+            "included_credit_minor": 0,
+            "kind": "available",
+            "observed_at": "2026-11-04T00:00:00+02:00",
+            "pending_reflection": "included"
+          },
+          {
+            "account_id": "f29ef32e-4ef7-5d0e-8c46-e37bcdedd88f",
+            "amount_minor": 0,
+            "currency": "EUR",
+            "id": "c297b126-5844-5e2f-a5b6-deff468d1540",
+            "inaccessible_minor": 0,
+            "included_credit_minor": 0,
+            "kind": "available",
+            "observed_at": "2026-11-04T00:00:00+02:00",
+            "pending_reflection": "included"
+          }
+        ],
+        "costs": [
+          {
+            "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+            "amount_basis": "reviewed",
+            "amount_minor": 15000,
+            "at": "2026-11-05T00:00:00+02:00",
+            "consumes": [],
+            "economic_cost_id": "8b63867a-b7da-5f2f-96a8-a7e99c366759",
+            "id": "965b479f-c814-5543-bb04-134a9f6208d8",
+            "kind": "bill",
+            "lower_amount_minor": null,
+            "opening_reflected": false
+          }
+        ],
+        "data_version": 1,
+        "incomes": [
+          {
+            "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+            "amount_minor": 20000,
+            "at": "2026-11-07T00:00:00+02:00",
+            "confirmed": true,
+            "id": "083397b8-4788-571d-b1fe-3c75fca9dbd0"
+          }
+        ],
+        "obligations_reviewed_through": "2026-12-04T00:00:00+02:00",
+        "pending": [],
+        "plan_version": 1,
+        "protections": [
+          {
+            "amount_minor": 0,
+            "id": "97d711e8-d5bb-5cf6-acd4-9e0f2b0de2f1",
+            "kind": "essentials",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          },
+          {
+            "amount_minor": 0,
+            "id": "4e46a010-487e-5e17-8c42-e90f84fddd13",
+            "kind": "irregular",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          },
+          {
+            "amount_minor": 0,
+            "id": "ce45c956-8f46-524d-9204-b16884256ac5",
+            "kind": "savings",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          },
+          {
+            "amount_minor": 0,
+            "id": "bd46b6d6-89b3-5c61-8d2b-4250012a67b3",
+            "kind": "buffer",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          }
+        ],
+        "requested_to_exclusive": "2026-11-09T00:00:00+02:00",
+        "source": "synthetic_user_confirmed",
+        "transfers": []
+      },
+      "name": "early_shortfall",
+      "owner": {
+        "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+        "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+      }
+    },
+    {
+      "expected": {
+        "amount_minor": null,
+        "blocker_codes": [
+          "BALANCE_MISSING_OR_AMBIGUOUS"
+        ],
+        "horizon_reason": "minimum_fallback",
+        "protection_through": "2026-12-04T00:00:00+02:00",
+        "shortfall_minor": null,
+        "status": "blocked"
+      },
+      "inputs": {
+        "accounts": [
+          {
+            "account_type": "current",
+            "coverage": "user_confirmed",
+            "coverage_through": "2026-11-04T00:00:00+02:00",
+            "currency": "EUR",
+            "id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+            "liability_covered": null,
+            "liquid": true,
+            "material": true,
+            "synced_at": "2026-11-04T00:00:00+02:00"
+          },
+          {
+            "account_type": "current",
+            "coverage": "user_confirmed",
+            "coverage_through": "2026-11-04T00:00:00+02:00",
+            "currency": "EUR",
+            "id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+            "liability_covered": null,
+            "liquid": true,
+            "material": true,
+            "synced_at": "2026-11-04T00:00:00+02:00"
+          }
+        ],
+        "as_of": "2026-11-04T00:00:00+02:00",
+        "balances": [
+          {
+            "account_id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+            "amount_minor": 30000,
+            "currency": "EUR",
+            "id": "e8da06a4-d69a-5450-bf33-08401522c79b",
+            "inaccessible_minor": 0,
+            "included_credit_minor": 0,
+            "kind": "available",
+            "observed_at": "2026-11-04T00:00:00+02:00",
+            "pending_reflection": "included"
+          }
+        ],
+        "costs": [
+          {
+            "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+            "amount_basis": "reviewed",
+            "amount_minor": 35000,
+            "at": "2026-12-02T00:00:00+02:00",
+            "consumes": [],
+            "economic_cost_id": "0cf37ae6-d509-55f5-b25b-abe984c64f38",
+            "id": "2027901a-4746-5179-9c83-29ccf3a7f3c6",
+            "kind": "bill",
+            "lower_amount_minor": null,
+            "opening_reflected": false
+          }
+        ],
+        "data_version": 1,
+        "incomes": [],
+        "obligations_reviewed_through": "2026-12-04T00:00:00+02:00",
+        "pending": [],
+        "plan_version": 1,
+        "protections": [
+          {
+            "amount_minor": 15000,
+            "id": "44007427-423c-5a1b-aaee-977c641bc83c",
+            "kind": "essentials",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": [
+              {
+                "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+                "amount_minor": 15000
+              }
+            ]
+          },
+          {
+            "amount_minor": 0,
+            "id": "20219605-747c-5325-ab4e-4ee3a0328e9e",
+            "kind": "irregular",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          },
+          {
+            "amount_minor": 0,
+            "id": "d9f9b339-95b8-52b7-9e61-163a3a741f0c",
+            "kind": "savings",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          },
+          {
+            "amount_minor": 10000,
+            "id": "4dd75930-e435-5069-9f2c-47779883fe91",
+            "kind": "buffer",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": [
+              {
+                "account_id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+                "amount_minor": 10000
+              }
+            ]
+          }
+        ],
+        "requested_to_exclusive": "2026-11-09T00:00:00+02:00",
+        "source": "synthetic_user_confirmed",
+        "transfers": []
+      },
+      "name": "missing_balance",
+      "owner": {
+        "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+        "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+      }
+    },
+    {
+      "expected": {
+        "amount_minor": 20000,
+        "blocker_codes": [],
+        "horizon_reason": "minimum_fallback",
+        "protection_through": "2026-12-04T00:00:00+02:00",
+        "shortfall_minor": 0,
+        "status": "estimated"
+      },
+      "inputs": {
+        "accounts": [
+          {
+            "account_type": "current",
+            "coverage": "user_confirmed",
+            "coverage_through": "2026-11-04T00:00:00+02:00",
+            "currency": "EUR",
+            "id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+            "liability_covered": null,
+            "liquid": true,
+            "material": true,
+            "synced_at": "2026-11-04T00:00:00+02:00"
+          },
+          {
+            "account_type": "current",
+            "coverage": "user_confirmed",
+            "coverage_through": "2026-11-04T00:00:00+02:00",
+            "currency": "EUR",
+            "id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+            "liability_covered": null,
+            "liquid": true,
+            "material": true,
+            "synced_at": "2026-11-04T00:00:00+02:00"
+          }
+        ],
+        "as_of": "2026-11-04T00:00:00+02:00",
+        "balances": [
+          {
+            "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+            "amount_minor": 50000,
+            "currency": "EUR",
+            "id": "95cffd15-4ff9-5796-ad6c-7a83cc5794c2",
+            "inaccessible_minor": 0,
+            "included_credit_minor": 0,
+            "kind": "available",
+            "observed_at": "2026-11-04T00:00:00+02:00",
+            "pending_reflection": "included"
+          },
+          {
+            "account_id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+            "amount_minor": 30000,
+            "currency": "EUR",
+            "id": "e8da06a4-d69a-5450-bf33-08401522c79b",
+            "inaccessible_minor": 0,
+            "included_credit_minor": 0,
+            "kind": "available",
+            "observed_at": "2026-11-04T00:00:00+02:00",
+            "pending_reflection": "included"
+          }
+        ],
+        "costs": [
+          {
+            "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+            "amount_basis": "reviewed",
+            "amount_minor": 35000,
+            "at": "2026-12-02T00:00:00+02:00",
+            "consumes": [],
+            "economic_cost_id": "d578752e-fea4-5567-ade2-2146bf4bca23",
+            "id": "e54223d7-ec29-5a8d-8e8b-67895894265e",
+            "kind": "bill",
+            "lower_amount_minor": null,
+            "opening_reflected": false
+          }
+        ],
+        "data_version": 1,
+        "incomes": [],
+        "obligations_reviewed_through": "2026-12-04T00:00:00+02:00",
+        "pending": [
+          {
+            "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+            "amount_minor": 1250,
+            "consumes": [],
+            "economic_cost_id": "b3d631c2-5557-56ec-bad5-adb49ec5e687",
+            "id": "457f7bdf-5a2f-560d-bfc8-3bfadec11c9d",
+            "kind": "bill",
+            "state": "pending"
+          }
+        ],
+        "plan_version": 1,
+        "protections": [
+          {
+            "amount_minor": 15000,
+            "id": "4f357090-be92-5177-a187-cf48a063a237",
+            "kind": "essentials",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": [
+              {
+                "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+                "amount_minor": 15000
+              }
+            ]
+          },
+          {
+            "amount_minor": 0,
+            "id": "1564869e-4794-5a28-8d7a-b54184ef0f8d",
+            "kind": "irregular",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          },
+          {
+            "amount_minor": 0,
+            "id": "ac438967-3661-5a62-9540-1f65a0031a19",
+            "kind": "savings",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": []
+          },
+          {
+            "amount_minor": 10000,
+            "id": "04b55d9b-ca7f-5699-995a-dfc58dabb776",
+            "kind": "buffer",
+            "reviewed_through": "2026-12-04T00:00:00+02:00",
+            "routes": [
+              {
+                "account_id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+                "amount_minor": 10000
+              }
+            ]
+          }
+        ],
+        "requested_to_exclusive": "2026-11-09T00:00:00+02:00",
+        "source": "synthetic_user_confirmed",
+        "transfers": []
+      },
+      "name": "pending_already_reflected",
+      "owner": {
+        "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+        "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "accounts": [
+        {
+          "account_type": "current",
+          "currency": "EUR",
+          "id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+          "included": true,
+          "institution_id": "s-bank-demo",
+          "name": "S-Bank demo",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          }
+        },
+        {
+          "account_type": "current",
+          "currency": "EUR",
+          "id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+          "included": true,
+          "institution_id": "north-demo",
+          "name": "North demo bank",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          }
+        }
+      ],
+      "as_of": "2026-11-04T00:00:00+02:00",
+      "balances": [
+        {
+          "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+          "amount_minor": 50000,
+          "currency": "EUR",
+          "id": "95cffd15-4ff9-5796-ad6c-7a83cc5794c2",
+          "included_credit_minor": 0,
+          "kind": "available",
+          "observed_at": "2026-11-04T00:00:00+02:00",
+          "pending_reflection": "included"
+        },
+        {
+          "account_id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+          "amount_minor": 30000,
+          "currency": "EUR",
+          "id": "e8da06a4-d69a-5450-bf33-08401522c79b",
+          "included_credit_minor": 0,
+          "kind": "available",
+          "observed_at": "2026-11-04T00:00:00+02:00",
+          "pending_reflection": "included"
+        }
+      ],
+      "bills_minor": 35000,
+      "buffer_minor": 10000,
+      "essentials_minor": 15000,
+      "fixture_version": "acceptance.v1",
+      "mode": "synthetic",
+      "name": "Demo household",
+      "transactions": [
+        {
+          "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+          "amount_minor": -1890,
+          "basket": "everyday",
+          "booked_on": "2026-10-09",
+          "category": "taxi",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "282c8e07-ba38-5484-9008-5eb717ee4619",
+          "merchant": "Taxi Helsinki",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "synthetic-0",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+          "amount_minor": -2110,
+          "basket": "everyday",
+          "booked_on": "2026-10-23",
+          "category": "taxi",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "0b469836-721b-520a-88b2-106aedadfb53",
+          "merchant": "City taxi",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "synthetic-1",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+          "amount_minor": -1250,
+          "basket": "unresolved",
+          "booked_on": "2026-11-01",
+          "category": "taxi",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "2e3fde25-2dd1-5dfb-be89-21882bc1085b",
+          "merchant": "Taxi Helsinki",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "synthetic-2",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+          "amount_minor": -25000,
+          "basket": "everyday",
+          "booked_on": "2026-10-18",
+          "category": "dining",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "f7e67875-3203-5e4c-afe1-87c7d071bafe",
+          "merchant": "Dining purchases",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "synthetic-3",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+          "amount_minor": -25000,
+          "basket": "everyday",
+          "booked_on": "2026-09-18",
+          "category": "dining",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "3aa697db-2ec2-5852-82c3-d3a2f8ba6cca",
+          "merchant": "Dining purchases",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "synthetic-4",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+          "amount_minor": -25000,
+          "basket": "everyday",
+          "booked_on": "2026-08-18",
+          "category": "dining",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "f240c439-6acf-50c0-827c-20dab5870c5c",
+          "merchant": "Dining purchases",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "synthetic-5",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+          "amount_minor": -35000,
+          "basket": "mandatory_regular",
+          "booked_on": "2026-10-02",
+          "category": "housing",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "3bc44ab7-c011-5be1-9737-aaa87fc74496",
+          "merchant": "Housing payment",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "synthetic-6",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+          "amount_minor": -12100,
+          "basket": "mandatory_irregular",
+          "booked_on": "2026-10-26",
+          "category": "groceries",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "703e512d-108a-5eb7-b9e2-95c6a54767da",
+          "merchant": "S-market",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "synthetic-7",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+          "amount_minor": 300,
+          "basket": "mandatory_irregular",
+          "booked_on": "2026-10-27",
+          "category": "groceries",
+          "currency": "EUR",
+          "economic_flow": "refund",
+          "id": "1032720b-cbaf-518a-af65-2899d7af331d",
+          "merchant": "Grocery refund",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "synthetic-8",
+          "related_transaction_id": "703e512d-108a-5eb7-b9e2-95c6a54767da",
+          "status": "booked"
+        },
+        {
+          "account_id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+          "amount_minor": -9000,
+          "basket": "mandatory_irregular",
+          "booked_on": "2026-10-16",
+          "category": "repairs",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "0cf0eae0-32ac-5980-8964-dfd90624f967",
+          "merchant": "Appliance repair",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "synthetic-9",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+          "amount_minor": -1650,
+          "basket": "everyday",
+          "booked_on": "2026-10-29",
+          "category": "coffee",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "762fb163-d0b4-507a-97e8-1970c335069e",
+          "merchant": "Coffee purchases",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "synthetic-10",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+          "amount_minor": -10000,
+          "basket": "unresolved",
+          "booked_on": "2026-10-30",
+          "category": "transfer",
+          "currency": "EUR",
+          "economic_flow": "internal_transfer",
+          "id": "281ad482-930f-5491-bd20-031bfbae3f30",
+          "merchant": "Transfer to own account",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "synthetic-11",
+          "related_transaction_id": "cfc75668-31d5-5d98-b9a8-a3993388ee4e",
+          "status": "booked"
+        },
+        {
+          "account_id": "42f93362-19ae-5b7d-9496-022f88ab2191",
+          "amount_minor": 10000,
+          "basket": "unresolved",
+          "booked_on": "2026-10-30",
+          "category": "transfer",
+          "currency": "EUR",
+          "economic_flow": "internal_transfer",
+          "id": "cfc75668-31d5-5d98-b9a8-a3993388ee4e",
+          "merchant": "Transfer from own account",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "synthetic-12",
+          "related_transaction_id": "281ad482-930f-5491-bd20-031bfbae3f30",
+          "status": "booked"
+        },
+        {
+          "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+          "amount_minor": -1250,
+          "basket": "everyday",
+          "booked_on": "2026-11-03",
+          "category": "shopping",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "9b605238-9f70-5ff7-a700-165d8ce62c39",
+          "merchant": "Synthetic pending purchase",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "authored-pending-1",
+          "related_transaction_id": null,
+          "status": "pending"
+        },
+        {
+          "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+          "amount_minor": -125,
+          "basket": "everyday",
+          "booked_on": "2026-10-29",
+          "category": "coffee",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "2d9dd5f5-ea29-5dff-83b7-0f38fd1c0808",
+          "merchant": "Synthetic cafe",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "authored-identical-1",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+          "amount_minor": -125,
+          "basket": "everyday",
+          "booked_on": "2026-10-29",
+          "category": "coffee",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "24e98afb-e1c6-5390-95ba-0f8c8c2714c7",
+          "merchant": "Synthetic cafe",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+          },
+          "provider_id": "authored-identical-2",
+          "related_transaction_id": null,
+          "status": "booked"
+        }
+      ]
+    },
+    {
+      "accounts": [
+        {
+          "account_type": "current",
+          "currency": "EUR",
+          "id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+          "included": true,
+          "institution_id": "s-bank-demo",
+          "name": "S-Bank demo",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          }
+        },
+        {
+          "account_type": "current",
+          "currency": "EUR",
+          "id": "f29ef32e-4ef7-5d0e-8c46-e37bcdedd88f",
+          "included": true,
+          "institution_id": "north-demo",
+          "name": "North demo bank",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          }
+        }
+      ],
+      "as_of": "2026-11-04T00:00:00+02:00",
+      "balances": [
+        {
+          "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+          "amount_minor": 50000,
+          "currency": "EUR",
+          "id": "9949ee07-f573-581d-9a92-f03d18e0a6b8",
+          "included_credit_minor": 0,
+          "kind": "available",
+          "observed_at": "2026-11-04T00:00:00+02:00",
+          "pending_reflection": "included"
+        },
+        {
+          "account_id": "f29ef32e-4ef7-5d0e-8c46-e37bcdedd88f",
+          "amount_minor": 30000,
+          "currency": "EUR",
+          "id": "c297b126-5844-5e2f-a5b6-deff468d1540",
+          "included_credit_minor": 0,
+          "kind": "available",
+          "observed_at": "2026-11-04T00:00:00+02:00",
+          "pending_reflection": "included"
+        }
+      ],
+      "bills_minor": 35000,
+      "buffer_minor": 10000,
+      "essentials_minor": 15000,
+      "fixture_version": "acceptance.v1",
+      "mode": "synthetic",
+      "name": "Second demo household",
+      "transactions": [
+        {
+          "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+          "amount_minor": -1890,
+          "basket": "everyday",
+          "booked_on": "2026-10-09",
+          "category": "taxi",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "6813e8b7-d83b-5ed5-8bf0-15812338fa04",
+          "merchant": "Taxi Helsinki",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "synthetic-0",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "f29ef32e-4ef7-5d0e-8c46-e37bcdedd88f",
+          "amount_minor": -2110,
+          "basket": "everyday",
+          "booked_on": "2026-10-23",
+          "category": "taxi",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "ccca7976-f999-56f0-a16d-32777addaaf3",
+          "merchant": "City taxi",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "synthetic-1",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+          "amount_minor": -1250,
+          "basket": "unresolved",
+          "booked_on": "2026-11-01",
+          "category": "taxi",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "d56c5248-ccd0-5cc5-b516-ad96f1725fa2",
+          "merchant": "Taxi Helsinki",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "synthetic-2",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+          "amount_minor": -25000,
+          "basket": "everyday",
+          "booked_on": "2026-10-18",
+          "category": "dining",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "2486b324-6827-5b14-8c2b-f60cef53d875",
+          "merchant": "Dining purchases",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "synthetic-3",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+          "amount_minor": -25000,
+          "basket": "everyday",
+          "booked_on": "2026-09-18",
+          "category": "dining",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "eff50adc-21bf-5f2f-9c01-81a4f946ad0d",
+          "merchant": "Dining purchases",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "synthetic-4",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+          "amount_minor": -25000,
+          "basket": "everyday",
+          "booked_on": "2026-08-18",
+          "category": "dining",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "65ea2808-414e-5ae3-8a73-3c3a86eb5422",
+          "merchant": "Dining purchases",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "synthetic-5",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+          "amount_minor": -35000,
+          "basket": "mandatory_regular",
+          "booked_on": "2026-10-02",
+          "category": "housing",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "cd179fc8-5dec-57d6-8dac-d58f30378d72",
+          "merchant": "Housing payment",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "synthetic-6",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "f29ef32e-4ef7-5d0e-8c46-e37bcdedd88f",
+          "amount_minor": -12100,
+          "basket": "mandatory_irregular",
+          "booked_on": "2026-10-26",
+          "category": "groceries",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "42898363-7c36-5922-b568-e0c86969916b",
+          "merchant": "S-market",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "synthetic-7",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "f29ef32e-4ef7-5d0e-8c46-e37bcdedd88f",
+          "amount_minor": 300,
+          "basket": "mandatory_irregular",
+          "booked_on": "2026-10-27",
+          "category": "groceries",
+          "currency": "EUR",
+          "economic_flow": "refund",
+          "id": "2ab47e33-0b11-58bb-8056-b442734d3363",
+          "merchant": "Grocery refund",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "synthetic-8",
+          "related_transaction_id": "42898363-7c36-5922-b568-e0c86969916b",
+          "status": "booked"
+        },
+        {
+          "account_id": "f29ef32e-4ef7-5d0e-8c46-e37bcdedd88f",
+          "amount_minor": -9000,
+          "basket": "mandatory_irregular",
+          "booked_on": "2026-10-16",
+          "category": "repairs",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "14efadb5-9aba-5a09-b1e3-4f18ed801ccc",
+          "merchant": "Appliance repair",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "synthetic-9",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+          "amount_minor": -1650,
+          "basket": "everyday",
+          "booked_on": "2026-10-29",
+          "category": "coffee",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "d4ce93cf-fb84-5ad0-8844-5942d35b183e",
+          "merchant": "Coffee purchases",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "synthetic-10",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+          "amount_minor": -10000,
+          "basket": "unresolved",
+          "booked_on": "2026-10-30",
+          "category": "transfer",
+          "currency": "EUR",
+          "economic_flow": "internal_transfer",
+          "id": "b9c18d14-799c-5f85-bb91-ebd269558f08",
+          "merchant": "Transfer to own account",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "synthetic-11",
+          "related_transaction_id": "992161cd-da8e-57f9-bba2-254681aa5f6b",
+          "status": "booked"
+        },
+        {
+          "account_id": "f29ef32e-4ef7-5d0e-8c46-e37bcdedd88f",
+          "amount_minor": 10000,
+          "basket": "unresolved",
+          "booked_on": "2026-10-30",
+          "category": "transfer",
+          "currency": "EUR",
+          "economic_flow": "internal_transfer",
+          "id": "992161cd-da8e-57f9-bba2-254681aa5f6b",
+          "merchant": "Transfer from own account",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "synthetic-12",
+          "related_transaction_id": "b9c18d14-799c-5f85-bb91-ebd269558f08",
+          "status": "booked"
+        },
+        {
+          "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+          "amount_minor": -1250,
+          "basket": "everyday",
+          "booked_on": "2026-11-03",
+          "category": "shopping",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "6beeab06-db53-5492-b1c9-cf148ca9fac5",
+          "merchant": "Synthetic pending purchase",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "authored-pending-1",
+          "related_transaction_id": null,
+          "status": "pending"
+        },
+        {
+          "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+          "amount_minor": -125,
+          "basket": "everyday",
+          "booked_on": "2026-10-29",
+          "category": "coffee",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "4db8f27b-c6b1-5a97-8d9d-16d9024a8e57",
+          "merchant": "Synthetic cafe",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "authored-identical-1",
+          "related_transaction_id": null,
+          "status": "booked"
+        },
+        {
+          "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+          "amount_minor": -125,
+          "basket": "everyday",
+          "booked_on": "2026-10-29",
+          "category": "coffee",
+          "currency": "EUR",
+          "economic_flow": "expense",
+          "id": "96410369-6824-5d62-93e2-9f92a5ad0f67",
+          "merchant": "Synthetic cafe",
+          "owner": {
+            "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+            "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+          },
+          "provider_id": "authored-identical-2",
+          "related_transaction_id": null,
+          "status": "booked"
+        }
+      ]
+    }
+  ],
+  "recurring_obligations": [
+    {
+      "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+      "amount_minor": 35000,
+      "cadence": "monthly",
+      "currency": "EUR",
+      "day_of_month": 2,
+      "evidence_transaction_ids": [
+        "3bc44ab7-c011-5be1-9737-aaa87fc74496"
+      ],
+      "necessity": "essential",
+      "next_at": "2026-12-02T00:00:00+02:00",
+      "owner": {
+        "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+        "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+      },
+      "reviewed": true,
+      "source": "authored-synthetic-confirmation"
+    },
+    {
+      "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+      "amount_minor": 35000,
+      "cadence": "monthly",
+      "currency": "EUR",
+      "day_of_month": 2,
+      "evidence_transaction_ids": [
+        "cd179fc8-5dec-57d6-8dac-d58f30378d72"
+      ],
+      "necessity": "essential",
+      "next_at": "2026-12-02T00:00:00+02:00",
+      "owner": {
+        "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+        "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+      },
+      "reviewed": true,
+      "source": "authored-synthetic-confirmation"
+    }
+  ],
+  "seed": 311045,
+  "source_deliveries": [
+    {
+      "booked_update": {
+        "cursor": "page-2",
+        "observed_at": "2026-11-05T00:00:00+02:00",
+        "records": [
+          {
+            "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+            "amount_minor": -1200,
+            "basket": "everyday",
+            "booked_on": "2026-11-03",
+            "category": "shopping",
+            "currency": "EUR",
+            "economic_flow": "expense",
+            "id": "9b605238-9f70-5ff7-a700-165d8ce62c39",
+            "merchant": "Synthetic pending purchase",
+            "owner": {
+              "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+              "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+            },
+            "provider_id": "authored-pending-1",
+            "related_transaction_id": null,
+            "status": "booked"
+          }
+        ],
+        "revision": 2
+      },
+      "expected": {
+        "economic_effect_count": 1,
+        "final_amount_minor": -1200,
+        "final_status": "booked",
+        "final_transaction_id": "9b605238-9f70-5ff7-a700-165d8ce62c39",
+        "liquidity_already_reflected": true
+      },
+      "initial": {
+        "cursor": "page-1",
+        "observed_at": "2026-11-04T00:00:00+02:00",
+        "records": [
+          {
+            "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+            "amount_minor": -1250,
+            "basket": "everyday",
+            "booked_on": "2026-11-03",
+            "category": "shopping",
+            "currency": "EUR",
+            "economic_flow": "expense",
+            "id": "9b605238-9f70-5ff7-a700-165d8ce62c39",
+            "merchant": "Synthetic pending purchase",
+            "owner": {
+              "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+              "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+            },
+            "provider_id": "authored-pending-1",
+            "related_transaction_id": null,
+            "status": "pending"
+          }
+        ],
+        "revision": 1
+      },
+      "owner": {
+        "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+        "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+      },
+      "replayed_booked": {
+        "cursor": "page-2",
+        "observed_at": "2026-11-05T00:00:00+02:00",
+        "records": [
+          {
+            "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+            "amount_minor": -1200,
+            "basket": "everyday",
+            "booked_on": "2026-11-03",
+            "category": "shopping",
+            "currency": "EUR",
+            "economic_flow": "expense",
+            "id": "9b605238-9f70-5ff7-a700-165d8ce62c39",
+            "merchant": "Synthetic pending purchase",
+            "owner": {
+              "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+              "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+            },
+            "provider_id": "authored-pending-1",
+            "related_transaction_id": null,
+            "status": "booked"
+          }
+        ],
+        "revision": 2
+      },
+      "replayed_initial": {
+        "cursor": "page-1",
+        "observed_at": "2026-11-04T00:00:00+02:00",
+        "records": [
+          {
+            "account_id": "d942794f-a6e0-5c23-b8eb-458c7cc903f0",
+            "amount_minor": -1250,
+            "basket": "everyday",
+            "booked_on": "2026-11-03",
+            "category": "shopping",
+            "currency": "EUR",
+            "economic_flow": "expense",
+            "id": "9b605238-9f70-5ff7-a700-165d8ce62c39",
+            "merchant": "Synthetic pending purchase",
+            "owner": {
+              "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+              "user_id": "1e68843d-4f97-5699-ae69-606f39cf8974"
+            },
+            "provider_id": "authored-pending-1",
+            "related_transaction_id": null,
+            "status": "pending"
+          }
+        ],
+        "revision": 1
+      },
+      "source": "authored-pages.v1"
+    },
+    {
+      "booked_update": {
+        "cursor": "page-2",
+        "observed_at": "2026-11-05T00:00:00+02:00",
+        "records": [
+          {
+            "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+            "amount_minor": -1200,
+            "basket": "everyday",
+            "booked_on": "2026-11-03",
+            "category": "shopping",
+            "currency": "EUR",
+            "economic_flow": "expense",
+            "id": "6beeab06-db53-5492-b1c9-cf148ca9fac5",
+            "merchant": "Synthetic pending purchase",
+            "owner": {
+              "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+              "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+            },
+            "provider_id": "authored-pending-1",
+            "related_transaction_id": null,
+            "status": "booked"
+          }
+        ],
+        "revision": 2
+      },
+      "expected": {
+        "economic_effect_count": 1,
+        "final_amount_minor": -1200,
+        "final_status": "booked",
+        "final_transaction_id": "6beeab06-db53-5492-b1c9-cf148ca9fac5",
+        "liquidity_already_reflected": true
+      },
+      "initial": {
+        "cursor": "page-1",
+        "observed_at": "2026-11-04T00:00:00+02:00",
+        "records": [
+          {
+            "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+            "amount_minor": -1250,
+            "basket": "everyday",
+            "booked_on": "2026-11-03",
+            "category": "shopping",
+            "currency": "EUR",
+            "economic_flow": "expense",
+            "id": "6beeab06-db53-5492-b1c9-cf148ca9fac5",
+            "merchant": "Synthetic pending purchase",
+            "owner": {
+              "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+              "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+            },
+            "provider_id": "authored-pending-1",
+            "related_transaction_id": null,
+            "status": "pending"
+          }
+        ],
+        "revision": 1
+      },
+      "owner": {
+        "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+        "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+      },
+      "replayed_booked": {
+        "cursor": "page-2",
+        "observed_at": "2026-11-05T00:00:00+02:00",
+        "records": [
+          {
+            "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+            "amount_minor": -1200,
+            "basket": "everyday",
+            "booked_on": "2026-11-03",
+            "category": "shopping",
+            "currency": "EUR",
+            "economic_flow": "expense",
+            "id": "6beeab06-db53-5492-b1c9-cf148ca9fac5",
+            "merchant": "Synthetic pending purchase",
+            "owner": {
+              "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+              "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+            },
+            "provider_id": "authored-pending-1",
+            "related_transaction_id": null,
+            "status": "booked"
+          }
+        ],
+        "revision": 2
+      },
+      "replayed_initial": {
+        "cursor": "page-1",
+        "observed_at": "2026-11-04T00:00:00+02:00",
+        "records": [
+          {
+            "account_id": "67e51222-2aae-581e-b4d9-54456ddf9e87",
+            "amount_minor": -1250,
+            "basket": "everyday",
+            "booked_on": "2026-11-03",
+            "category": "shopping",
+            "currency": "EUR",
+            "economic_flow": "expense",
+            "id": "6beeab06-db53-5492-b1c9-cf148ca9fac5",
+            "merchant": "Synthetic pending purchase",
+            "owner": {
+              "tenant_id": "deaa7ae3-247f-5650-b00a-88afef546162",
+              "user_id": "f33e087b-2b36-5163-9f8c-9fb6a7a7cd18"
+            },
+            "provider_id": "authored-pending-1",
+            "related_transaction_id": null,
+            "status": "pending"
+          }
+        ],
+        "revision": 1
+      },
+      "source": "authored-pages.v1"
+    }
+  ],
+  "timezone": "Europe/Helsinki"
+}

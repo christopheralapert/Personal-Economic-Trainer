@@ -1,0 +1,41 @@
+{
+  "mapping_version": "moneylens.coicop2018.v1",
+  "category_taxonomy": "moneylens.synthetic.categories.v1",
+  "classification_version": "COICOP2018",
+  "snapshot_id": "statfin-ktutk-2022-51770478e803db26",
+  "table_id": "14ph",
+  "metadata_fingerprint": "659d6f64a568c0d12660ff14ac58ceb8337fadd39fd249ee194785804b727629",
+  "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+  "attribution": "Source: Statistics Finland, households' consumption.",
+  "licence": "CC-BY-4.0",
+  "targets": [
+    {"code": "01", "label": "01 Food and non-alcoholic beverages"},
+    {"code": "0533", "label": "05.3.3 Repair, installation and hire of household appliances (S)"},
+    {"code": "07322", "label": "07.3.2.2 Passenger transport by taxi and hired vehicle with driver (S)"},
+    {"code": "111", "label": "11.1 Food and beverage serving services"},
+    {"code": "1111", "label": "11.1.1 Restaurants, cafés and the like (S)"},
+    {"code": "1112", "label": "11.1.2 Canteens, cafeterias and refectories (S)"}
+  ],
+  "rules": [
+    {"category": "taxi", "definition": "Passenger taxi fares or hired vehicles with a driver; excludes self-drive rental.", "status": "mapped", "target_code": "07322", "candidate_codes": [], "reason": "The synthetic taxonomy defines this as passenger taxi transport."},
+    {"category": "food_non_alcoholic_retail", "definition": "Itemized retail food and non-alcoholic beverages only, excluding household goods and serving services.", "status": "mapped", "target_code": "01", "candidate_codes": [], "reason": "Requires this explicit semantic category; a broad grocery label is insufficient."},
+    {"category": "appliance_repair_install_hire", "definition": "Repair, installation or hire of household appliances only, excluding other repair work.", "status": "mapped", "target_code": "0533", "candidate_codes": [], "reason": "Requires identification of the household-appliance service."},
+    {"category": "food_beverage_service", "definition": "Food and beverage serving services only, with no claim about restaurant versus canteen subcategory.", "status": "mapped", "target_code": "111", "candidate_codes": [], "reason": "The broad serving-service category cannot be assigned to a child category without more information."},
+    {"category": "restaurant_cafe_service", "definition": "Restaurant, cafe and similar food/beverage serving services, excluding retail groceries and canteens.", "status": "mapped", "target_code": "1111", "candidate_codes": [], "reason": "Requires an explicit restaurant/cafe serving-service category."},
+    {"category": "canteen_service", "definition": "Canteen, cafeteria and refectory serving services, explicitly distinguished from restaurant/cafe services.", "status": "mapped", "target_code": "1112", "candidate_codes": [], "reason": "Requires an explicit canteen-service category."},
+    {"category": "groceries", "definition": "Broad grocery purchase without item-level food, alcohol and nonfood separation.", "status": "ambiguous", "target_code": null, "candidate_codes": ["01"], "reason": "Itemization or correction is needed before identifying food and non-alcoholic beverages."},
+    {"category": "dining", "definition": "Broad dining label without confirmed serving-service or subcategory coverage.", "status": "ambiguous", "target_code": null, "candidate_codes": ["111", "1111", "1112"], "reason": "A dining label alone does not establish an exact survey service concept."},
+    {"category": "coffee", "definition": "Coffee purchase without confirmed retail versus served-drink classification.", "status": "ambiguous", "target_code": null, "candidate_codes": ["01", "1111"], "reason": "Retail coffee and cafe serving services belong to different statistical groups."},
+    {"category": "repairs", "definition": "Unspecified repair work; the repaired object is not established.", "status": "ambiguous", "target_code": null, "candidate_codes": ["0533"], "reason": "An unspecified repair cannot automatically become a household-appliance repair."},
+    {"category": "housing", "definition": "Housing costs, outside the groups in this pinned expenditure snapshot.", "status": "excluded", "target_code": null, "candidate_codes": [], "reason": "The selected snapshot groups do not cover housing; excluded money remains visible."},
+    {"category": "transfer", "definition": "An account movement rather than a consumption category.", "status": "excluded", "target_code": null, "candidate_codes": [], "reason": "Transfers are not survey consumption. Economic-flow classification remains authoritative."}
+  ],
+  "limitations": [
+    "This is an application-authored crosswalk for the named synthetic taxonomy, not an official Statistics Finland or organizer mapping.",
+    "Unknown taxonomies and unknown categories remain unmapped; names alone never grant compatibility.",
+    "The three coaching baskets describe necessity and recurrence, not COICOP categories; basket and merchant text do not select a mapping.",
+    "Ambiguous candidates are possible destinations, not allocations. No ambiguous amount is split or assigned automatically.",
+    "Parent and child target groups overlap and cannot be selected together for a summed mapping. A parent amount cannot be distributed to children.",
+    "Mapping does not establish household completeness, compatible price/year periods or a valid personal population comparison."
+  ]
+}

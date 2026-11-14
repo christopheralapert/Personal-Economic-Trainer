@@ -1,0 +1,2 @@
+source_customer_ref,account_ref,name,currency,account_type,coverage_from,coverage_to_exclusive,expected_transactions,expected_net_minor
+authored-customer-1,daily,Authored synthetic account,EUR,current,2026-10-01,2026-11-01,12,-1500

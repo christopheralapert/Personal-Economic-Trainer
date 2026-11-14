@@ -1,0 +1,579 @@
+{
+  "accounts": [
+    {
+      "account_type": "current",
+      "currency": "EUR",
+      "id": "00000000-0000-0000-0000-000000000001",
+      "included": true,
+      "name": "Everyday account"
+    }
+  ],
+  "clock": "2026-11-04T00:00:00+02:00",
+  "job": {
+    "attempts": 0,
+    "available_at": "2026-11-04T00:00:00+02:00",
+    "finished_at": null,
+    "id": "00000000-0000-0000-0000-0000000001c3",
+    "last_error_code": null,
+    "lease_until": null,
+    "max_attempts": 3,
+    "state": "queued",
+    "type": "coaching.refresh"
+  },
+  "preferences": {
+    "default": {
+      "as_of": "2026-11-04T00:00:00+02:00",
+      "bill_insights": true,
+      "coaching_enabled": false,
+      "created_at": null,
+      "delivery_mode": "in_app_only",
+      "headroom_insights": true,
+      "id": "00000000-0000-0000-0000-000000000191",
+      "paused_until": null,
+      "quiet_end": null,
+      "quiet_start": null,
+      "spending_insights": true,
+      "state": {
+        "external_delivery_available": false,
+        "generation_active": false,
+        "in_app_available": true,
+        "limitations": [
+          "Proactive generation requires explicit opt-in and no active pause; per-kind choices apply separately.",
+          "Quiet hours use local wall-clock minutes, start included and end excluded, including both occurrences of a repeated DST hour.",
+          "Quiet hours do not hide owned in-app history. External notification delivery is not yet available.",
+          "Saving preferences does not deliver, dismiss or erase an insight. Persisted insights and push subscriptions are separate features."
+        ],
+        "paused": false,
+        "quiet_now": false
+      },
+      "timezone": "Europe/Helsinki",
+      "updated_at": null,
+      "version": 1
+    },
+    "enabled": {
+      "as_of": "2026-11-04T00:00:00+02:00",
+      "bill_insights": true,
+      "coaching_enabled": true,
+      "created_at": "2026-11-04T00:00:00+02:00",
+      "delivery_mode": "in_app_only",
+      "headroom_insights": true,
+      "id": "00000000-0000-0000-0000-000000000191",
+      "paused_until": null,
+      "quiet_end": null,
+      "quiet_start": null,
+      "spending_insights": true,
+      "state": {
+        "external_delivery_available": false,
+        "generation_active": true,
+        "in_app_available": true,
+        "limitations": [
+          "Proactive generation requires explicit opt-in and no active pause; per-kind choices apply separately.",
+          "Quiet hours use local wall-clock minutes, start included and end excluded, including both occurrences of a repeated DST hour.",
+          "Quiet hours do not hide owned in-app history. External notification delivery is not yet available.",
+          "Saving preferences does not deliver, dismiss or erase an insight. Persisted insights and push subscriptions are separate features."
+        ],
+        "paused": false,
+        "quiet_now": false
+      },
+      "timezone": "Europe/Helsinki",
+      "updated_at": "2026-11-04T00:00:00+02:00",
+      "version": 2
+    },
+    "paused": {
+      "as_of": "2026-11-04T00:00:00+02:00",
+      "bill_insights": true,
+      "coaching_enabled": true,
+      "created_at": "2026-11-04T00:00:00+02:00",
+      "delivery_mode": "in_app_only",
+      "headroom_insights": true,
+      "id": "00000000-0000-0000-0000-000000000191",
+      "paused_until": "2026-11-05T00:00:00+02:00",
+      "quiet_end": null,
+      "quiet_start": null,
+      "spending_insights": true,
+      "state": {
+        "external_delivery_available": false,
+        "generation_active": false,
+        "in_app_available": true,
+        "limitations": [
+          "Proactive generation requires explicit opt-in and no active pause; per-kind choices apply separately.",
+          "Quiet hours use local wall-clock minutes, start included and end excluded, including both occurrences of a repeated DST hour.",
+          "Quiet hours do not hide owned in-app history. External notification delivery is not yet available.",
+          "Saving preferences does not deliver, dismiss or erase an insight. Persisted insights and push subscriptions are separate features."
+        ],
+        "paused": true,
+        "quiet_now": false
+      },
+      "timezone": "Europe/Helsinki",
+      "updated_at": "2026-11-04T00:00:00+02:00",
+      "version": 3
+    }
+  },
+  "records": [
+    {
+      "candidate": {
+        "account_id": null,
+        "action": "review_plan",
+        "amount_minor": 5000,
+        "assumptions": [
+          "This is the protective forecast minimum for the named account or consolidated scope, not a current balance or spending allowance.",
+          "The same reviewed protections, pending semantics and income assumptions as the financial engine apply.",
+          "The rule threshold is a transparent product heuristic, not an assessment of your needs or a recommendation to spend or save."
+        ],
+        "at": "2026-11-06T22:00:00Z",
+        "baseline_minor": null,
+        "currency": "EUR",
+        "id": "ae108aaf-9f27-54fe-9393-71143a35d3e9",
+        "kind": "low_headroom",
+        "reason": "The reviewed forecast minimum is at or below the published rule threshold. Review the dated costs and paying accounts.",
+        "severity": "notice",
+        "source_ids": [
+          "00000000-0000-0000-0000-000000000002"
+        ],
+        "title": "Low planned headroom"
+      },
+      "created_at": "2026-11-04T00:00:00+02:00",
+      "current": true,
+      "current_blockers": [],
+      "data_version": 1,
+      "dismissed_at": null,
+      "evidence": {
+        "kind": "planning",
+        "omitted_candidate_count": 0,
+        "planning": {
+          "account_ids": [
+            "00000000-0000-0000-0000-000000000001"
+          ],
+          "balance_snapshot_ids": [
+            "00000000-0000-0000-0000-000000000002"
+          ],
+          "data_version": 1,
+          "input_as_of": "2026-11-04T00:00:00+02:00",
+          "period": {
+            "as_of": "2026-11-03T22:00:00Z",
+            "background_required": false,
+            "next_confirmed_income_at": null,
+            "protection_through": "2026-12-03T22:00:00Z",
+            "reason": "minimum_fallback",
+            "requested_from": "2026-11-03T22:00:00Z",
+            "requested_to_exclusive": "2026-11-08T22:00:00Z",
+            "timezone": "Europe/Helsinki"
+          },
+          "plan_id": "00000000-0000-0000-0000-000000000137",
+          "plan_version": 1,
+          "planning_blocker_codes": [],
+          "quote_expires_at": "2026-11-03T22:05:00Z",
+          "source": "synthetic_user_confirmed"
+        },
+        "policy": {
+          "bill_lookahead_calendar_days": 7,
+          "currency": "EUR",
+          "low_headroom_threshold_minor": 10000,
+          "maximum_candidates": 20,
+          "spending_increase_basis_points": 2500,
+          "spending_minimum_baseline_minor": 1000,
+          "spending_minimum_expense_count": 3,
+          "spending_minimum_increase_minor": 1000,
+          "version": "insight-rules.v1"
+        }
+      },
+      "expires_at": "2026-11-04T00:05:00+02:00",
+      "generated_at": "2026-11-04T00:00:00+02:00",
+      "id": "ae108aaf-9f27-54fe-9393-71143a35d3e9",
+      "interpretation": "stored_rule_snapshot_not_spending_permission",
+      "plan_version": 1,
+      "preferences_version": 2,
+      "status": "active",
+      "updated_at": "2026-11-04T00:00:00+02:00",
+      "version": 1
+    },
+    {
+      "candidate": {
+        "account_id": "00000000-0000-0000-0000-000000000001",
+        "action": "review_plan",
+        "amount_minor": 35000,
+        "assumptions": [
+          "This is a reviewed obligation, not proof a payment occurred or a new expense to add again.",
+          "The financial engine already protects this cost and any linked reserve consumption exactly once.",
+          "A reviewed upper-bound amount remains conservative; lower-cost assumptions are not used for this reminder."
+        ],
+        "at": "2026-11-07T00:00:00+02:00",
+        "baseline_minor": null,
+        "currency": "EUR",
+        "id": "f39c44e9-0f88-525c-8a31-c41202ca4501",
+        "kind": "upcoming_bill",
+        "reason": "An unreflected reviewed bill is due within the rule's calendar-day window or remains overdue. Check its payment status and paying account.",
+        "severity": "notice",
+        "source_ids": [
+          "00000000-0000-0000-0000-000000000014",
+          "00000000-0000-0000-0000-000000000015"
+        ],
+        "title": "Upcoming reviewed bill"
+      },
+      "created_at": "2026-11-04T00:00:00+02:00",
+      "current": true,
+      "current_blockers": [],
+      "data_version": 1,
+      "dismissed_at": null,
+      "evidence": {
+        "kind": "planning",
+        "omitted_candidate_count": 0,
+        "planning": {
+          "account_ids": [
+            "00000000-0000-0000-0000-000000000001"
+          ],
+          "balance_snapshot_ids": [
+            "00000000-0000-0000-0000-000000000002"
+          ],
+          "data_version": 1,
+          "input_as_of": "2026-11-04T00:00:00+02:00",
+          "period": {
+            "as_of": "2026-11-03T22:00:00Z",
+            "background_required": false,
+            "next_confirmed_income_at": null,
+            "protection_through": "2026-12-03T22:00:00Z",
+            "reason": "minimum_fallback",
+            "requested_from": "2026-11-03T22:00:00Z",
+            "requested_to_exclusive": "2026-11-08T22:00:00Z",
+            "timezone": "Europe/Helsinki"
+          },
+          "plan_id": "00000000-0000-0000-0000-000000000137",
+          "plan_version": 1,
+          "planning_blocker_codes": [],
+          "quote_expires_at": "2026-11-03T22:05:00Z",
+          "source": "synthetic_user_confirmed"
+        },
+        "policy": {
+          "bill_lookahead_calendar_days": 7,
+          "currency": "EUR",
+          "low_headroom_threshold_minor": 10000,
+          "maximum_candidates": 20,
+          "spending_increase_basis_points": 2500,
+          "spending_minimum_baseline_minor": 1000,
+          "spending_minimum_expense_count": 3,
+          "spending_minimum_increase_minor": 1000,
+          "version": "insight-rules.v1"
+        }
+      },
+      "expires_at": "2026-11-04T00:05:00+02:00",
+      "generated_at": "2026-11-04T00:00:00+02:00",
+      "id": "f39c44e9-0f88-525c-8a31-c41202ca4501",
+      "interpretation": "stored_rule_snapshot_not_spending_permission",
+      "plan_version": 1,
+      "preferences_version": 2,
+      "status": "active",
+      "updated_at": "2026-11-04T00:00:00+02:00",
+      "version": 1
+    },
+    {
+      "candidate": {
+        "account_id": null,
+        "action": "inspect_spending_evidence",
+        "amount_minor": 2500,
+        "assumptions": [
+          "This is a two-window threshold heuristic, not a statistical anomaly, a spending personality or evidence of an unhealthy habit.",
+          "Refunds follow their booking dates. Transfers, income and liability settlements are not consumption.",
+          "Only the stated account/category/merchant scope is compared; whole-finance and household coverage are not established.",
+          "Observed increases do not establish their cause, future spending or safe-to-save capacity."
+        ],
+        "at": null,
+        "baseline_minor": 10000,
+        "currency": "EUR",
+        "id": "9fb50536-0511-5db3-a0b4-e955ffaefa08",
+        "kind": "higher_observed_spending",
+        "reason": "Net booked spending increased by at least both published rule thresholds across the two equal-length observed windows.",
+        "severity": "notice",
+        "source_ids": [
+          "00000000-0000-0000-0000-0000000001f5",
+          "00000000-0000-0000-0000-0000000001f6",
+          "00000000-0000-0000-0000-0000000001f7",
+          "00000000-0000-0000-0000-0000000001ff",
+          "00000000-0000-0000-0000-000000000200",
+          "00000000-0000-0000-0000-000000000201"
+        ],
+        "title": "Higher observed spending"
+      },
+      "created_at": "2026-11-04T00:00:00+02:00",
+      "current": true,
+      "current_blockers": [],
+      "data_version": 1,
+      "dismissed_at": null,
+      "evidence": {
+        "comparison": {
+          "baseline": {
+            "category_baskets": [],
+            "category_breakdown_truncated": false,
+            "evidence_filters": {
+              "account_ids": null,
+              "category": null,
+              "currency": "EUR",
+              "end_exclusive": "2026-10-01",
+              "merchant": null,
+              "spending_only": false,
+              "start": "2026-08-31",
+              "status": "booked"
+            },
+            "evidence_transaction_ids": [
+              "00000000-0000-0000-0000-0000000001ff",
+              "00000000-0000-0000-0000-000000000200",
+              "00000000-0000-0000-0000-000000000201"
+            ],
+            "expense_count": 3,
+            "gross_minor": 10000,
+            "limitations": [
+              "UI-only synthetic booked records; no bank provider was called."
+            ],
+            "merchant_breakdown_truncated": false,
+            "merchants": [],
+            "net_minor": 10000,
+            "nonconsumption_count": 0,
+            "refund_count": 0,
+            "refunds_minor": 0,
+            "scope": {
+              "account_ids": [
+                "00000000-0000-0000-0000-000000000001"
+              ],
+              "currency": "EUR",
+              "data_mode": "synthetic",
+              "data_version": 1,
+              "dataset_coverage": "covered_synthetic_snapshot",
+              "end_exclusive": "2026-10-01",
+              "permission_version": 1,
+              "plan_version": 1,
+              "scope_kind": "included_accounts",
+              "sources": [],
+              "start": "2026-08-31",
+              "unverified_account_ids": [],
+              "whole_finances_confirmed": false
+            },
+            "unresolved_flow_count": 0
+          },
+          "baseline_calendar_days": 31,
+          "category_baskets": [],
+          "category_comparison_incomplete": false,
+          "change": {
+            "gross_minor": 2500,
+            "net_change_basis_points": 2500,
+            "net_minor": 2500,
+            "percentage_unavailable_reason": null,
+            "refunds_minor": 0
+          },
+          "current": {
+            "category_baskets": [],
+            "category_breakdown_truncated": false,
+            "evidence_filters": {
+              "account_ids": null,
+              "category": null,
+              "currency": "EUR",
+              "end_exclusive": "2026-11-01",
+              "merchant": null,
+              "spending_only": false,
+              "start": "2026-10-01",
+              "status": "booked"
+            },
+            "evidence_transaction_ids": [
+              "00000000-0000-0000-0000-0000000001f5",
+              "00000000-0000-0000-0000-0000000001f6",
+              "00000000-0000-0000-0000-0000000001f7"
+            ],
+            "expense_count": 3,
+            "gross_minor": 12500,
+            "limitations": [
+              "UI-only synthetic booked records; no bank provider was called."
+            ],
+            "merchant_breakdown_truncated": false,
+            "merchants": [],
+            "net_minor": 12500,
+            "nonconsumption_count": 0,
+            "refund_count": 0,
+            "refunds_minor": 0,
+            "scope": {
+              "account_ids": [
+                "00000000-0000-0000-0000-000000000001"
+              ],
+              "currency": "EUR",
+              "data_mode": "synthetic",
+              "data_version": 1,
+              "dataset_coverage": "covered_synthetic_snapshot",
+              "end_exclusive": "2026-11-01",
+              "permission_version": 1,
+              "plan_version": 1,
+              "scope_kind": "included_accounts",
+              "sources": [],
+              "start": "2026-10-01",
+              "unverified_account_ids": [],
+              "whole_finances_confirmed": false
+            },
+            "unresolved_flow_count": 0
+          },
+          "current_calendar_days": 31,
+          "equal_duration": true,
+          "frequency": {
+            "baseline_expense_count": 3,
+            "baseline_expenses_per_day": "0.096774",
+            "current_expense_count": 3,
+            "current_expenses_per_day": "0.096774",
+            "expense_count_change": 0,
+            "rate_decimal_places": 6,
+            "rate_rounding": "half_up"
+          },
+          "limitations": [
+            "Changes describe observed booked records in the two named half-open Helsinki booking-date windows; they are not a forecast or a spending allowance.",
+            "The same owned accounts, currency, filters and dataset version apply to both windows. Whole-finance and household coverage are not established.",
+            "Refunds belong to their booking periods; valid expense counts exclude refunds, transfers, income and liability settlements.",
+            "Percentage change uses net observed spending and half-up rounding to basis points (100 basis points = 1%). A nonpositive baseline has no percentage."
+          ],
+          "merchant_comparison_incomplete": false,
+          "merchants": [],
+          "mode": "previous_period",
+          "overlapping_windows": false,
+          "status": "covered_comparison"
+        },
+        "kind": "spending",
+        "policy": {
+          "bill_lookahead_calendar_days": 7,
+          "currency": "EUR",
+          "low_headroom_threshold_minor": 10000,
+          "maximum_candidates": 20,
+          "spending_increase_basis_points": 2500,
+          "spending_minimum_baseline_minor": 1000,
+          "spending_minimum_expense_count": 3,
+          "spending_minimum_increase_minor": 1000,
+          "version": "insight-rules.v1"
+        }
+      },
+      "expires_at": "2026-11-04T12:00:00+02:00",
+      "generated_at": "2026-11-04T00:00:00+02:00",
+      "id": "9fb50536-0511-5db3-a0b4-e955ffaefa08",
+      "interpretation": "stored_rule_snapshot_not_spending_permission",
+      "plan_version": 1,
+      "preferences_version": 2,
+      "status": "active",
+      "updated_at": "2026-11-04T00:00:00+02:00",
+      "version": 1
+    }
+  ],
+  "summaries": [
+    {
+      "candidate": {
+        "account_id": null,
+        "action": "review_plan",
+        "amount_minor": 5000,
+        "assumptions": [
+          "This is the protective forecast minimum for the named account or consolidated scope, not a current balance or spending allowance.",
+          "The same reviewed protections, pending semantics and income assumptions as the financial engine apply.",
+          "The rule threshold is a transparent product heuristic, not an assessment of your needs or a recommendation to spend or save."
+        ],
+        "at": "2026-11-06T22:00:00Z",
+        "baseline_minor": null,
+        "currency": "EUR",
+        "id": "ae108aaf-9f27-54fe-9393-71143a35d3e9",
+        "kind": "low_headroom",
+        "reason": "The reviewed forecast minimum is at or below the published rule threshold. Review the dated costs and paying accounts.",
+        "severity": "notice",
+        "source_ids": [
+          "00000000-0000-0000-0000-000000000002"
+        ],
+        "title": "Low planned headroom"
+      },
+      "created_at": "2026-11-04T00:00:00+02:00",
+      "current": true,
+      "current_blockers": [],
+      "data_version": 1,
+      "dismissed_at": null,
+      "evidence_kind": "planning",
+      "expires_at": "2026-11-04T00:05:00+02:00",
+      "generated_at": "2026-11-04T00:00:00+02:00",
+      "id": "ae108aaf-9f27-54fe-9393-71143a35d3e9",
+      "interpretation": "stored_rule_snapshot_not_spending_permission",
+      "plan_version": 1,
+      "preferences_version": 2,
+      "status": "active",
+      "updated_at": "2026-11-04T00:00:00+02:00",
+      "version": 1
+    },
+    {
+      "candidate": {
+        "account_id": "00000000-0000-0000-0000-000000000001",
+        "action": "review_plan",
+        "amount_minor": 35000,
+        "assumptions": [
+          "This is a reviewed obligation, not proof a payment occurred or a new expense to add again.",
+          "The financial engine already protects this cost and any linked reserve consumption exactly once.",
+          "A reviewed upper-bound amount remains conservative; lower-cost assumptions are not used for this reminder."
+        ],
+        "at": "2026-11-07T00:00:00+02:00",
+        "baseline_minor": null,
+        "currency": "EUR",
+        "id": "f39c44e9-0f88-525c-8a31-c41202ca4501",
+        "kind": "upcoming_bill",
+        "reason": "An unreflected reviewed bill is due within the rule's calendar-day window or remains overdue. Check its payment status and paying account.",
+        "severity": "notice",
+        "source_ids": [
+          "00000000-0000-0000-0000-000000000014",
+          "00000000-0000-0000-0000-000000000015"
+        ],
+        "title": "Upcoming reviewed bill"
+      },
+      "created_at": "2026-11-04T00:00:00+02:00",
+      "current": true,
+      "current_blockers": [],
+      "data_version": 1,
+      "dismissed_at": null,
+      "evidence_kind": "planning",
+      "expires_at": "2026-11-04T00:05:00+02:00",
+      "generated_at": "2026-11-04T00:00:00+02:00",
+      "id": "f39c44e9-0f88-525c-8a31-c41202ca4501",
+      "interpretation": "stored_rule_snapshot_not_spending_permission",
+      "plan_version": 1,
+      "preferences_version": 2,
+      "status": "active",
+      "updated_at": "2026-11-04T00:00:00+02:00",
+      "version": 1
+    },
+    {
+      "candidate": {
+        "account_id": null,
+        "action": "inspect_spending_evidence",
+        "amount_minor": 2500,
+        "assumptions": [
+          "This is a two-window threshold heuristic, not a statistical anomaly, a spending personality or evidence of an unhealthy habit.",
+          "Refunds follow their booking dates. Transfers, income and liability settlements are not consumption.",
+          "Only the stated account/category/merchant scope is compared; whole-finance and household coverage are not established.",
+          "Observed increases do not establish their cause, future spending or safe-to-save capacity."
+        ],
+        "at": null,
+        "baseline_minor": 10000,
+        "currency": "EUR",
+        "id": "9fb50536-0511-5db3-a0b4-e955ffaefa08",
+        "kind": "higher_observed_spending",
+        "reason": "Net booked spending increased by at least both published rule thresholds across the two equal-length observed windows.",
+        "severity": "notice",
+        "source_ids": [
+          "00000000-0000-0000-0000-0000000001f5",
+          "00000000-0000-0000-0000-0000000001f6",
+          "00000000-0000-0000-0000-0000000001f7",
+          "00000000-0000-0000-0000-0000000001ff",
+          "00000000-0000-0000-0000-000000000200",
+          "00000000-0000-0000-0000-000000000201"
+        ],
+        "title": "Higher observed spending"
+      },
+      "created_at": "2026-11-04T00:00:00+02:00",
+      "current": true,
+      "current_blockers": [],
+      "data_version": 1,
+      "dismissed_at": null,
+      "evidence_kind": "spending",
+      "expires_at": "2026-11-04T12:00:00+02:00",
+      "generated_at": "2026-11-04T00:00:00+02:00",
+      "id": "9fb50536-0511-5db3-a0b4-e955ffaefa08",
+      "interpretation": "stored_rule_snapshot_not_spending_permission",
+      "plan_version": 1,
+      "preferences_version": 2,
+      "status": "active",
+      "updated_at": "2026-11-04T00:00:00+02:00",
+      "version": 1
+    }
+  ]
+}

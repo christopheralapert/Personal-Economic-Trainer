@@ -1,0 +1,997 @@
+{
+  "clock": "2026-11-04T00:00:00+02:00",
+  "context": {
+    "accounts": [
+      {
+        "account_type": "current",
+        "balance": {
+          "account_id": "00000000-0000-0000-0000-000000000001",
+          "amount_minor": 80000,
+          "currency": "EUR",
+          "id": "00000000-0000-0000-0000-000000000002",
+          "inaccessible_minor": null,
+          "included_credit_minor": 0,
+          "kind": "available",
+          "observed_at": "2026-11-04T00:00:00+02:00",
+          "pending_reflection": "excluded"
+        },
+        "currency": "EUR",
+        "id": "00000000-0000-0000-0000-000000000001",
+        "name": "Everyday account",
+        "source": null
+      }
+    ],
+    "as_of": "2026-11-04T00:00:00+02:00",
+    "assumptions": [
+      "UI-only synthetic transport fixture."
+    ],
+    "data_version": 1,
+    "existing_reservations_require_review": false,
+    "obligations": [
+      {
+        "account_id": "00000000-0000-0000-0000-000000000001",
+        "amount_minor": 35000,
+        "currency": "EUR",
+        "due_at": "2026-11-20T00:00:00+02:00",
+        "id": "00000000-0000-0000-0000-000000000014"
+      }
+    ],
+    "pending": [],
+    "period": {
+      "as_of": "2026-11-03T22:00:00Z",
+      "background_required": false,
+      "next_confirmed_income_at": null,
+      "protection_through": "2026-12-03T22:00:00Z",
+      "reason": "minimum_fallback",
+      "requested_from": "2026-11-03T22:00:00Z",
+      "requested_to_exclusive": "2026-11-08T22:00:00Z",
+      "timezone": "Europe/Helsinki"
+    },
+    "plan_version": 1,
+    "policy": {
+      "balance_maximum_age_hours": 24,
+      "buffer_policy": "explicit_reviewed_amount_no_default",
+      "calculation_version": 1,
+      "currency": "EUR",
+      "fallback_horizon_days": 30,
+      "income_protection_days": 7,
+      "interactive_horizon_days": 90,
+      "maximum_future_skew_seconds": 300,
+      "missing_input_policy": "block_material_unknowns",
+      "own_funds_policy": "liquid_own_funds_only",
+      "pending_policy": "explicit_coverage_or_block",
+      "reservation_policy": "full_horizon_upfront_linked_consumption",
+      "routing_policy": "explicit_per_account_exact_totals",
+      "timezone": "Europe/Helsinki"
+    },
+    "source": "synthetic_user_confirmed"
+  },
+  "receipt": {
+    "acceptance_snapshot": {
+      "as_of": "2026-11-04T00:00:00+02:00",
+      "data_version": 1,
+      "desired_discretionary_minor": 10000,
+      "plan_version": 3,
+      "remaining_spending_at_acceptance_minor": 15000,
+      "surplus_before_minor": 20000
+    },
+    "accepted_at": "2026-11-04T00:00:00+02:00",
+    "accepted_plan_version": 3,
+    "account_id": "00000000-0000-0000-0000-000000000001",
+    "amount_minor": 5000,
+    "bank_transfer_executed": false,
+    "currency": "EUR",
+    "id": "00000000-0000-0000-0000-00000000003c",
+    "plan_id": "00000000-0000-0000-0000-000000000032",
+    "released_at": null,
+    "reserve_id": "00000000-0000-0000-0000-00000000003d",
+    "state": "active"
+  },
+  "session": {
+    "csrf_token": "ui-only-csrf-not-a-real-session",
+    "display_name": "Synthetic Aino",
+    "expires_at": "2026-11-04T01:00:00+02:00",
+    "owner": {
+      "tenant_id": "00000000-0000-0000-0000-000000000064",
+      "user_id": "00000000-0000-0000-0000-000000000065"
+    },
+    "permission_version": 1,
+    "session_id": "00000000-0000-0000-0000-000000000066",
+    "synthetic": true
+  },
+  "states": {
+    "released": {
+      "plan": {
+        "analysis": {
+          "as_of": "2026-11-04T00:00:00+02:00",
+          "assumptions": [
+            "Synthetic user-confirmed inputs; no bank verification.",
+            "EUR only; no FX conversion.",
+            "Full-horizon protections are earmarked upfront; no automatic replenishment.",
+            "Only confirmed future external income is included. Transfers are explicit conditional assumptions and never executed.",
+            "Dated debits precede credits at the same instant; overdue uncovered costs apply immediately.",
+            "Baseline excludes all proposed account transfers. Conditional transfers are assumptions, never payments.",
+            "Income stress uses the same protection horizon; delayed receipts beyond it are excluded.",
+            "Routable immediate allowance also respects the sum of independent account minima.",
+            "Deterministic estimates, not statistical confidence intervals; review uncertain costs at their protective amount."
+          ],
+          "blockers": [],
+          "calculation_id": "d457bfb9-f0e1-5dad-b86c-aea227c25d0b",
+          "calculation_version": 1,
+          "data_version": 1,
+          "evidence": {
+            "balance_snapshot_ids": [
+              "00000000-0000-0000-0000-000000000002"
+            ],
+            "data_version": 1,
+            "interpretation": "reviewed_assumptions_not_bank_transfer",
+            "plan_id": "00000000-0000-0000-0000-000000000032",
+            "plan_version": 4,
+            "source": "synthetic_user_confirmed"
+          },
+          "result": {
+            "amount_minor": 20000,
+            "currency": "EUR",
+            "minimum_headroom_at": "2026-11-19T22:00:00Z",
+            "minimum_headroom_minor": 20000,
+            "shortfall_minor": 0,
+            "surplus_minor": 20000
+          },
+          "status": "estimated"
+        },
+        "as_of": "2026-11-04T00:00:00+02:00",
+        "calculation": {
+          "absent_income": {
+            "accounts": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "forecast": {
+                  "minimum_headroom_at": "2026-11-19T22:00:00Z",
+                  "minimum_headroom_minor": 20000,
+                  "shortfall_minor": 0,
+                  "surplus_minor": 20000
+                }
+              }
+            ],
+            "amount_minor": 20000,
+            "blockers": [],
+            "consolidated": {
+              "minimum_headroom_at": "2026-11-19T22:00:00Z",
+              "minimum_headroom_minor": 20000,
+              "shortfall_minor": 0,
+              "surplus_minor": 20000
+            },
+            "event_count": 1,
+            "evidence_entry_ids": [
+              "ab38dce1-f63b-5729-9520-afb3ae2d9a00"
+            ],
+            "routing_limited": false,
+            "status": "estimated"
+          },
+          "amount_minor": 20000,
+          "assumptions": [
+            "Synthetic user-confirmed inputs; no bank verification.",
+            "EUR only; no FX conversion.",
+            "Full-horizon protections are earmarked upfront; no automatic replenishment.",
+            "Only confirmed future external income is included. Transfers are explicit conditional assumptions and never executed.",
+            "Dated debits precede credits at the same instant; overdue uncovered costs apply immediately.",
+            "Baseline excludes all proposed account transfers. Conditional transfers are assumptions, never payments.",
+            "Income stress uses the same protection horizon; delayed receipts beyond it are excluded.",
+            "Routable immediate allowance also respects the sum of independent account minima.",
+            "Deterministic estimates, not statistical confidence intervals; review uncertain costs at their protective amount."
+          ],
+          "baseline": {
+            "accounts": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "forecast": {
+                  "minimum_headroom_at": "2026-11-19T22:00:00Z",
+                  "minimum_headroom_minor": 20000,
+                  "shortfall_minor": 0,
+                  "surplus_minor": 20000
+                }
+              }
+            ],
+            "amount_minor": 20000,
+            "blockers": [],
+            "consolidated": {
+              "minimum_headroom_at": "2026-11-19T22:00:00Z",
+              "minimum_headroom_minor": 20000,
+              "shortfall_minor": 0,
+              "surplus_minor": 20000
+            },
+            "event_count": 1,
+            "evidence_entry_ids": [
+              "1d3c6989-3266-58f2-b5de-04e34328a380"
+            ],
+            "routing_limited": false,
+            "status": "estimated"
+          },
+          "blockers": [],
+          "calculation_version": 1,
+          "conditional_transfer_ids": [],
+          "conditional_transfers": null,
+          "cost_assumptions": [],
+          "currency": "EUR",
+          "data_version": 1,
+          "delayed_income": {
+            "accounts": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "forecast": {
+                  "minimum_headroom_at": "2026-11-19T22:00:00Z",
+                  "minimum_headroom_minor": 20000,
+                  "shortfall_minor": 0,
+                  "surplus_minor": 20000
+                }
+              }
+            ],
+            "amount_minor": 20000,
+            "blockers": [],
+            "consolidated": {
+              "minimum_headroom_at": "2026-11-19T22:00:00Z",
+              "minimum_headroom_minor": 20000,
+              "shortfall_minor": 0,
+              "surplus_minor": 20000
+            },
+            "event_count": 1,
+            "evidence_entry_ids": [
+              "63f25f85-e194-59b8-82ae-b52f92e22263"
+            ],
+            "routing_limited": false,
+            "status": "estimated"
+          },
+          "lower_cost_scenario": null,
+          "plan_version": 4,
+          "prepared": {
+            "assumptions": [
+              "Synthetic user-confirmed inputs; no bank verification.",
+              "EUR only; no FX conversion.",
+              "Full-horizon protections are earmarked upfront; no automatic replenishment.",
+              "Only confirmed future external income is included. Transfers are explicit conditional assumptions and never executed."
+            ],
+            "blockers": [],
+            "excluded_account_ids": [],
+            "openings": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "excluded_credit_minor": 0,
+                "excluded_inaccessible_minor": 0,
+                "own_funds_minor": 80000,
+                "pending_reflection": "excluded",
+                "snapshot_id": "00000000-0000-0000-0000-000000000002"
+              }
+            ],
+            "period": {
+              "as_of": "2026-11-03T22:00:00Z",
+              "background_required": false,
+              "next_confirmed_income_at": null,
+              "protection_through": "2026-12-03T22:00:00Z",
+              "reason": "minimum_fallback",
+              "requested_from": "2026-11-03T22:00:00Z",
+              "requested_to_exclusive": "2026-11-08T22:00:00Z",
+              "timezone": "Europe/Helsinki"
+            },
+            "status": "ready"
+          },
+          "status": "estimated",
+          "stress_delay_days": 7
+        },
+        "current": true,
+        "data_version": 1,
+        "expires_at": "2026-11-04T00:05:00+02:00",
+        "id": "00000000-0000-0000-0000-000000000032",
+        "plan_version": 4,
+        "state": "active"
+      },
+      "review": {
+        "current": true,
+        "inputs": {
+          "accounts": [
+            {
+              "account_type": "current",
+              "coverage": "user_confirmed",
+              "coverage_through": "2026-11-04T00:00:00+02:00",
+              "currency": "EUR",
+              "id": "00000000-0000-0000-0000-000000000001",
+              "liability_covered": null,
+              "liquid": true,
+              "material": true,
+              "synced_at": "2026-11-04T00:00:00+02:00"
+            }
+          ],
+          "as_of": "2026-11-04T00:00:00+02:00",
+          "balances": [
+            {
+              "account_id": "00000000-0000-0000-0000-000000000001",
+              "amount_minor": 80000,
+              "currency": "EUR",
+              "id": "00000000-0000-0000-0000-000000000002",
+              "inaccessible_minor": 0,
+              "included_credit_minor": 0,
+              "kind": "available",
+              "observed_at": "2026-11-04T00:00:00+02:00",
+              "pending_reflection": "excluded"
+            }
+          ],
+          "costs": [
+            {
+              "account_id": "00000000-0000-0000-0000-000000000001",
+              "amount_basis": "reviewed",
+              "amount_minor": 35000,
+              "at": "2026-11-20T00:00:00+02:00",
+              "consumes": [],
+              "economic_cost_id": "00000000-0000-0000-0000-000000000015",
+              "id": "00000000-0000-0000-0000-000000000014",
+              "kind": "bill",
+              "lower_amount_minor": null,
+              "opening_reflected": false
+            }
+          ],
+          "data_version": 1,
+          "incomes": [],
+          "obligations_reviewed_through": "2026-12-04T00:00:00+02:00",
+          "pending": [],
+          "plan_version": 4,
+          "protections": [
+            {
+              "amount_minor": 15000,
+              "id": "00000000-0000-0000-0000-00000000000a",
+              "kind": "essentials",
+              "reviewed_through": "2026-12-04T00:00:00+02:00",
+              "routes": [
+                {
+                  "account_id": "00000000-0000-0000-0000-000000000001",
+                  "amount_minor": 15000
+                }
+              ]
+            },
+            {
+              "amount_minor": 0,
+              "id": "00000000-0000-0000-0000-00000000000b",
+              "kind": "irregular",
+              "reviewed_through": "2026-12-04T00:00:00+02:00",
+              "routes": []
+            },
+            {
+              "amount_minor": 0,
+              "id": "00000000-0000-0000-0000-00000000000c",
+              "kind": "savings",
+              "reviewed_through": "2026-12-04T00:00:00+02:00",
+              "routes": []
+            },
+            {
+              "amount_minor": 10000,
+              "id": "00000000-0000-0000-0000-00000000000d",
+              "kind": "buffer",
+              "reviewed_through": "2026-12-04T00:00:00+02:00",
+              "routes": [
+                {
+                  "account_id": "00000000-0000-0000-0000-000000000001",
+                  "amount_minor": 10000
+                }
+              ]
+            }
+          ],
+          "requested_to_exclusive": null,
+          "source": "synthetic_user_confirmed",
+          "transfers": []
+        },
+        "plan_id": "00000000-0000-0000-0000-000000000032",
+        "policy": {
+          "balance_maximum_age_hours": 24,
+          "buffer_policy": "explicit_reviewed_amount_no_default",
+          "calculation_version": 1,
+          "currency": "EUR",
+          "fallback_horizon_days": 30,
+          "income_protection_days": 7,
+          "interactive_horizon_days": 90,
+          "maximum_future_skew_seconds": 300,
+          "missing_input_policy": "block_material_unknowns",
+          "own_funds_policy": "liquid_own_funds_only",
+          "pending_policy": "explicit_coverage_or_block",
+          "reservation_policy": "full_horizon_upfront_linked_consumption",
+          "routing_policy": "explicit_per_account_exact_totals",
+          "timezone": "Europe/Helsinki"
+        }
+      }
+    },
+    "reserved": {
+      "plan": {
+        "analysis": {
+          "as_of": "2026-11-04T00:00:00+02:00",
+          "assumptions": [
+            "Synthetic user-confirmed inputs; no bank verification.",
+            "EUR only; no FX conversion.",
+            "Full-horizon protections are earmarked upfront; no automatic replenishment.",
+            "Only confirmed future external income is included. Transfers are explicit conditional assumptions and never executed.",
+            "Dated debits precede credits at the same instant; overdue uncovered costs apply immediately.",
+            "Baseline excludes all proposed account transfers. Conditional transfers are assumptions, never payments.",
+            "Income stress uses the same protection horizon; delayed receipts beyond it are excluded.",
+            "Routable immediate allowance also respects the sum of independent account minima.",
+            "Deterministic estimates, not statistical confidence intervals; review uncertain costs at their protective amount."
+          ],
+          "blockers": [],
+          "calculation_id": "84d27f69-0127-58e1-8171-abf94bf28016",
+          "calculation_version": 1,
+          "data_version": 1,
+          "evidence": {
+            "balance_snapshot_ids": [
+              "00000000-0000-0000-0000-000000000002"
+            ],
+            "data_version": 1,
+            "interpretation": "reviewed_assumptions_not_bank_transfer",
+            "plan_id": "00000000-0000-0000-0000-000000000032",
+            "plan_version": 3,
+            "source": "synthetic_user_confirmed"
+          },
+          "result": {
+            "amount_minor": 15000,
+            "currency": "EUR",
+            "minimum_headroom_at": "2026-11-19T22:00:00Z",
+            "minimum_headroom_minor": 15000,
+            "shortfall_minor": 0,
+            "surplus_minor": 15000
+          },
+          "status": "estimated"
+        },
+        "as_of": "2026-11-04T00:00:00+02:00",
+        "calculation": {
+          "absent_income": {
+            "accounts": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "forecast": {
+                  "minimum_headroom_at": "2026-11-19T22:00:00Z",
+                  "minimum_headroom_minor": 15000,
+                  "shortfall_minor": 0,
+                  "surplus_minor": 15000
+                }
+              }
+            ],
+            "amount_minor": 15000,
+            "blockers": [],
+            "consolidated": {
+              "minimum_headroom_at": "2026-11-19T22:00:00Z",
+              "minimum_headroom_minor": 15000,
+              "shortfall_minor": 0,
+              "surplus_minor": 15000
+            },
+            "event_count": 1,
+            "evidence_entry_ids": [
+              "ab38dce1-f63b-5729-9520-afb3ae2d9a00"
+            ],
+            "routing_limited": false,
+            "status": "estimated"
+          },
+          "amount_minor": 15000,
+          "assumptions": [
+            "Synthetic user-confirmed inputs; no bank verification.",
+            "EUR only; no FX conversion.",
+            "Full-horizon protections are earmarked upfront; no automatic replenishment.",
+            "Only confirmed future external income is included. Transfers are explicit conditional assumptions and never executed.",
+            "Dated debits precede credits at the same instant; overdue uncovered costs apply immediately.",
+            "Baseline excludes all proposed account transfers. Conditional transfers are assumptions, never payments.",
+            "Income stress uses the same protection horizon; delayed receipts beyond it are excluded.",
+            "Routable immediate allowance also respects the sum of independent account minima.",
+            "Deterministic estimates, not statistical confidence intervals; review uncertain costs at their protective amount."
+          ],
+          "baseline": {
+            "accounts": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "forecast": {
+                  "minimum_headroom_at": "2026-11-19T22:00:00Z",
+                  "minimum_headroom_minor": 15000,
+                  "shortfall_minor": 0,
+                  "surplus_minor": 15000
+                }
+              }
+            ],
+            "amount_minor": 15000,
+            "blockers": [],
+            "consolidated": {
+              "minimum_headroom_at": "2026-11-19T22:00:00Z",
+              "minimum_headroom_minor": 15000,
+              "shortfall_minor": 0,
+              "surplus_minor": 15000
+            },
+            "event_count": 1,
+            "evidence_entry_ids": [
+              "1d3c6989-3266-58f2-b5de-04e34328a380"
+            ],
+            "routing_limited": false,
+            "status": "estimated"
+          },
+          "blockers": [],
+          "calculation_version": 1,
+          "conditional_transfer_ids": [],
+          "conditional_transfers": null,
+          "cost_assumptions": [],
+          "currency": "EUR",
+          "data_version": 1,
+          "delayed_income": {
+            "accounts": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "forecast": {
+                  "minimum_headroom_at": "2026-11-19T22:00:00Z",
+                  "minimum_headroom_minor": 15000,
+                  "shortfall_minor": 0,
+                  "surplus_minor": 15000
+                }
+              }
+            ],
+            "amount_minor": 15000,
+            "blockers": [],
+            "consolidated": {
+              "minimum_headroom_at": "2026-11-19T22:00:00Z",
+              "minimum_headroom_minor": 15000,
+              "shortfall_minor": 0,
+              "surplus_minor": 15000
+            },
+            "event_count": 1,
+            "evidence_entry_ids": [
+              "63f25f85-e194-59b8-82ae-b52f92e22263"
+            ],
+            "routing_limited": false,
+            "status": "estimated"
+          },
+          "lower_cost_scenario": null,
+          "plan_version": 3,
+          "prepared": {
+            "assumptions": [
+              "Synthetic user-confirmed inputs; no bank verification.",
+              "EUR only; no FX conversion.",
+              "Full-horizon protections are earmarked upfront; no automatic replenishment.",
+              "Only confirmed future external income is included. Transfers are explicit conditional assumptions and never executed."
+            ],
+            "blockers": [],
+            "excluded_account_ids": [],
+            "openings": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "excluded_credit_minor": 0,
+                "excluded_inaccessible_minor": 0,
+                "own_funds_minor": 80000,
+                "pending_reflection": "excluded",
+                "snapshot_id": "00000000-0000-0000-0000-000000000002"
+              }
+            ],
+            "period": {
+              "as_of": "2026-11-03T22:00:00Z",
+              "background_required": false,
+              "next_confirmed_income_at": null,
+              "protection_through": "2026-12-03T22:00:00Z",
+              "reason": "minimum_fallback",
+              "requested_from": "2026-11-03T22:00:00Z",
+              "requested_to_exclusive": "2026-11-08T22:00:00Z",
+              "timezone": "Europe/Helsinki"
+            },
+            "status": "ready"
+          },
+          "status": "estimated",
+          "stress_delay_days": 7
+        },
+        "current": true,
+        "data_version": 1,
+        "expires_at": "2026-11-04T00:05:00+02:00",
+        "id": "00000000-0000-0000-0000-000000000032",
+        "plan_version": 3,
+        "state": "active"
+      },
+      "review": {
+        "current": true,
+        "inputs": {
+          "accounts": [
+            {
+              "account_type": "current",
+              "coverage": "user_confirmed",
+              "coverage_through": "2026-11-04T00:00:00+02:00",
+              "currency": "EUR",
+              "id": "00000000-0000-0000-0000-000000000001",
+              "liability_covered": null,
+              "liquid": true,
+              "material": true,
+              "synced_at": "2026-11-04T00:00:00+02:00"
+            }
+          ],
+          "as_of": "2026-11-04T00:00:00+02:00",
+          "balances": [
+            {
+              "account_id": "00000000-0000-0000-0000-000000000001",
+              "amount_minor": 80000,
+              "currency": "EUR",
+              "id": "00000000-0000-0000-0000-000000000002",
+              "inaccessible_minor": 0,
+              "included_credit_minor": 0,
+              "kind": "available",
+              "observed_at": "2026-11-04T00:00:00+02:00",
+              "pending_reflection": "excluded"
+            }
+          ],
+          "costs": [
+            {
+              "account_id": "00000000-0000-0000-0000-000000000001",
+              "amount_basis": "reviewed",
+              "amount_minor": 35000,
+              "at": "2026-11-20T00:00:00+02:00",
+              "consumes": [],
+              "economic_cost_id": "00000000-0000-0000-0000-000000000015",
+              "id": "00000000-0000-0000-0000-000000000014",
+              "kind": "bill",
+              "lower_amount_minor": null,
+              "opening_reflected": false
+            }
+          ],
+          "data_version": 1,
+          "incomes": [],
+          "obligations_reviewed_through": "2026-12-04T00:00:00+02:00",
+          "pending": [],
+          "plan_version": 3,
+          "protections": [
+            {
+              "amount_minor": 15000,
+              "id": "00000000-0000-0000-0000-00000000000a",
+              "kind": "essentials",
+              "reviewed_through": "2026-12-04T00:00:00+02:00",
+              "routes": [
+                {
+                  "account_id": "00000000-0000-0000-0000-000000000001",
+                  "amount_minor": 15000
+                }
+              ]
+            },
+            {
+              "amount_minor": 0,
+              "id": "00000000-0000-0000-0000-00000000000b",
+              "kind": "irregular",
+              "reviewed_through": "2026-12-04T00:00:00+02:00",
+              "routes": []
+            },
+            {
+              "amount_minor": 5000,
+              "id": "00000000-0000-0000-0000-00000000000c",
+              "kind": "savings",
+              "reviewed_through": "2026-12-04T00:00:00+02:00",
+              "routes": [
+                {
+                  "account_id": "00000000-0000-0000-0000-000000000001",
+                  "amount_minor": 5000
+                }
+              ]
+            },
+            {
+              "amount_minor": 10000,
+              "id": "00000000-0000-0000-0000-00000000000d",
+              "kind": "buffer",
+              "reviewed_through": "2026-12-04T00:00:00+02:00",
+              "routes": [
+                {
+                  "account_id": "00000000-0000-0000-0000-000000000001",
+                  "amount_minor": 10000
+                }
+              ]
+            }
+          ],
+          "requested_to_exclusive": null,
+          "source": "synthetic_user_confirmed",
+          "transfers": []
+        },
+        "plan_id": "00000000-0000-0000-0000-000000000032",
+        "policy": {
+          "balance_maximum_age_hours": 24,
+          "buffer_policy": "explicit_reviewed_amount_no_default",
+          "calculation_version": 1,
+          "currency": "EUR",
+          "fallback_horizon_days": 30,
+          "income_protection_days": 7,
+          "interactive_horizon_days": 90,
+          "maximum_future_skew_seconds": 300,
+          "missing_input_policy": "block_material_unknowns",
+          "own_funds_policy": "liquid_own_funds_only",
+          "pending_policy": "explicit_coverage_or_block",
+          "reservation_policy": "full_horizon_upfront_linked_consumption",
+          "routing_policy": "explicit_per_account_exact_totals",
+          "timezone": "Europe/Helsinki"
+        }
+      }
+    },
+    "saved": {
+      "plan": {
+        "analysis": {
+          "as_of": "2026-11-04T00:00:00+02:00",
+          "assumptions": [
+            "Synthetic user-confirmed inputs; no bank verification.",
+            "EUR only; no FX conversion.",
+            "Full-horizon protections are earmarked upfront; no automatic replenishment.",
+            "Only confirmed future external income is included. Transfers are explicit conditional assumptions and never executed.",
+            "Dated debits precede credits at the same instant; overdue uncovered costs apply immediately.",
+            "Baseline excludes all proposed account transfers. Conditional transfers are assumptions, never payments.",
+            "Income stress uses the same protection horizon; delayed receipts beyond it are excluded.",
+            "Routable immediate allowance also respects the sum of independent account minima.",
+            "Deterministic estimates, not statistical confidence intervals; review uncertain costs at their protective amount."
+          ],
+          "blockers": [],
+          "calculation_id": "34021d2a-6b30-5fa1-88a5-38229040d56a",
+          "calculation_version": 1,
+          "data_version": 1,
+          "evidence": {
+            "balance_snapshot_ids": [
+              "00000000-0000-0000-0000-000000000002"
+            ],
+            "data_version": 1,
+            "interpretation": "reviewed_assumptions_not_bank_transfer",
+            "plan_id": "00000000-0000-0000-0000-000000000032",
+            "plan_version": 2,
+            "source": "synthetic_user_confirmed"
+          },
+          "result": {
+            "amount_minor": 20000,
+            "currency": "EUR",
+            "minimum_headroom_at": "2026-11-19T22:00:00Z",
+            "minimum_headroom_minor": 20000,
+            "shortfall_minor": 0,
+            "surplus_minor": 20000
+          },
+          "status": "estimated"
+        },
+        "as_of": "2026-11-04T00:00:00+02:00",
+        "calculation": {
+          "absent_income": {
+            "accounts": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "forecast": {
+                  "minimum_headroom_at": "2026-11-19T22:00:00Z",
+                  "minimum_headroom_minor": 20000,
+                  "shortfall_minor": 0,
+                  "surplus_minor": 20000
+                }
+              }
+            ],
+            "amount_minor": 20000,
+            "blockers": [],
+            "consolidated": {
+              "minimum_headroom_at": "2026-11-19T22:00:00Z",
+              "minimum_headroom_minor": 20000,
+              "shortfall_minor": 0,
+              "surplus_minor": 20000
+            },
+            "event_count": 1,
+            "evidence_entry_ids": [
+              "ab38dce1-f63b-5729-9520-afb3ae2d9a00"
+            ],
+            "routing_limited": false,
+            "status": "estimated"
+          },
+          "amount_minor": 20000,
+          "assumptions": [
+            "Synthetic user-confirmed inputs; no bank verification.",
+            "EUR only; no FX conversion.",
+            "Full-horizon protections are earmarked upfront; no automatic replenishment.",
+            "Only confirmed future external income is included. Transfers are explicit conditional assumptions and never executed.",
+            "Dated debits precede credits at the same instant; overdue uncovered costs apply immediately.",
+            "Baseline excludes all proposed account transfers. Conditional transfers are assumptions, never payments.",
+            "Income stress uses the same protection horizon; delayed receipts beyond it are excluded.",
+            "Routable immediate allowance also respects the sum of independent account minima.",
+            "Deterministic estimates, not statistical confidence intervals; review uncertain costs at their protective amount."
+          ],
+          "baseline": {
+            "accounts": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "forecast": {
+                  "minimum_headroom_at": "2026-11-19T22:00:00Z",
+                  "minimum_headroom_minor": 20000,
+                  "shortfall_minor": 0,
+                  "surplus_minor": 20000
+                }
+              }
+            ],
+            "amount_minor": 20000,
+            "blockers": [],
+            "consolidated": {
+              "minimum_headroom_at": "2026-11-19T22:00:00Z",
+              "minimum_headroom_minor": 20000,
+              "shortfall_minor": 0,
+              "surplus_minor": 20000
+            },
+            "event_count": 1,
+            "evidence_entry_ids": [
+              "1d3c6989-3266-58f2-b5de-04e34328a380"
+            ],
+            "routing_limited": false,
+            "status": "estimated"
+          },
+          "blockers": [],
+          "calculation_version": 1,
+          "conditional_transfer_ids": [],
+          "conditional_transfers": null,
+          "cost_assumptions": [],
+          "currency": "EUR",
+          "data_version": 1,
+          "delayed_income": {
+            "accounts": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "forecast": {
+                  "minimum_headroom_at": "2026-11-19T22:00:00Z",
+                  "minimum_headroom_minor": 20000,
+                  "shortfall_minor": 0,
+                  "surplus_minor": 20000
+                }
+              }
+            ],
+            "amount_minor": 20000,
+            "blockers": [],
+            "consolidated": {
+              "minimum_headroom_at": "2026-11-19T22:00:00Z",
+              "minimum_headroom_minor": 20000,
+              "shortfall_minor": 0,
+              "surplus_minor": 20000
+            },
+            "event_count": 1,
+            "evidence_entry_ids": [
+              "63f25f85-e194-59b8-82ae-b52f92e22263"
+            ],
+            "routing_limited": false,
+            "status": "estimated"
+          },
+          "lower_cost_scenario": null,
+          "plan_version": 2,
+          "prepared": {
+            "assumptions": [
+              "Synthetic user-confirmed inputs; no bank verification.",
+              "EUR only; no FX conversion.",
+              "Full-horizon protections are earmarked upfront; no automatic replenishment.",
+              "Only confirmed future external income is included. Transfers are explicit conditional assumptions and never executed."
+            ],
+            "blockers": [],
+            "excluded_account_ids": [],
+            "openings": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "excluded_credit_minor": 0,
+                "excluded_inaccessible_minor": 0,
+                "own_funds_minor": 80000,
+                "pending_reflection": "excluded",
+                "snapshot_id": "00000000-0000-0000-0000-000000000002"
+              }
+            ],
+            "period": {
+              "as_of": "2026-11-03T22:00:00Z",
+              "background_required": false,
+              "next_confirmed_income_at": null,
+              "protection_through": "2026-12-03T22:00:00Z",
+              "reason": "minimum_fallback",
+              "requested_from": "2026-11-03T22:00:00Z",
+              "requested_to_exclusive": "2026-11-08T22:00:00Z",
+              "timezone": "Europe/Helsinki"
+            },
+            "status": "ready"
+          },
+          "status": "estimated",
+          "stress_delay_days": 7
+        },
+        "current": true,
+        "data_version": 1,
+        "expires_at": "2026-11-04T00:05:00+02:00",
+        "id": "00000000-0000-0000-0000-000000000032",
+        "plan_version": 2,
+        "state": "active"
+      },
+      "review": {
+        "current": true,
+        "inputs": {
+          "accounts": [
+            {
+              "account_type": "current",
+              "coverage": "user_confirmed",
+              "coverage_through": "2026-11-04T00:00:00+02:00",
+              "currency": "EUR",
+              "id": "00000000-0000-0000-0000-000000000001",
+              "liability_covered": null,
+              "liquid": true,
+              "material": true,
+              "synced_at": "2026-11-04T00:00:00+02:00"
+            }
+          ],
+          "as_of": "2026-11-04T00:00:00+02:00",
+          "balances": [
+            {
+              "account_id": "00000000-0000-0000-0000-000000000001",
+              "amount_minor": 80000,
+              "currency": "EUR",
+              "id": "00000000-0000-0000-0000-000000000002",
+              "inaccessible_minor": 0,
+              "included_credit_minor": 0,
+              "kind": "available",
+              "observed_at": "2026-11-04T00:00:00+02:00",
+              "pending_reflection": "excluded"
+            }
+          ],
+          "costs": [
+            {
+              "account_id": "00000000-0000-0000-0000-000000000001",
+              "amount_basis": "reviewed",
+              "amount_minor": 35000,
+              "at": "2026-11-20T00:00:00+02:00",
+              "consumes": [],
+              "economic_cost_id": "00000000-0000-0000-0000-000000000015",
+              "id": "00000000-0000-0000-0000-000000000014",
+              "kind": "bill",
+              "lower_amount_minor": null,
+              "opening_reflected": false
+            }
+          ],
+          "data_version": 1,
+          "incomes": [],
+          "obligations_reviewed_through": "2026-12-04T00:00:00+02:00",
+          "pending": [],
+          "plan_version": 2,
+          "protections": [
+            {
+              "amount_minor": 15000,
+              "id": "00000000-0000-0000-0000-00000000000a",
+              "kind": "essentials",
+              "reviewed_through": "2026-12-04T00:00:00+02:00",
+              "routes": [
+                {
+                  "account_id": "00000000-0000-0000-0000-000000000001",
+                  "amount_minor": 15000
+                }
+              ]
+            },
+            {
+              "amount_minor": 0,
+              "id": "00000000-0000-0000-0000-00000000000b",
+              "kind": "irregular",
+              "reviewed_through": "2026-12-04T00:00:00+02:00",
+              "routes": []
+            },
+            {
+              "amount_minor": 0,
+              "id": "00000000-0000-0000-0000-00000000000c",
+              "kind": "savings",
+              "reviewed_through": "2026-12-04T00:00:00+02:00",
+              "routes": []
+            },
+            {
+              "amount_minor": 10000,
+              "id": "00000000-0000-0000-0000-00000000000d",
+              "kind": "buffer",
+              "reviewed_through": "2026-12-04T00:00:00+02:00",
+              "routes": [
+                {
+                  "account_id": "00000000-0000-0000-0000-000000000001",
+                  "amount_minor": 10000
+                }
+              ]
+            }
+          ],
+          "requested_to_exclusive": null,
+          "source": "synthetic_user_confirmed",
+          "transfers": []
+        },
+        "plan_id": "00000000-0000-0000-0000-000000000032",
+        "policy": {
+          "balance_maximum_age_hours": 24,
+          "buffer_policy": "explicit_reviewed_amount_no_default",
+          "calculation_version": 1,
+          "currency": "EUR",
+          "fallback_horizon_days": 30,
+          "income_protection_days": 7,
+          "interactive_horizon_days": 90,
+          "maximum_future_skew_seconds": 300,
+          "missing_input_policy": "block_material_unknowns",
+          "own_funds_policy": "liquid_own_funds_only",
+          "pending_policy": "explicit_coverage_or_block",
+          "reservation_policy": "full_horizon_upfront_linked_consumption",
+          "routing_policy": "explicit_per_account_exact_totals",
+          "timezone": "Europe/Helsinki"
+        }
+      }
+    }
+  }
+}

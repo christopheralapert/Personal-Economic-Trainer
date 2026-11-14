@@ -1,0 +1,13 @@
+source_customer_ref,account_ref,source_id,revision,amount_minor,currency,booked_on,value_on,observed_at,status,merchant,category,basket,economic_flow,related_account_ref,related_source_id
+authored-customer-1,daily,purchase-1,1,-125,EUR,2026-10-15,,2026-11-04T10:00:00Z,booked,Synthetic cafe,coffee,everyday,expense,,
+authored-customer-1,daily,purchase-2,1,-125,EUR,2026-10-15,,2026-11-04T10:00:00Z,booked,Synthetic cafe,coffee,everyday,expense,,
+authored-customer-1,daily,purchase-3,1,-125,EUR,2026-10-15,,2026-11-04T10:00:00Z,booked,Synthetic cafe,coffee,everyday,expense,,
+authored-customer-1,daily,purchase-4,1,-125,EUR,2026-10-15,,2026-11-04T10:00:00Z,booked,Synthetic cafe,coffee,everyday,expense,,
+authored-customer-1,daily,purchase-5,1,-125,EUR,2026-10-15,,2026-11-04T10:00:00Z,booked,Synthetic cafe,coffee,everyday,expense,,
+authored-customer-1,daily,purchase-6,1,-125,EUR,2026-10-15,,2026-11-04T10:00:00Z,booked,Synthetic cafe,coffee,everyday,expense,,
+authored-customer-1,daily,purchase-7,1,-125,EUR,2026-10-15,,2026-11-04T10:00:00Z,booked,Synthetic cafe,coffee,everyday,expense,,
+authored-customer-1,daily,purchase-8,1,-125,EUR,2026-10-15,,2026-11-04T10:00:00Z,booked,Synthetic cafe,coffee,everyday,expense,,
+authored-customer-1,daily,purchase-9,1,-125,EUR,2026-10-15,,2026-11-04T10:00:00Z,booked,Synthetic cafe,coffee,everyday,expense,,
+authored-customer-1,daily,purchase-10,1,-125,EUR,2026-10-15,,2026-11-04T10:00:00Z,booked,Synthetic cafe,coffee,everyday,expense,,
+authored-customer-1,daily,purchase-11,1,-125,EUR,2026-10-15,,2026-11-04T10:00:00Z,booked,Synthetic cafe,coffee,everyday,expense,,
+authored-customer-1,daily,purchase-12,1,-125,EUR,2026-10-15,,2026-11-04T10:00:00Z,booked,Synthetic cafe,coffee,everyday,expense,,

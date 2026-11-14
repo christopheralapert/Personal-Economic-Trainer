@@ -1,0 +1,2435 @@
+{
+  "accounts": [
+    {
+      "account_type": "current",
+      "currency": "EUR",
+      "id": "00000000-0000-0000-0000-000000000001",
+      "included": true,
+      "name": "Everyday synthetic account",
+      "source": {
+        "account_id": "00000000-0000-0000-0000-000000000001",
+        "connection_id": "00000000-0000-0000-0000-000000000002",
+        "consent_state": "active",
+        "granted": true,
+        "history_from": "2026-08-01",
+        "history_to_exclusive": "2026-11-05",
+        "institution_id": "s-bank-demo",
+        "last_error_code": null,
+        "last_success_at": "2026-11-04T10:00:00+00:00",
+        "mode": "synthetic",
+        "observed_at": "2026-11-04T10:00:00+00:00",
+        "source_version": "ui-only.v1",
+        "sync_health": "fresh",
+        "timezone": "Europe/Helsinki"
+      }
+    }
+  ],
+  "clock": "2026-11-04T10:00:00+00:00",
+  "cohorts": {
+    "available": true,
+    "catalog": {
+      "cohorts": [
+        {
+          "average_household_size": "1",
+          "code": "1",
+          "label": "One-person, aged under 65",
+          "population_households": 865134,
+          "sample_households": 466,
+          "specificity": "household_type"
+        },
+        {
+          "average_household_size": "2",
+          "code": "2",
+          "label": "Couple without children, aged under 65",
+          "population_households": 458381,
+          "sample_households": 554,
+          "specificity": "household_type"
+        },
+        {
+          "average_household_size": "2.92",
+          "code": "3",
+          "label": "Single-parent households",
+          "population_households": 136203,
+          "sample_households": 89,
+          "specificity": "household_type"
+        },
+        {
+          "average_household_size": "3.99",
+          "code": "4",
+          "label": "Two parent family with children",
+          "population_households": 431509,
+          "sample_households": 621,
+          "specificity": "household_type"
+        },
+        {
+          "average_household_size": "1.35",
+          "code": "5",
+          "label": "Households of persons aged over 64",
+          "population_households": 858761,
+          "sample_households": 1133,
+          "specificity": "household_type"
+        },
+        {
+          "average_household_size": "2.51",
+          "code": "6",
+          "label": "Other households",
+          "population_households": 169011,
+          "sample_households": 275,
+          "specificity": "household_type"
+        },
+        {
+          "average_household_size": "1.88",
+          "code": "SSS",
+          "label": "Total",
+          "population_households": 2919000,
+          "sample_households": 3138,
+          "specificity": "all_households"
+        }
+      ],
+      "dimension": "elinvaihe_13_20160101",
+      "limitations": [
+        "Select the published household type explicitly. Transactions and account ownership do not establish household composition.",
+        "Only the household-type dimension is used. Age, region and income intersections cannot be constructed from separate marginal tables.",
+        "Total means all households, not a more specific match. Unavailable choices never fall back to Total automatically.",
+        "The reference year and household unit belong to the source. Selecting a cohort does not establish household financial coverage or price/period compatibility.",
+        "Suppressed or missing background values remain unavailable. Average household size is descriptive and cannot scale an individual into a household."
+      ],
+      "metadata_fingerprints": {
+        "14lv": "f9248a8aabca5df18c84cfd2b6c29338b38d3536adb46b6842f70544e1fbeddd",
+        "14ph": "659d6f64a568c0d12660ff14ac58ceb8337fadd39fd249ee194785804b727629"
+      },
+      "policy_version": "household-cohorts.v1",
+      "reference_period": "2022",
+      "snapshot": {
+        "attribution": "Source: Statistics Finland, households' consumption.",
+        "id": "statfin-ktutk-2022-51770478e803db26",
+        "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+        "mapping_version": "unmapped.v1",
+        "reference_period": "2022",
+        "response_sha256": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+        "retrieved_at": "2026-11-04T15:13:17.649309Z",
+        "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+        "statistic_type": "mean",
+        "table_id": "14ph",
+        "unit": "EUR per household per reference year, current prices"
+      },
+      "unit": "household"
+    },
+    "reason": null
+  },
+  "crosswalk": {
+    "available": true,
+    "policy": {
+      "attribution": "Source: Statistics Finland, households' consumption.",
+      "category_taxonomy": "moneylens.synthetic.categories.v1",
+      "classification_version": "COICOP2018",
+      "licence": "CC-BY-4.0",
+      "limitations": [
+        "This is an application-authored crosswalk for the named synthetic taxonomy, not an official Statistics Finland or organizer mapping.",
+        "Unknown taxonomies and unknown categories remain unmapped; names alone never grant compatibility.",
+        "The three coaching baskets describe necessity and recurrence, not COICOP categories; basket and merchant text do not select a mapping.",
+        "Ambiguous candidates are possible destinations, not allocations. No ambiguous amount is split or assigned automatically.",
+        "Parent and child target groups overlap and cannot be selected together for a summed mapping. A parent amount cannot be distributed to children.",
+        "Mapping does not establish household completeness, compatible price/year periods or a valid personal population comparison."
+      ],
+      "mapping_version": "moneylens.coicop2018.v1",
+      "metadata_fingerprint": "659d6f64a568c0d12660ff14ac58ceb8337fadd39fd249ee194785804b727629",
+      "policy_sha256": "283bfa70ebf5a1b81154b1a0577895a9b3094487f08711e162036082da65bb79",
+      "rules": [
+        {
+          "candidate_codes": [],
+          "category": "taxi",
+          "definition": "Passenger taxi fares or hired vehicles with a driver; excludes self-drive rental.",
+          "reason": "The synthetic taxonomy defines this as passenger taxi transport.",
+          "status": "mapped",
+          "target_code": "07322"
+        },
+        {
+          "candidate_codes": [],
+          "category": "food_non_alcoholic_retail",
+          "definition": "Itemized retail food and non-alcoholic beverages only, excluding household goods and serving services.",
+          "reason": "Requires this explicit semantic category; a broad grocery label is insufficient.",
+          "status": "mapped",
+          "target_code": "01"
+        },
+        {
+          "candidate_codes": [],
+          "category": "appliance_repair_install_hire",
+          "definition": "Repair, installation or hire of household appliances only, excluding other repair work.",
+          "reason": "Requires identification of the household-appliance service.",
+          "status": "mapped",
+          "target_code": "0533"
+        },
+        {
+          "candidate_codes": [],
+          "category": "food_beverage_service",
+          "definition": "Food and beverage serving services only, with no claim about restaurant versus canteen subcategory.",
+          "reason": "The broad serving-service category cannot be assigned to a child category without more information.",
+          "status": "mapped",
+          "target_code": "111"
+        },
+        {
+          "candidate_codes": [],
+          "category": "restaurant_cafe_service",
+          "definition": "Restaurant, cafe and similar food/beverage serving services, excluding retail groceries and canteens.",
+          "reason": "Requires an explicit restaurant/cafe serving-service category.",
+          "status": "mapped",
+          "target_code": "1111"
+        },
+        {
+          "candidate_codes": [],
+          "category": "canteen_service",
+          "definition": "Canteen, cafeteria and refectory serving services, explicitly distinguished from restaurant/cafe services.",
+          "reason": "Requires an explicit canteen-service category.",
+          "status": "mapped",
+          "target_code": "1112"
+        },
+        {
+          "candidate_codes": [
+            "01"
+          ],
+          "category": "groceries",
+          "definition": "Broad grocery purchase without item-level food, alcohol and nonfood separation.",
+          "reason": "Itemization or correction is needed before identifying food and non-alcoholic beverages.",
+          "status": "ambiguous",
+          "target_code": null
+        },
+        {
+          "candidate_codes": [
+            "111",
+            "1111",
+            "1112"
+          ],
+          "category": "dining",
+          "definition": "Broad dining label without confirmed serving-service or subcategory coverage.",
+          "reason": "A dining label alone does not establish an exact survey service concept.",
+          "status": "ambiguous",
+          "target_code": null
+        },
+        {
+          "candidate_codes": [
+            "01",
+            "1111"
+          ],
+          "category": "coffee",
+          "definition": "Coffee purchase without confirmed retail versus served-drink classification.",
+          "reason": "Retail coffee and cafe serving services belong to different statistical groups.",
+          "status": "ambiguous",
+          "target_code": null
+        },
+        {
+          "candidate_codes": [
+            "0533"
+          ],
+          "category": "repairs",
+          "definition": "Unspecified repair work; the repaired object is not established.",
+          "reason": "An unspecified repair cannot automatically become a household-appliance repair.",
+          "status": "ambiguous",
+          "target_code": null
+        },
+        {
+          "candidate_codes": [],
+          "category": "housing",
+          "definition": "Housing costs, outside the groups in this pinned expenditure snapshot.",
+          "reason": "The selected snapshot groups do not cover housing; excluded money remains visible.",
+          "status": "excluded",
+          "target_code": null
+        },
+        {
+          "candidate_codes": [],
+          "category": "transfer",
+          "definition": "An account movement rather than a consumption category.",
+          "reason": "Transfers are not survey consumption. Economic-flow classification remains authoritative.",
+          "status": "excluded",
+          "target_code": null
+        }
+      ],
+      "snapshot_id": "statfin-ktutk-2022-51770478e803db26",
+      "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+      "table_id": "14ph",
+      "targets": [
+        {
+          "code": "01",
+          "label": "01 Food and non-alcoholic beverages"
+        },
+        {
+          "code": "0533",
+          "label": "05.3.3 Repair, installation and hire of household appliances (S)"
+        },
+        {
+          "code": "07322",
+          "label": "07.3.2.2 Passenger transport by taxi and hired vehicle with driver (S)"
+        },
+        {
+          "code": "111",
+          "label": "11.1 Food and beverage serving services"
+        },
+        {
+          "code": "1111",
+          "label": "11.1.1 Restaurants, caf\u00e9s and the like (S)"
+        },
+        {
+          "code": "1112",
+          "label": "11.1.2 Canteens, cafeterias and refectories (S)"
+        }
+      ]
+    },
+    "reason": null
+  },
+  "scenarios": {
+    "annual_short": {
+      "request": {
+        "allow_reference_year_mismatch": true,
+        "allow_short_period_approximation": true,
+        "coicop_codes": [
+          "07322",
+          "01"
+        ],
+        "comparison_basis": "annual_observed",
+        "currency": "EUR",
+        "end_exclusive": "2026-11-01",
+        "household_code": "1",
+        "household_coverage_confirmed": true,
+        "reference_period": "2022",
+        "start": "2026-10-01"
+      },
+      "result": {
+        "as_of": "2026-11-04T10:00:00Z",
+        "comparison_basis": "annual_observed",
+        "household_coverage": "user_confirmed",
+        "known_owned_scope_complete": true,
+        "limitations": [
+          "The published statistic is a household mean for 2022 at that year's current prices. No inflation or currency adjustment is applied.",
+          "Monthly equivalents provide approximate context, with seasonality and short-window limitations; they are not observed monthly survey means.",
+          "Household coverage is the user's explicit assertion about the named accounts, not a bank-verified fact. Selected accounts do not establish whole finances automatically.",
+          "Differences describe this observed consumption scope. They provide no spending target, saving capacity, rank, median or percentile.",
+          "Ambiguity blocks affected categories; unknown categories, unresolved flows and missing source scope block all comparisons. Suppressed public cells remain unavailable.",
+          "Private comparison is performed locally against the verified public artifact. No personal data is sent to Statistics Finland."
+        ],
+        "mapping": {
+          "ambiguous": {
+            "gross_minor": 5000,
+            "net_minor": 5000,
+            "refunds_minor": 0,
+            "transaction_count": 1
+          },
+          "assignments": [
+            {
+              "assigned_observed": {
+                "gross_minor": 12000,
+                "net_minor": 10000,
+                "refunds_minor": 2000,
+                "transaction_count": 2
+              },
+              "target": {
+                "code": "07322",
+                "label": "07.3.2.2 Passenger transport by taxi and hired vehicle with driver (S)"
+              }
+            },
+            {
+              "assigned_observed": {
+                "gross_minor": 0,
+                "net_minor": 0,
+                "refunds_minor": 0,
+                "transaction_count": 0
+              },
+              "target": {
+                "code": "01",
+                "label": "01 Food and non-alcoholic beverages"
+              }
+            }
+          ],
+          "category_taxonomy": "moneylens.synthetic.categories.v1",
+          "classification_version": "COICOP2018",
+          "decisions": [
+            {
+              "candidate_codes": [],
+              "category": "taxi",
+              "reason": "The synthetic taxonomy defines this as passenger taxi transport.",
+              "status": "mapped",
+              "target_code": "07322"
+            },
+            {
+              "candidate_codes": [
+                "01"
+              ],
+              "category": "groceries",
+              "reason": "Itemization or correction is needed before identifying food and non-alcoholic beverages.",
+              "status": "ambiguous",
+              "target_code": null
+            }
+          ],
+          "evidence_filters": {
+            "account_ids": null,
+            "category": null,
+            "currency": "EUR",
+            "end_exclusive": "2026-11-01",
+            "merchant": null,
+            "spending_only": false,
+            "start": "2026-10-01",
+            "status": "booked"
+          },
+          "evidence_transaction_ids": [],
+          "excluded": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "limitations": [
+            "This is an application-authored crosswalk for the named synthetic taxonomy, not an official Statistics Finland or organizer mapping.",
+            "Unknown taxonomies and unknown categories remain unmapped; names alone never grant compatibility.",
+            "The three coaching baskets describe necessity and recurrence, not COICOP categories; basket and merchant text do not select a mapping.",
+            "Ambiguous candidates are possible destinations, not allocations. No ambiguous amount is split or assigned automatically.",
+            "Parent and child target groups overlap and cannot be selected together for a summed mapping. A parent amount cannot be distributed to children.",
+            "Mapping does not establish household completeness, compatible price/year periods or a valid personal population comparison.",
+            "Assigned observed amounts are not proof of complete category spending. Source history, unresolved flows and household/price/period compatibility remain separate gates.",
+            "Excluded, ambiguous, unmapped and outside-selection money is retained separately; the five buckets reconcile to confirmed observed consumption, including refunds.",
+            "Zero assigned money means no confirmed records were mapped here; it is not a population benchmark or evidence of zero actual spending.",
+            "Amounts retain the source currency. No exchange-rate conversion, inflation adjustment or period extrapolation is performed."
+          ],
+          "mapped": {
+            "gross_minor": 12000,
+            "net_minor": 10000,
+            "refunds_minor": 2000,
+            "transaction_count": 2
+          },
+          "mapping_version": "moneylens.coicop2018.v1",
+          "nonconsumption_count": 0,
+          "outside_selection": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "policy_sha256": "283bfa70ebf5a1b81154b1a0577895a9b3094487f08711e162036082da65bb79",
+          "population_comparison_ready": false,
+          "scope": {
+            "account_ids": [
+              "00000000-0000-0000-0000-000000000001"
+            ],
+            "currency": "EUR",
+            "data_mode": "synthetic",
+            "data_version": 1,
+            "dataset_coverage": "covered_synthetic_snapshot",
+            "end_exclusive": "2026-11-01",
+            "permission_version": 1,
+            "plan_version": 1,
+            "scope_kind": "included_accounts",
+            "sources": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "connection_id": "00000000-0000-0000-0000-000000000002",
+                "consent_state": "active",
+                "granted": true,
+                "history_from": "2026-08-01",
+                "history_to_exclusive": "2026-11-05",
+                "institution_id": "s-bank-demo",
+                "last_error_code": null,
+                "last_success_at": "2026-11-04T10:00:00Z",
+                "mode": "synthetic",
+                "observed_at": "2026-11-04T10:00:00Z",
+                "source_version": "ui-only.v1",
+                "sync_health": "fresh",
+                "timezone": "Europe/Helsinki"
+              }
+            ],
+            "start": "2026-10-01",
+            "unverified_account_ids": [],
+            "whole_finances_confirmed": false
+          },
+          "snapshot_id": "statfin-ktutk-2022-51770478e803db26",
+          "status": "partial",
+          "total_observed": {
+            "gross_minor": 17000,
+            "net_minor": 15000,
+            "refunds_minor": 2000,
+            "transaction_count": 3
+          },
+          "unmapped": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "unresolved_flow_count": 0
+        },
+        "material_bank_sources_complete": true,
+        "observed_calendar_months": 1,
+        "observed_currency": "EUR",
+        "public_currency": "EUR",
+        "reasons": [
+          {
+            "action": "choose_twelve_complete_calendar_months",
+            "code": "ANNUAL_WINDOW_REQUIRED"
+          }
+        ],
+        "rows": [
+          {
+            "coicop_code": "07322",
+            "difference_minor": null,
+            "label": "07.3.2.2 Passenger transport by taxi and hired vehicle with driver (S)",
+            "observed_equivalent_minor": null,
+            "public_annual_mean_minor": 6600,
+            "public_equivalent_minor": 6600,
+            "reasons": [
+              {
+                "action": "choose_twelve_complete_calendar_months",
+                "code": "ANNUAL_WINDOW_REQUIRED"
+              }
+            ],
+            "relative_difference_basis_points": null,
+            "relative_difference_unavailable_reason": null,
+            "source_status": null,
+            "status": "withheld"
+          },
+          {
+            "coicop_code": "01",
+            "difference_minor": null,
+            "label": "01 Food and non-alcoholic beverages",
+            "observed_equivalent_minor": null,
+            "public_annual_mean_minor": 328000,
+            "public_equivalent_minor": 328000,
+            "reasons": [
+              {
+                "action": "choose_twelve_complete_calendar_months",
+                "code": "ANNUAL_WINDOW_REQUIRED"
+              },
+              {
+                "action": "classify_or_split_relevant_ambiguous_purchases",
+                "code": "AMBIGUOUS_CATEGORY_COVERAGE"
+              }
+            ],
+            "relative_difference_basis_points": null,
+            "relative_difference_unavailable_reason": null,
+            "source_status": null,
+            "status": "withheld"
+          }
+        ],
+        "selection": {
+          "catalog": {
+            "cohorts": [
+              {
+                "average_household_size": "1",
+                "code": "1",
+                "label": "One-person, aged under 65",
+                "population_households": 865134,
+                "sample_households": 466,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2",
+                "code": "2",
+                "label": "Couple without children, aged under 65",
+                "population_households": 458381,
+                "sample_households": 554,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2.92",
+                "code": "3",
+                "label": "Single-parent households",
+                "population_households": 136203,
+                "sample_households": 89,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "3.99",
+                "code": "4",
+                "label": "Two parent family with children",
+                "population_households": 431509,
+                "sample_households": 621,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "1.35",
+                "code": "5",
+                "label": "Households of persons aged over 64",
+                "population_households": 858761,
+                "sample_households": 1133,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2.51",
+                "code": "6",
+                "label": "Other households",
+                "population_households": 169011,
+                "sample_households": 275,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "1.88",
+                "code": "SSS",
+                "label": "Total",
+                "population_households": 2919000,
+                "sample_households": 3138,
+                "specificity": "all_households"
+              }
+            ],
+            "dimension": "elinvaihe_13_20160101",
+            "limitations": [
+              "Select the published household type explicitly. Transactions and account ownership do not establish household composition.",
+              "Only the household-type dimension is used. Age, region and income intersections cannot be constructed from separate marginal tables.",
+              "Total means all households, not a more specific match. Unavailable choices never fall back to Total automatically.",
+              "The reference year and household unit belong to the source. Selecting a cohort does not establish household financial coverage or price/period compatibility.",
+              "Suppressed or missing background values remain unavailable. Average household size is descriptive and cannot scale an individual into a household."
+            ],
+            "metadata_fingerprints": {
+              "14lv": "f9248a8aabca5df18c84cfd2b6c29338b38d3536adb46b6842f70544e1fbeddd",
+              "14ph": "659d6f64a568c0d12660ff14ac58ceb8337fadd39fd249ee194785804b727629"
+            },
+            "policy_version": "household-cohorts.v1",
+            "reference_period": "2022",
+            "snapshot": {
+              "attribution": "Source: Statistics Finland, households' consumption.",
+              "id": "statfin-ktutk-2022-51770478e803db26",
+              "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+              "mapping_version": "unmapped.v1",
+              "reference_period": "2022",
+              "response_sha256": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+              "retrieved_at": "2026-11-04T15:13:17.649309Z",
+              "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+              "statistic_type": "mean",
+              "table_id": "14ph",
+              "unit": "EUR per household per reference year, current prices"
+            },
+            "unit": "household"
+          },
+          "cohort": {
+            "average_household_size": "1",
+            "code": "1",
+            "label": "One-person, aged under 65",
+            "population_households": 865134,
+            "sample_households": 466,
+            "specificity": "household_type"
+          },
+          "fallback_used": false,
+          "reason": null,
+          "requested": {
+            "household_code": "1",
+            "reference_period": "2022"
+          },
+          "selection_source": "explicit_user_choice",
+          "status": "selected"
+        },
+        "source": {
+          "attribution": "Source: Statistics Finland, households' consumption.",
+          "id": "statfin-ktutk-2022-51770478e803db26",
+          "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+          "mapping_version": "unmapped.v1",
+          "reference_period": "2022",
+          "response_sha256": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+          "retrieved_at": "2026-11-04T15:13:17.649309Z",
+          "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+          "statistic_type": "mean",
+          "table_id": "14ph",
+          "unit": "EUR per household per reference year, current prices"
+        },
+        "source_updated_at": "2024-04-11T05:00:00Z",
+        "statistic_type": "mean",
+        "status": "withheld",
+        "transform_version": "population-comparison.v1",
+        "transformations": [
+          "Observed ledger consumption uses valid booked expenses minus booked refunds in the named half-open date window.",
+          "Mapping: moneylens.coicop2018.v1; rule digest 283bfa70ebf5a1b81154b1a0577895a9b3094487f08711e162036082da65bb79.",
+          "Money remains integer minor units; ratios round half-up. Relative differences use basis points, not population percentiles.",
+          "Twelve complete observed calendar months are compared with the published annual household mean."
+        ]
+      }
+    },
+    "partial": {
+      "request": {
+        "allow_reference_year_mismatch": true,
+        "allow_short_period_approximation": true,
+        "coicop_codes": [
+          "07322",
+          "01"
+        ],
+        "comparison_basis": "monthly_equivalent",
+        "currency": "EUR",
+        "end_exclusive": "2026-11-01",
+        "household_code": "1",
+        "household_coverage_confirmed": true,
+        "reference_period": "2022",
+        "start": "2026-10-01"
+      },
+      "result": {
+        "as_of": "2026-11-04T10:00:00Z",
+        "comparison_basis": "monthly_equivalent",
+        "household_coverage": "user_confirmed",
+        "known_owned_scope_complete": true,
+        "limitations": [
+          "The published statistic is a household mean for 2022 at that year's current prices. No inflation or currency adjustment is applied.",
+          "Monthly equivalents provide approximate context, with seasonality and short-window limitations; they are not observed monthly survey means.",
+          "Household coverage is the user's explicit assertion about the named accounts, not a bank-verified fact. Selected accounts do not establish whole finances automatically.",
+          "Differences describe this observed consumption scope. They provide no spending target, saving capacity, rank, median or percentile.",
+          "Ambiguity blocks affected categories; unknown categories, unresolved flows and missing source scope block all comparisons. Suppressed public cells remain unavailable.",
+          "Private comparison is performed locally against the verified public artifact. No personal data is sent to Statistics Finland."
+        ],
+        "mapping": {
+          "ambiguous": {
+            "gross_minor": 5000,
+            "net_minor": 5000,
+            "refunds_minor": 0,
+            "transaction_count": 1
+          },
+          "assignments": [
+            {
+              "assigned_observed": {
+                "gross_minor": 12000,
+                "net_minor": 10000,
+                "refunds_minor": 2000,
+                "transaction_count": 2
+              },
+              "target": {
+                "code": "07322",
+                "label": "07.3.2.2 Passenger transport by taxi and hired vehicle with driver (S)"
+              }
+            },
+            {
+              "assigned_observed": {
+                "gross_minor": 0,
+                "net_minor": 0,
+                "refunds_minor": 0,
+                "transaction_count": 0
+              },
+              "target": {
+                "code": "01",
+                "label": "01 Food and non-alcoholic beverages"
+              }
+            }
+          ],
+          "category_taxonomy": "moneylens.synthetic.categories.v1",
+          "classification_version": "COICOP2018",
+          "decisions": [
+            {
+              "candidate_codes": [],
+              "category": "taxi",
+              "reason": "The synthetic taxonomy defines this as passenger taxi transport.",
+              "status": "mapped",
+              "target_code": "07322"
+            },
+            {
+              "candidate_codes": [
+                "01"
+              ],
+              "category": "groceries",
+              "reason": "Itemization or correction is needed before identifying food and non-alcoholic beverages.",
+              "status": "ambiguous",
+              "target_code": null
+            }
+          ],
+          "evidence_filters": {
+            "account_ids": null,
+            "category": null,
+            "currency": "EUR",
+            "end_exclusive": "2026-11-01",
+            "merchant": null,
+            "spending_only": false,
+            "start": "2026-10-01",
+            "status": "booked"
+          },
+          "evidence_transaction_ids": [],
+          "excluded": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "limitations": [
+            "This is an application-authored crosswalk for the named synthetic taxonomy, not an official Statistics Finland or organizer mapping.",
+            "Unknown taxonomies and unknown categories remain unmapped; names alone never grant compatibility.",
+            "The three coaching baskets describe necessity and recurrence, not COICOP categories; basket and merchant text do not select a mapping.",
+            "Ambiguous candidates are possible destinations, not allocations. No ambiguous amount is split or assigned automatically.",
+            "Parent and child target groups overlap and cannot be selected together for a summed mapping. A parent amount cannot be distributed to children.",
+            "Mapping does not establish household completeness, compatible price/year periods or a valid personal population comparison.",
+            "Assigned observed amounts are not proof of complete category spending. Source history, unresolved flows and household/price/period compatibility remain separate gates.",
+            "Excluded, ambiguous, unmapped and outside-selection money is retained separately; the five buckets reconcile to confirmed observed consumption, including refunds.",
+            "Zero assigned money means no confirmed records were mapped here; it is not a population benchmark or evidence of zero actual spending.",
+            "Amounts retain the source currency. No exchange-rate conversion, inflation adjustment or period extrapolation is performed."
+          ],
+          "mapped": {
+            "gross_minor": 12000,
+            "net_minor": 10000,
+            "refunds_minor": 2000,
+            "transaction_count": 2
+          },
+          "mapping_version": "moneylens.coicop2018.v1",
+          "nonconsumption_count": 0,
+          "outside_selection": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "policy_sha256": "283bfa70ebf5a1b81154b1a0577895a9b3094487f08711e162036082da65bb79",
+          "population_comparison_ready": false,
+          "scope": {
+            "account_ids": [
+              "00000000-0000-0000-0000-000000000001"
+            ],
+            "currency": "EUR",
+            "data_mode": "synthetic",
+            "data_version": 1,
+            "dataset_coverage": "covered_synthetic_snapshot",
+            "end_exclusive": "2026-11-01",
+            "permission_version": 1,
+            "plan_version": 1,
+            "scope_kind": "included_accounts",
+            "sources": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "connection_id": "00000000-0000-0000-0000-000000000002",
+                "consent_state": "active",
+                "granted": true,
+                "history_from": "2026-08-01",
+                "history_to_exclusive": "2026-11-05",
+                "institution_id": "s-bank-demo",
+                "last_error_code": null,
+                "last_success_at": "2026-11-04T10:00:00Z",
+                "mode": "synthetic",
+                "observed_at": "2026-11-04T10:00:00Z",
+                "source_version": "ui-only.v1",
+                "sync_health": "fresh",
+                "timezone": "Europe/Helsinki"
+              }
+            ],
+            "start": "2026-10-01",
+            "unverified_account_ids": [],
+            "whole_finances_confirmed": false
+          },
+          "snapshot_id": "statfin-ktutk-2022-51770478e803db26",
+          "status": "partial",
+          "total_observed": {
+            "gross_minor": 17000,
+            "net_minor": 15000,
+            "refunds_minor": 2000,
+            "transaction_count": 3
+          },
+          "unmapped": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "unresolved_flow_count": 0
+        },
+        "material_bank_sources_complete": true,
+        "observed_calendar_months": 1,
+        "observed_currency": "EUR",
+        "public_currency": "EUR",
+        "reasons": [],
+        "rows": [
+          {
+            "coicop_code": "07322",
+            "difference_minor": 9450,
+            "label": "07.3.2.2 Passenger transport by taxi and hired vehicle with driver (S)",
+            "observed_equivalent_minor": 10000,
+            "public_annual_mean_minor": 6600,
+            "public_equivalent_minor": 550,
+            "reasons": [],
+            "relative_difference_basis_points": 171818,
+            "relative_difference_unavailable_reason": null,
+            "source_status": null,
+            "status": "approximate"
+          },
+          {
+            "coicop_code": "01",
+            "difference_minor": null,
+            "label": "01 Food and non-alcoholic beverages",
+            "observed_equivalent_minor": null,
+            "public_annual_mean_minor": 328000,
+            "public_equivalent_minor": 27333,
+            "reasons": [
+              {
+                "action": "classify_or_split_relevant_ambiguous_purchases",
+                "code": "AMBIGUOUS_CATEGORY_COVERAGE"
+              }
+            ],
+            "relative_difference_basis_points": null,
+            "relative_difference_unavailable_reason": null,
+            "source_status": null,
+            "status": "withheld"
+          }
+        ],
+        "selection": {
+          "catalog": {
+            "cohorts": [
+              {
+                "average_household_size": "1",
+                "code": "1",
+                "label": "One-person, aged under 65",
+                "population_households": 865134,
+                "sample_households": 466,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2",
+                "code": "2",
+                "label": "Couple without children, aged under 65",
+                "population_households": 458381,
+                "sample_households": 554,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2.92",
+                "code": "3",
+                "label": "Single-parent households",
+                "population_households": 136203,
+                "sample_households": 89,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "3.99",
+                "code": "4",
+                "label": "Two parent family with children",
+                "population_households": 431509,
+                "sample_households": 621,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "1.35",
+                "code": "5",
+                "label": "Households of persons aged over 64",
+                "population_households": 858761,
+                "sample_households": 1133,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2.51",
+                "code": "6",
+                "label": "Other households",
+                "population_households": 169011,
+                "sample_households": 275,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "1.88",
+                "code": "SSS",
+                "label": "Total",
+                "population_households": 2919000,
+                "sample_households": 3138,
+                "specificity": "all_households"
+              }
+            ],
+            "dimension": "elinvaihe_13_20160101",
+            "limitations": [
+              "Select the published household type explicitly. Transactions and account ownership do not establish household composition.",
+              "Only the household-type dimension is used. Age, region and income intersections cannot be constructed from separate marginal tables.",
+              "Total means all households, not a more specific match. Unavailable choices never fall back to Total automatically.",
+              "The reference year and household unit belong to the source. Selecting a cohort does not establish household financial coverage or price/period compatibility.",
+              "Suppressed or missing background values remain unavailable. Average household size is descriptive and cannot scale an individual into a household."
+            ],
+            "metadata_fingerprints": {
+              "14lv": "f9248a8aabca5df18c84cfd2b6c29338b38d3536adb46b6842f70544e1fbeddd",
+              "14ph": "659d6f64a568c0d12660ff14ac58ceb8337fadd39fd249ee194785804b727629"
+            },
+            "policy_version": "household-cohorts.v1",
+            "reference_period": "2022",
+            "snapshot": {
+              "attribution": "Source: Statistics Finland, households' consumption.",
+              "id": "statfin-ktutk-2022-51770478e803db26",
+              "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+              "mapping_version": "unmapped.v1",
+              "reference_period": "2022",
+              "response_sha256": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+              "retrieved_at": "2026-11-04T15:13:17.649309Z",
+              "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+              "statistic_type": "mean",
+              "table_id": "14ph",
+              "unit": "EUR per household per reference year, current prices"
+            },
+            "unit": "household"
+          },
+          "cohort": {
+            "average_household_size": "1",
+            "code": "1",
+            "label": "One-person, aged under 65",
+            "population_households": 865134,
+            "sample_households": 466,
+            "specificity": "household_type"
+          },
+          "fallback_used": false,
+          "reason": null,
+          "requested": {
+            "household_code": "1",
+            "reference_period": "2022"
+          },
+          "selection_source": "explicit_user_choice",
+          "status": "selected"
+        },
+        "source": {
+          "attribution": "Source: Statistics Finland, households' consumption.",
+          "id": "statfin-ktutk-2022-51770478e803db26",
+          "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+          "mapping_version": "unmapped.v1",
+          "reference_period": "2022",
+          "response_sha256": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+          "retrieved_at": "2026-11-04T15:13:17.649309Z",
+          "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+          "statistic_type": "mean",
+          "table_id": "14ph",
+          "unit": "EUR per household per reference year, current prices"
+        },
+        "source_updated_at": "2024-04-11T05:00:00Z",
+        "statistic_type": "mean",
+        "status": "partial",
+        "transform_version": "population-comparison.v1",
+        "transformations": [
+          "Observed ledger consumption uses valid booked expenses minus booked refunds in the named half-open date window.",
+          "Mapping: moneylens.coicop2018.v1; rule digest 283bfa70ebf5a1b81154b1a0577895a9b3094487f08711e162036082da65bb79.",
+          "Money remains integer minor units; ratios round half-up. Relative differences use basis points, not population percentiles.",
+          "Observed consumption divided by 1 complete calendar month(s); published annual household mean divided by 12. No annual observation is invented."
+        ]
+      }
+    },
+    "stale": {
+      "request": {
+        "allow_reference_year_mismatch": true,
+        "allow_short_period_approximation": true,
+        "coicop_codes": [
+          "07322",
+          "01"
+        ],
+        "comparison_basis": "monthly_equivalent",
+        "currency": "EUR",
+        "end_exclusive": "2026-11-01",
+        "household_code": "1",
+        "household_coverage_confirmed": true,
+        "reference_period": "2022",
+        "start": "2026-10-01"
+      },
+      "result": {
+        "as_of": "2026-11-04T10:00:00Z",
+        "comparison_basis": "monthly_equivalent",
+        "household_coverage": "user_confirmed",
+        "known_owned_scope_complete": true,
+        "limitations": [
+          "The published statistic is a household mean for 2022 at that year's current prices. No inflation or currency adjustment is applied.",
+          "Monthly equivalents provide approximate context, with seasonality and short-window limitations; they are not observed monthly survey means.",
+          "Household coverage is the user's explicit assertion about the named accounts, not a bank-verified fact. Selected accounts do not establish whole finances automatically.",
+          "Differences describe this observed consumption scope. They provide no spending target, saving capacity, rank, median or percentile.",
+          "Ambiguity blocks affected categories; unknown categories, unresolved flows and missing source scope block all comparisons. Suppressed public cells remain unavailable.",
+          "Private comparison is performed locally against the verified public artifact. No personal data is sent to Statistics Finland."
+        ],
+        "mapping": {
+          "ambiguous": {
+            "gross_minor": 5000,
+            "net_minor": 5000,
+            "refunds_minor": 0,
+            "transaction_count": 1
+          },
+          "assignments": [
+            {
+              "assigned_observed": {
+                "gross_minor": 12000,
+                "net_minor": 10000,
+                "refunds_minor": 2000,
+                "transaction_count": 2
+              },
+              "target": {
+                "code": "07322",
+                "label": "07.3.2.2 Passenger transport by taxi and hired vehicle with driver (S)"
+              }
+            },
+            {
+              "assigned_observed": {
+                "gross_minor": 0,
+                "net_minor": 0,
+                "refunds_minor": 0,
+                "transaction_count": 0
+              },
+              "target": {
+                "code": "01",
+                "label": "01 Food and non-alcoholic beverages"
+              }
+            }
+          ],
+          "category_taxonomy": "moneylens.synthetic.categories.v1",
+          "classification_version": "COICOP2018",
+          "decisions": [
+            {
+              "candidate_codes": [],
+              "category": "taxi",
+              "reason": "The synthetic taxonomy defines this as passenger taxi transport.",
+              "status": "mapped",
+              "target_code": "07322"
+            },
+            {
+              "candidate_codes": [
+                "01"
+              ],
+              "category": "groceries",
+              "reason": "Itemization or correction is needed before identifying food and non-alcoholic beverages.",
+              "status": "ambiguous",
+              "target_code": null
+            }
+          ],
+          "evidence_filters": {
+            "account_ids": null,
+            "category": null,
+            "currency": "EUR",
+            "end_exclusive": "2026-11-01",
+            "merchant": null,
+            "spending_only": false,
+            "start": "2026-10-01",
+            "status": "booked"
+          },
+          "evidence_transaction_ids": [],
+          "excluded": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "limitations": [
+            "This is an application-authored crosswalk for the named synthetic taxonomy, not an official Statistics Finland or organizer mapping.",
+            "Unknown taxonomies and unknown categories remain unmapped; names alone never grant compatibility.",
+            "The three coaching baskets describe necessity and recurrence, not COICOP categories; basket and merchant text do not select a mapping.",
+            "Ambiguous candidates are possible destinations, not allocations. No ambiguous amount is split or assigned automatically.",
+            "Parent and child target groups overlap and cannot be selected together for a summed mapping. A parent amount cannot be distributed to children.",
+            "Mapping does not establish household completeness, compatible price/year periods or a valid personal population comparison.",
+            "Assigned observed amounts are not proof of complete category spending. Source history, unresolved flows and household/price/period compatibility remain separate gates.",
+            "Excluded, ambiguous, unmapped and outside-selection money is retained separately; the five buckets reconcile to confirmed observed consumption, including refunds.",
+            "Zero assigned money means no confirmed records were mapped here; it is not a population benchmark or evidence of zero actual spending.",
+            "Amounts retain the source currency. No exchange-rate conversion, inflation adjustment or period extrapolation is performed."
+          ],
+          "mapped": {
+            "gross_minor": 12000,
+            "net_minor": 10000,
+            "refunds_minor": 2000,
+            "transaction_count": 2
+          },
+          "mapping_version": "moneylens.coicop2018.v1",
+          "nonconsumption_count": 0,
+          "outside_selection": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "policy_sha256": "283bfa70ebf5a1b81154b1a0577895a9b3094487f08711e162036082da65bb79",
+          "population_comparison_ready": false,
+          "scope": {
+            "account_ids": [
+              "00000000-0000-0000-0000-000000000001"
+            ],
+            "currency": "EUR",
+            "data_mode": "synthetic",
+            "data_version": 1,
+            "dataset_coverage": "partial",
+            "end_exclusive": "2026-11-01",
+            "permission_version": 1,
+            "plan_version": 1,
+            "scope_kind": "included_accounts",
+            "sources": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "connection_id": "00000000-0000-0000-0000-000000000002",
+                "consent_state": "active",
+                "granted": true,
+                "history_from": "2026-08-01",
+                "history_to_exclusive": "2026-11-05",
+                "institution_id": "s-bank-demo",
+                "last_error_code": null,
+                "last_success_at": "2026-11-04T10:00:00Z",
+                "mode": "synthetic",
+                "observed_at": "2026-11-04T10:00:00Z",
+                "source_version": "ui-only.v1",
+                "sync_health": "stale",
+                "timezone": "Europe/Helsinki"
+              }
+            ],
+            "start": "2026-10-01",
+            "unverified_account_ids": [],
+            "whole_finances_confirmed": false
+          },
+          "snapshot_id": "statfin-ktutk-2022-51770478e803db26",
+          "status": "partial",
+          "total_observed": {
+            "gross_minor": 17000,
+            "net_minor": 15000,
+            "refunds_minor": 2000,
+            "transaction_count": 3
+          },
+          "unmapped": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "unresolved_flow_count": 0
+        },
+        "material_bank_sources_complete": false,
+        "observed_calendar_months": 1,
+        "observed_currency": "EUR",
+        "public_currency": "EUR",
+        "reasons": [
+          {
+            "action": "renew_and_publish_all_previously_granted_sources",
+            "code": "MATERIAL_BANK_SOURCE_INCOMPLETE"
+          },
+          {
+            "action": "publish_complete_authorized_history_for_window",
+            "code": "INCOMPLETE_ACCOUNT_HISTORY"
+          }
+        ],
+        "rows": [
+          {
+            "coicop_code": "07322",
+            "difference_minor": null,
+            "label": "07.3.2.2 Passenger transport by taxi and hired vehicle with driver (S)",
+            "observed_equivalent_minor": null,
+            "public_annual_mean_minor": 6600,
+            "public_equivalent_minor": 550,
+            "reasons": [
+              {
+                "action": "renew_and_publish_all_previously_granted_sources",
+                "code": "MATERIAL_BANK_SOURCE_INCOMPLETE"
+              },
+              {
+                "action": "publish_complete_authorized_history_for_window",
+                "code": "INCOMPLETE_ACCOUNT_HISTORY"
+              }
+            ],
+            "relative_difference_basis_points": null,
+            "relative_difference_unavailable_reason": null,
+            "source_status": null,
+            "status": "withheld"
+          },
+          {
+            "coicop_code": "01",
+            "difference_minor": null,
+            "label": "01 Food and non-alcoholic beverages",
+            "observed_equivalent_minor": null,
+            "public_annual_mean_minor": 328000,
+            "public_equivalent_minor": 27333,
+            "reasons": [
+              {
+                "action": "renew_and_publish_all_previously_granted_sources",
+                "code": "MATERIAL_BANK_SOURCE_INCOMPLETE"
+              },
+              {
+                "action": "publish_complete_authorized_history_for_window",
+                "code": "INCOMPLETE_ACCOUNT_HISTORY"
+              },
+              {
+                "action": "classify_or_split_relevant_ambiguous_purchases",
+                "code": "AMBIGUOUS_CATEGORY_COVERAGE"
+              }
+            ],
+            "relative_difference_basis_points": null,
+            "relative_difference_unavailable_reason": null,
+            "source_status": null,
+            "status": "withheld"
+          }
+        ],
+        "selection": {
+          "catalog": {
+            "cohorts": [
+              {
+                "average_household_size": "1",
+                "code": "1",
+                "label": "One-person, aged under 65",
+                "population_households": 865134,
+                "sample_households": 466,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2",
+                "code": "2",
+                "label": "Couple without children, aged under 65",
+                "population_households": 458381,
+                "sample_households": 554,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2.92",
+                "code": "3",
+                "label": "Single-parent households",
+                "population_households": 136203,
+                "sample_households": 89,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "3.99",
+                "code": "4",
+                "label": "Two parent family with children",
+                "population_households": 431509,
+                "sample_households": 621,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "1.35",
+                "code": "5",
+                "label": "Households of persons aged over 64",
+                "population_households": 858761,
+                "sample_households": 1133,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2.51",
+                "code": "6",
+                "label": "Other households",
+                "population_households": 169011,
+                "sample_households": 275,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "1.88",
+                "code": "SSS",
+                "label": "Total",
+                "population_households": 2919000,
+                "sample_households": 3138,
+                "specificity": "all_households"
+              }
+            ],
+            "dimension": "elinvaihe_13_20160101",
+            "limitations": [
+              "Select the published household type explicitly. Transactions and account ownership do not establish household composition.",
+              "Only the household-type dimension is used. Age, region and income intersections cannot be constructed from separate marginal tables.",
+              "Total means all households, not a more specific match. Unavailable choices never fall back to Total automatically.",
+              "The reference year and household unit belong to the source. Selecting a cohort does not establish household financial coverage or price/period compatibility.",
+              "Suppressed or missing background values remain unavailable. Average household size is descriptive and cannot scale an individual into a household."
+            ],
+            "metadata_fingerprints": {
+              "14lv": "f9248a8aabca5df18c84cfd2b6c29338b38d3536adb46b6842f70544e1fbeddd",
+              "14ph": "659d6f64a568c0d12660ff14ac58ceb8337fadd39fd249ee194785804b727629"
+            },
+            "policy_version": "household-cohorts.v1",
+            "reference_period": "2022",
+            "snapshot": {
+              "attribution": "Source: Statistics Finland, households' consumption.",
+              "id": "statfin-ktutk-2022-51770478e803db26",
+              "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+              "mapping_version": "unmapped.v1",
+              "reference_period": "2022",
+              "response_sha256": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+              "retrieved_at": "2026-11-04T15:13:17.649309Z",
+              "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+              "statistic_type": "mean",
+              "table_id": "14ph",
+              "unit": "EUR per household per reference year, current prices"
+            },
+            "unit": "household"
+          },
+          "cohort": {
+            "average_household_size": "1",
+            "code": "1",
+            "label": "One-person, aged under 65",
+            "population_households": 865134,
+            "sample_households": 466,
+            "specificity": "household_type"
+          },
+          "fallback_used": false,
+          "reason": null,
+          "requested": {
+            "household_code": "1",
+            "reference_period": "2022"
+          },
+          "selection_source": "explicit_user_choice",
+          "status": "selected"
+        },
+        "source": {
+          "attribution": "Source: Statistics Finland, households' consumption.",
+          "id": "statfin-ktutk-2022-51770478e803db26",
+          "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+          "mapping_version": "unmapped.v1",
+          "reference_period": "2022",
+          "response_sha256": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+          "retrieved_at": "2026-11-04T15:13:17.649309Z",
+          "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+          "statistic_type": "mean",
+          "table_id": "14ph",
+          "unit": "EUR per household per reference year, current prices"
+        },
+        "source_updated_at": "2024-04-11T05:00:00Z",
+        "statistic_type": "mean",
+        "status": "withheld",
+        "transform_version": "population-comparison.v1",
+        "transformations": [
+          "Observed ledger consumption uses valid booked expenses minus booked refunds in the named half-open date window.",
+          "Mapping: moneylens.coicop2018.v1; rule digest 283bfa70ebf5a1b81154b1a0577895a9b3094487f08711e162036082da65bb79.",
+          "Money remains integer minor units; ratios round half-up. Relative differences use basis points, not population percentiles.",
+          "Observed consumption divided by 1 complete calendar month(s); published annual household mean divided by 12. No annual observation is invented."
+        ]
+      }
+    },
+    "suppressed": {
+      "request": {
+        "allow_reference_year_mismatch": true,
+        "allow_short_period_approximation": true,
+        "coicop_codes": [
+          "0533"
+        ],
+        "comparison_basis": "monthly_equivalent",
+        "currency": "EUR",
+        "end_exclusive": "2026-11-01",
+        "household_code": "1",
+        "household_coverage_confirmed": true,
+        "reference_period": "2022",
+        "start": "2026-10-01"
+      },
+      "result": {
+        "as_of": "2026-11-04T10:00:00Z",
+        "comparison_basis": "monthly_equivalent",
+        "household_coverage": "user_confirmed",
+        "known_owned_scope_complete": true,
+        "limitations": [
+          "The published statistic is a household mean for 2022 at that year's current prices. No inflation or currency adjustment is applied.",
+          "Monthly equivalents provide approximate context, with seasonality and short-window limitations; they are not observed monthly survey means.",
+          "Household coverage is the user's explicit assertion about the named accounts, not a bank-verified fact. Selected accounts do not establish whole finances automatically.",
+          "Differences describe this observed consumption scope. They provide no spending target, saving capacity, rank, median or percentile.",
+          "Ambiguity blocks affected categories; unknown categories, unresolved flows and missing source scope block all comparisons. Suppressed public cells remain unavailable.",
+          "Private comparison is performed locally against the verified public artifact. No personal data is sent to Statistics Finland."
+        ],
+        "mapping": {
+          "ambiguous": {
+            "gross_minor": 5000,
+            "net_minor": 5000,
+            "refunds_minor": 0,
+            "transaction_count": 1
+          },
+          "assignments": [
+            {
+              "assigned_observed": {
+                "gross_minor": 0,
+                "net_minor": 0,
+                "refunds_minor": 0,
+                "transaction_count": 0
+              },
+              "target": {
+                "code": "0533",
+                "label": "05.3.3 Repair, installation and hire of household appliances (S)"
+              }
+            }
+          ],
+          "category_taxonomy": "moneylens.synthetic.categories.v1",
+          "classification_version": "COICOP2018",
+          "decisions": [
+            {
+              "candidate_codes": [],
+              "category": "taxi",
+              "reason": "The synthetic taxonomy defines this as passenger taxi transport.",
+              "status": "mapped",
+              "target_code": "07322"
+            },
+            {
+              "candidate_codes": [
+                "01"
+              ],
+              "category": "groceries",
+              "reason": "Itemization or correction is needed before identifying food and non-alcoholic beverages.",
+              "status": "ambiguous",
+              "target_code": null
+            }
+          ],
+          "evidence_filters": {
+            "account_ids": null,
+            "category": null,
+            "currency": "EUR",
+            "end_exclusive": "2026-11-01",
+            "merchant": null,
+            "spending_only": false,
+            "start": "2026-10-01",
+            "status": "booked"
+          },
+          "evidence_transaction_ids": [],
+          "excluded": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "limitations": [
+            "This is an application-authored crosswalk for the named synthetic taxonomy, not an official Statistics Finland or organizer mapping.",
+            "Unknown taxonomies and unknown categories remain unmapped; names alone never grant compatibility.",
+            "The three coaching baskets describe necessity and recurrence, not COICOP categories; basket and merchant text do not select a mapping.",
+            "Ambiguous candidates are possible destinations, not allocations. No ambiguous amount is split or assigned automatically.",
+            "Parent and child target groups overlap and cannot be selected together for a summed mapping. A parent amount cannot be distributed to children.",
+            "Mapping does not establish household completeness, compatible price/year periods or a valid personal population comparison.",
+            "Assigned observed amounts are not proof of complete category spending. Source history, unresolved flows and household/price/period compatibility remain separate gates.",
+            "Excluded, ambiguous, unmapped and outside-selection money is retained separately; the five buckets reconcile to confirmed observed consumption, including refunds.",
+            "Zero assigned money means no confirmed records were mapped here; it is not a population benchmark or evidence of zero actual spending.",
+            "Amounts retain the source currency. No exchange-rate conversion, inflation adjustment or period extrapolation is performed."
+          ],
+          "mapped": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "mapping_version": "moneylens.coicop2018.v1",
+          "nonconsumption_count": 0,
+          "outside_selection": {
+            "gross_minor": 12000,
+            "net_minor": 10000,
+            "refunds_minor": 2000,
+            "transaction_count": 2
+          },
+          "policy_sha256": "283bfa70ebf5a1b81154b1a0577895a9b3094487f08711e162036082da65bb79",
+          "population_comparison_ready": false,
+          "scope": {
+            "account_ids": [
+              "00000000-0000-0000-0000-000000000001"
+            ],
+            "currency": "EUR",
+            "data_mode": "synthetic",
+            "data_version": 1,
+            "dataset_coverage": "covered_synthetic_snapshot",
+            "end_exclusive": "2026-11-01",
+            "permission_version": 1,
+            "plan_version": 1,
+            "scope_kind": "included_accounts",
+            "sources": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "connection_id": "00000000-0000-0000-0000-000000000002",
+                "consent_state": "active",
+                "granted": true,
+                "history_from": "2026-08-01",
+                "history_to_exclusive": "2026-11-05",
+                "institution_id": "s-bank-demo",
+                "last_error_code": null,
+                "last_success_at": "2026-11-04T10:00:00Z",
+                "mode": "synthetic",
+                "observed_at": "2026-11-04T10:00:00Z",
+                "source_version": "ui-only.v1",
+                "sync_health": "fresh",
+                "timezone": "Europe/Helsinki"
+              }
+            ],
+            "start": "2026-10-01",
+            "unverified_account_ids": [],
+            "whole_finances_confirmed": false
+          },
+          "snapshot_id": "statfin-ktutk-2022-51770478e803db26",
+          "status": "partial",
+          "total_observed": {
+            "gross_minor": 17000,
+            "net_minor": 15000,
+            "refunds_minor": 2000,
+            "transaction_count": 3
+          },
+          "unmapped": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "unresolved_flow_count": 0
+        },
+        "material_bank_sources_complete": true,
+        "observed_calendar_months": 1,
+        "observed_currency": "EUR",
+        "public_currency": "EUR",
+        "reasons": [],
+        "rows": [
+          {
+            "coicop_code": "0533",
+            "difference_minor": null,
+            "label": "05.3.3 Repair, installation and hire of household appliances (S)",
+            "observed_equivalent_minor": null,
+            "public_annual_mean_minor": null,
+            "public_equivalent_minor": null,
+            "reasons": [
+              {
+                "action": "choose_an_explicit_available_cohort_or_category",
+                "code": "POPULATION_CELL_UNAVAILABLE"
+              }
+            ],
+            "relative_difference_basis_points": null,
+            "relative_difference_unavailable_reason": null,
+            "source_status": "...",
+            "status": "withheld"
+          }
+        ],
+        "selection": {
+          "catalog": {
+            "cohorts": [
+              {
+                "average_household_size": "1",
+                "code": "1",
+                "label": "One-person, aged under 65",
+                "population_households": 865134,
+                "sample_households": 466,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2",
+                "code": "2",
+                "label": "Couple without children, aged under 65",
+                "population_households": 458381,
+                "sample_households": 554,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2.92",
+                "code": "3",
+                "label": "Single-parent households",
+                "population_households": 136203,
+                "sample_households": 89,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "3.99",
+                "code": "4",
+                "label": "Two parent family with children",
+                "population_households": 431509,
+                "sample_households": 621,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "1.35",
+                "code": "5",
+                "label": "Households of persons aged over 64",
+                "population_households": 858761,
+                "sample_households": 1133,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2.51",
+                "code": "6",
+                "label": "Other households",
+                "population_households": 169011,
+                "sample_households": 275,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "1.88",
+                "code": "SSS",
+                "label": "Total",
+                "population_households": 2919000,
+                "sample_households": 3138,
+                "specificity": "all_households"
+              }
+            ],
+            "dimension": "elinvaihe_13_20160101",
+            "limitations": [
+              "Select the published household type explicitly. Transactions and account ownership do not establish household composition.",
+              "Only the household-type dimension is used. Age, region and income intersections cannot be constructed from separate marginal tables.",
+              "Total means all households, not a more specific match. Unavailable choices never fall back to Total automatically.",
+              "The reference year and household unit belong to the source. Selecting a cohort does not establish household financial coverage or price/period compatibility.",
+              "Suppressed or missing background values remain unavailable. Average household size is descriptive and cannot scale an individual into a household."
+            ],
+            "metadata_fingerprints": {
+              "14lv": "f9248a8aabca5df18c84cfd2b6c29338b38d3536adb46b6842f70544e1fbeddd",
+              "14ph": "659d6f64a568c0d12660ff14ac58ceb8337fadd39fd249ee194785804b727629"
+            },
+            "policy_version": "household-cohorts.v1",
+            "reference_period": "2022",
+            "snapshot": {
+              "attribution": "Source: Statistics Finland, households' consumption.",
+              "id": "statfin-ktutk-2022-51770478e803db26",
+              "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+              "mapping_version": "unmapped.v1",
+              "reference_period": "2022",
+              "response_sha256": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+              "retrieved_at": "2026-11-04T15:13:17.649309Z",
+              "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+              "statistic_type": "mean",
+              "table_id": "14ph",
+              "unit": "EUR per household per reference year, current prices"
+            },
+            "unit": "household"
+          },
+          "cohort": {
+            "average_household_size": "1",
+            "code": "1",
+            "label": "One-person, aged under 65",
+            "population_households": 865134,
+            "sample_households": 466,
+            "specificity": "household_type"
+          },
+          "fallback_used": false,
+          "reason": null,
+          "requested": {
+            "household_code": "1",
+            "reference_period": "2022"
+          },
+          "selection_source": "explicit_user_choice",
+          "status": "selected"
+        },
+        "source": {
+          "attribution": "Source: Statistics Finland, households' consumption.",
+          "id": "statfin-ktutk-2022-51770478e803db26",
+          "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+          "mapping_version": "unmapped.v1",
+          "reference_period": "2022",
+          "response_sha256": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+          "retrieved_at": "2026-11-04T15:13:17.649309Z",
+          "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+          "statistic_type": "mean",
+          "table_id": "14ph",
+          "unit": "EUR per household per reference year, current prices"
+        },
+        "source_updated_at": "2024-04-11T05:00:00Z",
+        "statistic_type": "mean",
+        "status": "withheld",
+        "transform_version": "population-comparison.v1",
+        "transformations": [
+          "Observed ledger consumption uses valid booked expenses minus booked refunds in the named half-open date window.",
+          "Mapping: moneylens.coicop2018.v1; rule digest 283bfa70ebf5a1b81154b1a0577895a9b3094487f08711e162036082da65bb79.",
+          "Money remains integer minor units; ratios round half-up. Relative differences use basis points, not population percentiles.",
+          "Observed consumption divided by 1 complete calendar month(s); published annual household mean divided by 12. No annual observation is invented."
+        ]
+      }
+    },
+    "taxi": {
+      "request": {
+        "allow_reference_year_mismatch": true,
+        "allow_short_period_approximation": true,
+        "coicop_codes": [
+          "07322"
+        ],
+        "comparison_basis": "monthly_equivalent",
+        "currency": "EUR",
+        "end_exclusive": "2026-11-01",
+        "household_code": "1",
+        "household_coverage_confirmed": true,
+        "reference_period": "2022",
+        "start": "2026-10-01"
+      },
+      "result": {
+        "as_of": "2026-11-04T10:00:00Z",
+        "comparison_basis": "monthly_equivalent",
+        "household_coverage": "user_confirmed",
+        "known_owned_scope_complete": true,
+        "limitations": [
+          "The published statistic is a household mean for 2022 at that year's current prices. No inflation or currency adjustment is applied.",
+          "Monthly equivalents provide approximate context, with seasonality and short-window limitations; they are not observed monthly survey means.",
+          "Household coverage is the user's explicit assertion about the named accounts, not a bank-verified fact. Selected accounts do not establish whole finances automatically.",
+          "Differences describe this observed consumption scope. They provide no spending target, saving capacity, rank, median or percentile.",
+          "Ambiguity blocks affected categories; unknown categories, unresolved flows and missing source scope block all comparisons. Suppressed public cells remain unavailable.",
+          "Private comparison is performed locally against the verified public artifact. No personal data is sent to Statistics Finland."
+        ],
+        "mapping": {
+          "ambiguous": {
+            "gross_minor": 5000,
+            "net_minor": 5000,
+            "refunds_minor": 0,
+            "transaction_count": 1
+          },
+          "assignments": [
+            {
+              "assigned_observed": {
+                "gross_minor": 12000,
+                "net_minor": 10000,
+                "refunds_minor": 2000,
+                "transaction_count": 2
+              },
+              "target": {
+                "code": "07322",
+                "label": "07.3.2.2 Passenger transport by taxi and hired vehicle with driver (S)"
+              }
+            }
+          ],
+          "category_taxonomy": "moneylens.synthetic.categories.v1",
+          "classification_version": "COICOP2018",
+          "decisions": [
+            {
+              "candidate_codes": [],
+              "category": "taxi",
+              "reason": "The synthetic taxonomy defines this as passenger taxi transport.",
+              "status": "mapped",
+              "target_code": "07322"
+            },
+            {
+              "candidate_codes": [
+                "01"
+              ],
+              "category": "groceries",
+              "reason": "Itemization or correction is needed before identifying food and non-alcoholic beverages.",
+              "status": "ambiguous",
+              "target_code": null
+            }
+          ],
+          "evidence_filters": {
+            "account_ids": null,
+            "category": null,
+            "currency": "EUR",
+            "end_exclusive": "2026-11-01",
+            "merchant": null,
+            "spending_only": false,
+            "start": "2026-10-01",
+            "status": "booked"
+          },
+          "evidence_transaction_ids": [],
+          "excluded": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "limitations": [
+            "This is an application-authored crosswalk for the named synthetic taxonomy, not an official Statistics Finland or organizer mapping.",
+            "Unknown taxonomies and unknown categories remain unmapped; names alone never grant compatibility.",
+            "The three coaching baskets describe necessity and recurrence, not COICOP categories; basket and merchant text do not select a mapping.",
+            "Ambiguous candidates are possible destinations, not allocations. No ambiguous amount is split or assigned automatically.",
+            "Parent and child target groups overlap and cannot be selected together for a summed mapping. A parent amount cannot be distributed to children.",
+            "Mapping does not establish household completeness, compatible price/year periods or a valid personal population comparison.",
+            "Assigned observed amounts are not proof of complete category spending. Source history, unresolved flows and household/price/period compatibility remain separate gates.",
+            "Excluded, ambiguous, unmapped and outside-selection money is retained separately; the five buckets reconcile to confirmed observed consumption, including refunds.",
+            "Zero assigned money means no confirmed records were mapped here; it is not a population benchmark or evidence of zero actual spending.",
+            "Amounts retain the source currency. No exchange-rate conversion, inflation adjustment or period extrapolation is performed."
+          ],
+          "mapped": {
+            "gross_minor": 12000,
+            "net_minor": 10000,
+            "refunds_minor": 2000,
+            "transaction_count": 2
+          },
+          "mapping_version": "moneylens.coicop2018.v1",
+          "nonconsumption_count": 0,
+          "outside_selection": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "policy_sha256": "283bfa70ebf5a1b81154b1a0577895a9b3094487f08711e162036082da65bb79",
+          "population_comparison_ready": false,
+          "scope": {
+            "account_ids": [
+              "00000000-0000-0000-0000-000000000001"
+            ],
+            "currency": "EUR",
+            "data_mode": "synthetic",
+            "data_version": 1,
+            "dataset_coverage": "covered_synthetic_snapshot",
+            "end_exclusive": "2026-11-01",
+            "permission_version": 1,
+            "plan_version": 1,
+            "scope_kind": "included_accounts",
+            "sources": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "connection_id": "00000000-0000-0000-0000-000000000002",
+                "consent_state": "active",
+                "granted": true,
+                "history_from": "2026-08-01",
+                "history_to_exclusive": "2026-11-05",
+                "institution_id": "s-bank-demo",
+                "last_error_code": null,
+                "last_success_at": "2026-11-04T10:00:00Z",
+                "mode": "synthetic",
+                "observed_at": "2026-11-04T10:00:00Z",
+                "source_version": "ui-only.v1",
+                "sync_health": "fresh",
+                "timezone": "Europe/Helsinki"
+              }
+            ],
+            "start": "2026-10-01",
+            "unverified_account_ids": [],
+            "whole_finances_confirmed": false
+          },
+          "snapshot_id": "statfin-ktutk-2022-51770478e803db26",
+          "status": "partial",
+          "total_observed": {
+            "gross_minor": 17000,
+            "net_minor": 15000,
+            "refunds_minor": 2000,
+            "transaction_count": 3
+          },
+          "unmapped": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "unresolved_flow_count": 0
+        },
+        "material_bank_sources_complete": true,
+        "observed_calendar_months": 1,
+        "observed_currency": "EUR",
+        "public_currency": "EUR",
+        "reasons": [],
+        "rows": [
+          {
+            "coicop_code": "07322",
+            "difference_minor": 9450,
+            "label": "07.3.2.2 Passenger transport by taxi and hired vehicle with driver (S)",
+            "observed_equivalent_minor": 10000,
+            "public_annual_mean_minor": 6600,
+            "public_equivalent_minor": 550,
+            "reasons": [],
+            "relative_difference_basis_points": 171818,
+            "relative_difference_unavailable_reason": null,
+            "source_status": null,
+            "status": "approximate"
+          }
+        ],
+        "selection": {
+          "catalog": {
+            "cohorts": [
+              {
+                "average_household_size": "1",
+                "code": "1",
+                "label": "One-person, aged under 65",
+                "population_households": 865134,
+                "sample_households": 466,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2",
+                "code": "2",
+                "label": "Couple without children, aged under 65",
+                "population_households": 458381,
+                "sample_households": 554,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2.92",
+                "code": "3",
+                "label": "Single-parent households",
+                "population_households": 136203,
+                "sample_households": 89,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "3.99",
+                "code": "4",
+                "label": "Two parent family with children",
+                "population_households": 431509,
+                "sample_households": 621,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "1.35",
+                "code": "5",
+                "label": "Households of persons aged over 64",
+                "population_households": 858761,
+                "sample_households": 1133,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2.51",
+                "code": "6",
+                "label": "Other households",
+                "population_households": 169011,
+                "sample_households": 275,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "1.88",
+                "code": "SSS",
+                "label": "Total",
+                "population_households": 2919000,
+                "sample_households": 3138,
+                "specificity": "all_households"
+              }
+            ],
+            "dimension": "elinvaihe_13_20160101",
+            "limitations": [
+              "Select the published household type explicitly. Transactions and account ownership do not establish household composition.",
+              "Only the household-type dimension is used. Age, region and income intersections cannot be constructed from separate marginal tables.",
+              "Total means all households, not a more specific match. Unavailable choices never fall back to Total automatically.",
+              "The reference year and household unit belong to the source. Selecting a cohort does not establish household financial coverage or price/period compatibility.",
+              "Suppressed or missing background values remain unavailable. Average household size is descriptive and cannot scale an individual into a household."
+            ],
+            "metadata_fingerprints": {
+              "14lv": "f9248a8aabca5df18c84cfd2b6c29338b38d3536adb46b6842f70544e1fbeddd",
+              "14ph": "659d6f64a568c0d12660ff14ac58ceb8337fadd39fd249ee194785804b727629"
+            },
+            "policy_version": "household-cohorts.v1",
+            "reference_period": "2022",
+            "snapshot": {
+              "attribution": "Source: Statistics Finland, households' consumption.",
+              "id": "statfin-ktutk-2022-51770478e803db26",
+              "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+              "mapping_version": "unmapped.v1",
+              "reference_period": "2022",
+              "response_sha256": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+              "retrieved_at": "2026-11-04T15:13:17.649309Z",
+              "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+              "statistic_type": "mean",
+              "table_id": "14ph",
+              "unit": "EUR per household per reference year, current prices"
+            },
+            "unit": "household"
+          },
+          "cohort": {
+            "average_household_size": "1",
+            "code": "1",
+            "label": "One-person, aged under 65",
+            "population_households": 865134,
+            "sample_households": 466,
+            "specificity": "household_type"
+          },
+          "fallback_used": false,
+          "reason": null,
+          "requested": {
+            "household_code": "1",
+            "reference_period": "2022"
+          },
+          "selection_source": "explicit_user_choice",
+          "status": "selected"
+        },
+        "source": {
+          "attribution": "Source: Statistics Finland, households' consumption.",
+          "id": "statfin-ktutk-2022-51770478e803db26",
+          "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+          "mapping_version": "unmapped.v1",
+          "reference_period": "2022",
+          "response_sha256": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+          "retrieved_at": "2026-11-04T15:13:17.649309Z",
+          "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+          "statistic_type": "mean",
+          "table_id": "14ph",
+          "unit": "EUR per household per reference year, current prices"
+        },
+        "source_updated_at": "2024-04-11T05:00:00Z",
+        "statistic_type": "mean",
+        "status": "approximate",
+        "transform_version": "population-comparison.v1",
+        "transformations": [
+          "Observed ledger consumption uses valid booked expenses minus booked refunds in the named half-open date window.",
+          "Mapping: moneylens.coicop2018.v1; rule digest 283bfa70ebf5a1b81154b1a0577895a9b3094487f08711e162036082da65bb79.",
+          "Money remains integer minor units; ratios round half-up. Relative differences use basis points, not population percentiles.",
+          "Observed consumption divided by 1 complete calendar month(s); published annual household mean divided by 12. No annual observation is invented."
+        ]
+      }
+    },
+    "unavailable": {
+      "request": {
+        "allow_reference_year_mismatch": true,
+        "allow_short_period_approximation": true,
+        "coicop_codes": [
+          "07322",
+          "01"
+        ],
+        "comparison_basis": "monthly_equivalent",
+        "currency": "EUR",
+        "end_exclusive": "2026-11-01",
+        "household_code": "1",
+        "household_coverage_confirmed": true,
+        "reference_period": "2022",
+        "start": "2026-10-01"
+      },
+      "result": {
+        "as_of": "2026-11-04T10:00:00Z",
+        "comparison_basis": "monthly_equivalent",
+        "household_coverage": "user_confirmed",
+        "known_owned_scope_complete": null,
+        "limitations": [
+          "A verified compatible public source and mapping are required. No comparison or replacement population value was calculated."
+        ],
+        "mapping": null,
+        "material_bank_sources_complete": null,
+        "observed_calendar_months": 1,
+        "observed_currency": "EUR",
+        "public_currency": "EUR",
+        "reasons": [
+          {
+            "action": "retry_verified_public_snapshot",
+            "code": "VERIFIED_POPULATION_DATA_UNAVAILABLE"
+          }
+        ],
+        "rows": [],
+        "selection": null,
+        "source": null,
+        "source_updated_at": null,
+        "statistic_type": "mean",
+        "status": "unavailable",
+        "transform_version": "population-comparison.v1",
+        "transformations": []
+      }
+    },
+    "unconfirmed": {
+      "request": {
+        "allow_reference_year_mismatch": false,
+        "allow_short_period_approximation": false,
+        "coicop_codes": [
+          "07322",
+          "01"
+        ],
+        "comparison_basis": "monthly_equivalent",
+        "currency": "EUR",
+        "end_exclusive": "2026-11-01",
+        "household_code": "1",
+        "household_coverage_confirmed": false,
+        "reference_period": "2022",
+        "start": "2026-10-01"
+      },
+      "result": {
+        "as_of": "2026-11-04T10:00:00Z",
+        "comparison_basis": "monthly_equivalent",
+        "household_coverage": "unconfirmed",
+        "known_owned_scope_complete": true,
+        "limitations": [
+          "The published statistic is a household mean for 2022 at that year's current prices. No inflation or currency adjustment is applied.",
+          "Monthly equivalents provide approximate context, with seasonality and short-window limitations; they are not observed monthly survey means.",
+          "Household coverage is the user's explicit assertion about the named accounts, not a bank-verified fact. Selected accounts do not establish whole finances automatically.",
+          "Differences describe this observed consumption scope. They provide no spending target, saving capacity, rank, median or percentile.",
+          "Ambiguity blocks affected categories; unknown categories, unresolved flows and missing source scope block all comparisons. Suppressed public cells remain unavailable.",
+          "Private comparison is performed locally against the verified public artifact. No personal data is sent to Statistics Finland."
+        ],
+        "mapping": {
+          "ambiguous": {
+            "gross_minor": 5000,
+            "net_minor": 5000,
+            "refunds_minor": 0,
+            "transaction_count": 1
+          },
+          "assignments": [
+            {
+              "assigned_observed": {
+                "gross_minor": 12000,
+                "net_minor": 10000,
+                "refunds_minor": 2000,
+                "transaction_count": 2
+              },
+              "target": {
+                "code": "07322",
+                "label": "07.3.2.2 Passenger transport by taxi and hired vehicle with driver (S)"
+              }
+            },
+            {
+              "assigned_observed": {
+                "gross_minor": 0,
+                "net_minor": 0,
+                "refunds_minor": 0,
+                "transaction_count": 0
+              },
+              "target": {
+                "code": "01",
+                "label": "01 Food and non-alcoholic beverages"
+              }
+            }
+          ],
+          "category_taxonomy": "moneylens.synthetic.categories.v1",
+          "classification_version": "COICOP2018",
+          "decisions": [
+            {
+              "candidate_codes": [],
+              "category": "taxi",
+              "reason": "The synthetic taxonomy defines this as passenger taxi transport.",
+              "status": "mapped",
+              "target_code": "07322"
+            },
+            {
+              "candidate_codes": [
+                "01"
+              ],
+              "category": "groceries",
+              "reason": "Itemization or correction is needed before identifying food and non-alcoholic beverages.",
+              "status": "ambiguous",
+              "target_code": null
+            }
+          ],
+          "evidence_filters": {
+            "account_ids": null,
+            "category": null,
+            "currency": "EUR",
+            "end_exclusive": "2026-11-01",
+            "merchant": null,
+            "spending_only": false,
+            "start": "2026-10-01",
+            "status": "booked"
+          },
+          "evidence_transaction_ids": [],
+          "excluded": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "limitations": [
+            "This is an application-authored crosswalk for the named synthetic taxonomy, not an official Statistics Finland or organizer mapping.",
+            "Unknown taxonomies and unknown categories remain unmapped; names alone never grant compatibility.",
+            "The three coaching baskets describe necessity and recurrence, not COICOP categories; basket and merchant text do not select a mapping.",
+            "Ambiguous candidates are possible destinations, not allocations. No ambiguous amount is split or assigned automatically.",
+            "Parent and child target groups overlap and cannot be selected together for a summed mapping. A parent amount cannot be distributed to children.",
+            "Mapping does not establish household completeness, compatible price/year periods or a valid personal population comparison.",
+            "Assigned observed amounts are not proof of complete category spending. Source history, unresolved flows and household/price/period compatibility remain separate gates.",
+            "Excluded, ambiguous, unmapped and outside-selection money is retained separately; the five buckets reconcile to confirmed observed consumption, including refunds.",
+            "Zero assigned money means no confirmed records were mapped here; it is not a population benchmark or evidence of zero actual spending.",
+            "Amounts retain the source currency. No exchange-rate conversion, inflation adjustment or period extrapolation is performed."
+          ],
+          "mapped": {
+            "gross_minor": 12000,
+            "net_minor": 10000,
+            "refunds_minor": 2000,
+            "transaction_count": 2
+          },
+          "mapping_version": "moneylens.coicop2018.v1",
+          "nonconsumption_count": 0,
+          "outside_selection": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "policy_sha256": "283bfa70ebf5a1b81154b1a0577895a9b3094487f08711e162036082da65bb79",
+          "population_comparison_ready": false,
+          "scope": {
+            "account_ids": [
+              "00000000-0000-0000-0000-000000000001"
+            ],
+            "currency": "EUR",
+            "data_mode": "synthetic",
+            "data_version": 1,
+            "dataset_coverage": "covered_synthetic_snapshot",
+            "end_exclusive": "2026-11-01",
+            "permission_version": 1,
+            "plan_version": 1,
+            "scope_kind": "included_accounts",
+            "sources": [
+              {
+                "account_id": "00000000-0000-0000-0000-000000000001",
+                "connection_id": "00000000-0000-0000-0000-000000000002",
+                "consent_state": "active",
+                "granted": true,
+                "history_from": "2026-08-01",
+                "history_to_exclusive": "2026-11-05",
+                "institution_id": "s-bank-demo",
+                "last_error_code": null,
+                "last_success_at": "2026-11-04T10:00:00Z",
+                "mode": "synthetic",
+                "observed_at": "2026-11-04T10:00:00Z",
+                "source_version": "ui-only.v1",
+                "sync_health": "fresh",
+                "timezone": "Europe/Helsinki"
+              }
+            ],
+            "start": "2026-10-01",
+            "unverified_account_ids": [],
+            "whole_finances_confirmed": false
+          },
+          "snapshot_id": "statfin-ktutk-2022-51770478e803db26",
+          "status": "partial",
+          "total_observed": {
+            "gross_minor": 17000,
+            "net_minor": 15000,
+            "refunds_minor": 2000,
+            "transaction_count": 3
+          },
+          "unmapped": {
+            "gross_minor": 0,
+            "net_minor": 0,
+            "refunds_minor": 0,
+            "transaction_count": 0
+          },
+          "unresolved_flow_count": 0
+        },
+        "material_bank_sources_complete": true,
+        "observed_calendar_months": 1,
+        "observed_currency": "EUR",
+        "public_currency": "EUR",
+        "reasons": [
+          {
+            "action": "confirm_complete_household_expense_scope",
+            "code": "HOUSEHOLD_COVERAGE_REQUIRED"
+          },
+          {
+            "action": "confirm_seasonality_limited_monthly_context",
+            "code": "SHORT_PERIOD_APPROXIMATION_REQUIRES_CONFIRMATION"
+          },
+          {
+            "action": "confirm_unadjusted_older_reference_year_context",
+            "code": "REFERENCE_YEAR_MISMATCH"
+          }
+        ],
+        "rows": [
+          {
+            "coicop_code": "07322",
+            "difference_minor": null,
+            "label": "07.3.2.2 Passenger transport by taxi and hired vehicle with driver (S)",
+            "observed_equivalent_minor": null,
+            "public_annual_mean_minor": 6600,
+            "public_equivalent_minor": 550,
+            "reasons": [
+              {
+                "action": "confirm_complete_household_expense_scope",
+                "code": "HOUSEHOLD_COVERAGE_REQUIRED"
+              },
+              {
+                "action": "confirm_seasonality_limited_monthly_context",
+                "code": "SHORT_PERIOD_APPROXIMATION_REQUIRES_CONFIRMATION"
+              },
+              {
+                "action": "confirm_unadjusted_older_reference_year_context",
+                "code": "REFERENCE_YEAR_MISMATCH"
+              }
+            ],
+            "relative_difference_basis_points": null,
+            "relative_difference_unavailable_reason": null,
+            "source_status": null,
+            "status": "withheld"
+          },
+          {
+            "coicop_code": "01",
+            "difference_minor": null,
+            "label": "01 Food and non-alcoholic beverages",
+            "observed_equivalent_minor": null,
+            "public_annual_mean_minor": 328000,
+            "public_equivalent_minor": 27333,
+            "reasons": [
+              {
+                "action": "confirm_complete_household_expense_scope",
+                "code": "HOUSEHOLD_COVERAGE_REQUIRED"
+              },
+              {
+                "action": "confirm_seasonality_limited_monthly_context",
+                "code": "SHORT_PERIOD_APPROXIMATION_REQUIRES_CONFIRMATION"
+              },
+              {
+                "action": "confirm_unadjusted_older_reference_year_context",
+                "code": "REFERENCE_YEAR_MISMATCH"
+              },
+              {
+                "action": "classify_or_split_relevant_ambiguous_purchases",
+                "code": "AMBIGUOUS_CATEGORY_COVERAGE"
+              }
+            ],
+            "relative_difference_basis_points": null,
+            "relative_difference_unavailable_reason": null,
+            "source_status": null,
+            "status": "withheld"
+          }
+        ],
+        "selection": {
+          "catalog": {
+            "cohorts": [
+              {
+                "average_household_size": "1",
+                "code": "1",
+                "label": "One-person, aged under 65",
+                "population_households": 865134,
+                "sample_households": 466,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2",
+                "code": "2",
+                "label": "Couple without children, aged under 65",
+                "population_households": 458381,
+                "sample_households": 554,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2.92",
+                "code": "3",
+                "label": "Single-parent households",
+                "population_households": 136203,
+                "sample_households": 89,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "3.99",
+                "code": "4",
+                "label": "Two parent family with children",
+                "population_households": 431509,
+                "sample_households": 621,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "1.35",
+                "code": "5",
+                "label": "Households of persons aged over 64",
+                "population_households": 858761,
+                "sample_households": 1133,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "2.51",
+                "code": "6",
+                "label": "Other households",
+                "population_households": 169011,
+                "sample_households": 275,
+                "specificity": "household_type"
+              },
+              {
+                "average_household_size": "1.88",
+                "code": "SSS",
+                "label": "Total",
+                "population_households": 2919000,
+                "sample_households": 3138,
+                "specificity": "all_households"
+              }
+            ],
+            "dimension": "elinvaihe_13_20160101",
+            "limitations": [
+              "Select the published household type explicitly. Transactions and account ownership do not establish household composition.",
+              "Only the household-type dimension is used. Age, region and income intersections cannot be constructed from separate marginal tables.",
+              "Total means all households, not a more specific match. Unavailable choices never fall back to Total automatically.",
+              "The reference year and household unit belong to the source. Selecting a cohort does not establish household financial coverage or price/period compatibility.",
+              "Suppressed or missing background values remain unavailable. Average household size is descriptive and cannot scale an individual into a household."
+            ],
+            "metadata_fingerprints": {
+              "14lv": "f9248a8aabca5df18c84cfd2b6c29338b38d3536adb46b6842f70544e1fbeddd",
+              "14ph": "659d6f64a568c0d12660ff14ac58ceb8337fadd39fd249ee194785804b727629"
+            },
+            "policy_version": "household-cohorts.v1",
+            "reference_period": "2022",
+            "snapshot": {
+              "attribution": "Source: Statistics Finland, households' consumption.",
+              "id": "statfin-ktutk-2022-51770478e803db26",
+              "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+              "mapping_version": "unmapped.v1",
+              "reference_period": "2022",
+              "response_sha256": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+              "retrieved_at": "2026-11-04T15:13:17.649309Z",
+              "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+              "statistic_type": "mean",
+              "table_id": "14ph",
+              "unit": "EUR per household per reference year, current prices"
+            },
+            "unit": "household"
+          },
+          "cohort": {
+            "average_household_size": "1",
+            "code": "1",
+            "label": "One-person, aged under 65",
+            "population_households": 865134,
+            "sample_households": 466,
+            "specificity": "household_type"
+          },
+          "fallback_used": false,
+          "reason": null,
+          "requested": {
+            "household_code": "1",
+            "reference_period": "2022"
+          },
+          "selection_source": "explicit_user_choice",
+          "status": "selected"
+        },
+        "source": {
+          "attribution": "Source: Statistics Finland, households' consumption.",
+          "id": "statfin-ktutk-2022-51770478e803db26",
+          "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+          "mapping_version": "unmapped.v1",
+          "reference_period": "2022",
+          "response_sha256": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+          "retrieved_at": "2026-11-04T15:13:17.649309Z",
+          "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+          "statistic_type": "mean",
+          "table_id": "14ph",
+          "unit": "EUR per household per reference year, current prices"
+        },
+        "source_updated_at": "2024-04-11T05:00:00Z",
+        "statistic_type": "mean",
+        "status": "withheld",
+        "transform_version": "population-comparison.v1",
+        "transformations": [
+          "Observed ledger consumption uses valid booked expenses minus booked refunds in the named half-open date window.",
+          "Mapping: moneylens.coicop2018.v1; rule digest 283bfa70ebf5a1b81154b1a0577895a9b3094487f08711e162036082da65bb79.",
+          "Money remains integer minor units; ratios round half-up. Relative differences use basis points, not population percentiles.",
+          "Observed consumption divided by 1 complete calendar month(s); published annual household mean divided by 12. No annual observation is invented."
+        ]
+      }
+    }
+  },
+  "session": {
+    "csrf_token": "ui-only-csrf-not-a-real-session",
+    "display_name": "Synthetic Aino",
+    "expires_at": "2026-11-04T01:00:00+02:00",
+    "owner": {
+      "tenant_id": "00000000-0000-0000-0000-000000000064",
+      "user_id": "00000000-0000-0000-0000-000000000065"
+    },
+    "permission_version": 1,
+    "session_id": "00000000-0000-0000-0000-000000000066",
+    "synthetic": true
+  }
+}

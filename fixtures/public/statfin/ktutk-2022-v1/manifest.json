@@ -1,0 +1,95 @@
+{
+  "api_migration_url": "https://stat.fi/en/services/statistical-data-services/open-data-and-interfaces/interface-use-of-databases/instructions-for-updating-interface-queries",
+  "attribution": "Source: Statistics Finland, households' consumption.",
+  "classification_version": "COICOP2018",
+  "files": {
+    "14lv.metadata.json": "74e14b086157904c31dfe9aedd6366f481c29af2ca8c3dd351168ffa1449b0c3",
+    "14lv.query.json": "c03e82aed6a1daa0f33513ea83fd6f3ecdd38e6951d2823f115ed9c5185113d4",
+    "14lv.response.json": "44669552318b09cbe85329367b0c066d7008c3750b4584e0761673c090c91984",
+    "14ph.metadata.json": "9c00ffee1ef0246e211e28a709e31c2bf81324a366b0de9354ccd4debc5d4f42",
+    "14ph.query.json": "5dc2b628a8f87d6ed521c8f71ba7593542a0f096f5c36cb9650b662e8a790710",
+    "14ph.response.json": "74124b6ced45d709f52c1142e0db2a98c9931fbcf3ad73e8dd2a1966abdeb61c",
+    "catalogue.json": "0a35878c1a2faaac077c9f62720a9970c85d7a0d9d563b7e80a12b77afe9b2ee",
+    "config.json": "f740f05767818c4e20736a5ffeea7b3d94b6441e91bbcc0b89f890879451cd62"
+  },
+  "licence": "CC-BY-4.0",
+  "licence_url": "https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use",
+  "mapping_version": "unmapped.v1",
+  "methodology_url": "https://stat.fi/en/documentation/documentation-of-statistics/ktutk",
+  "reference_period": "2022",
+  "retrieved_at": "2026-11-04T15:13:17.649309+00:00",
+  "schema_version": 1,
+  "snapshot_id": "statfin-ktutk-2022-51770478e803db26",
+  "statistic_type": "mean",
+  "tables": {
+    "14lv": {
+      "catalogue_timezone": "unspecified by catalogue; not treated as a UTC publication timestamp",
+      "catalogue_updated_local_time": "2026-07-01T17:45:47",
+      "data_updated_at": "2024-04-11T05:00:00Z",
+      "metadata_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14lv.px",
+      "schema_fingerprint": "f9248a8aabca5df18c84cfd2b6c29338b38d3536adb46b6842f70544e1fbeddd",
+      "selected_cells": 21,
+      "selected_codes": {
+        "contentscode": [
+          "oklkm_sum",
+          "pklkm_sum",
+          "jlkm_mean"
+        ],
+        "elinvaihe_13_20160101": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "SSS"
+        ],
+        "timeperiod_y": [
+          "2022"
+        ]
+      },
+      "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14lv.px"
+    },
+    "14ph": {
+      "catalogue_timezone": "unspecified by catalogue; not treated as a UTC publication timestamp",
+      "catalogue_updated_local_time": "2026-07-01T17:45:48",
+      "data_updated_at": "2024-04-11T05:00:00Z",
+      "metadata_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px",
+      "schema_fingerprint": "659d6f64a568c0d12660ff14ac58ceb8337fadd39fd249ee194785804b727629",
+      "selected_cells": 42,
+      "selected_codes": {
+        "coicop_46_20231201": [
+          "01",
+          "0533",
+          "07322",
+          "111",
+          "1111",
+          "1112"
+        ],
+        "contentscode": [
+          "kulu_kt_hk_1_1"
+        ],
+        "elinvaihe_13_20160101": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "SSS"
+        ],
+        "timeperiod_y": [
+          "2022"
+        ]
+      },
+      "source_url": "https://pxdata.stat.fi/PXWeb/api/v1/en/StatFin/ktutk/14ph.px"
+    }
+  },
+  "transforms": [
+    "Exact source bytes retained.",
+    "No inflation adjustment.",
+    "Missing/suppressed cells are not zero.",
+    "Any monthly equivalent divides the published annual mean by 12; it is not an observed calendar-month statistic."
+  ],
+  "unit": "EUR per household per reference year, current prices"
+}
