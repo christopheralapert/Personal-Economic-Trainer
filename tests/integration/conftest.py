@@ -1,5 +1,6 @@
 """Opt-in live services. Only uniquely created test resources are removed."""
 import os
+from contextlib import contextmanager
 from pathlib import Path
 from uuid import uuid4
 
@@ -58,6 +59,35 @@ def database():
         if created_auth:
             admin.execute(sql.SQL("DROP ROLE {}").format(sql.Identifier(auth_login)))
         admin.close()
+
+
+@pytest.fixture
+def migration_database(database):
+    """Build historical schemas forward in their own database, never downgrade shared data."""
+    @contextmanager
+    def create(revision):
+        name="moneylens_migration_"+uuid4().hex
+        params=conninfo_to_dict(database["admin"])
+        params["dbname"]=name
+        url=make_conninfo(**params)
+        admin=psycopg.connect(database["admin"],autocommit=True)
+        admin.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(name)))
+        engine=create_engine("postgresql+psycopg://",creator=lambda:psycopg.connect(url),poolclass=NullPool)
+        config=Config(str(ROOT/"backend/db/alembic.ini"))
+        try:
+            with engine.begin() as connection:
+                config.attributes["connection"]=connection
+                command.upgrade(config,revision)
+            config.attributes.pop("connection",None)
+            yield {"admin":url,"runtime":make_conninfo(database["runtime"],dbname=name),
+                "auth":make_conninfo(database["auth"],dbname=name),"engine":engine,"config":config}
+        finally:
+            config.attributes.pop("connection",None)
+            engine.dispose()
+            # Only this exact generated database was created by this context.
+            admin.execute(sql.SQL("DROP DATABASE {} WITH (FORCE)").format(sql.Identifier(name)))
+            admin.close()
+    return create
 
 
 @pytest.fixture

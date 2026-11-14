@@ -3,6 +3,7 @@ from uuid import uuid4
 import psycopg
 import pytest
 from alembic import command
+from alembic.script import ScriptDirectory
 
 from app.database import TrustedScope, tenant_transaction
 
@@ -118,7 +119,9 @@ def test_every_owned_table_forces_rls_and_has_scoped_references(database):
         tables = connection.execute("""SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity,
             pg_get_userbyid(c.relowner) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
             WHERE n.nspname='moneylens' AND c.relkind='r' AND c.relname <> 'public_benchmark_releases'""").fetchall()
-        assert len(tables) == 39
+        # 0024 adds the two owned staging/receipt tables; 0025 adds row provenance.
+        assert len(tables) == 41
+        assert {"statement_previews","statement_import_receipts"}<={row[0] for row in tables}
         assert all(enabled and forced and owner != "moneylens_runtime" for _, enabled, forced, owner in tables)
         refs = connection.execute("""SELECT pg_get_constraintdef(c.oid), target.relname FROM pg_constraint c
             JOIN pg_namespace n ON n.oid=c.connamespace
@@ -152,10 +155,17 @@ def test_blocked_snapshot_requires_no_amount_and_real_blocker(database, owners):
                         VALUES (%s,%s,%s,1,1,now(),'blocked',%s,'[]',%s)""", (owners[0][0],owners[0][1],uuid4(),result,blockers))
 
 
-def test_migration_roundtrip_on_disposable_schema(database):
-    # This isolated database belongs to the fixture; keep the rollback test last.
-    with database["engine"].begin() as connection:
-        database["config"].attributes["connection"] = connection
-        command.downgrade(database["config"], "base")
-        command.upgrade(database["config"], "head")
-        assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar() == "0021_live_import_recovery"
+def test_forward_migration_reaches_current_head_and_refuses_unsafe_downgrade(migration_database):
+    with migration_database("head") as scratch:
+        config=scratch["config"]
+        expected=ScriptDirectory.from_config(config).get_current_head()
+        with scratch["engine"].connect() as connection:
+            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar()==expected
+        with pytest.raises(RuntimeError,match="explicit retention and archive plan"):
+            with scratch["engine"].begin() as connection:
+                config.attributes["connection"]=connection
+                command.downgrade(config,"base")
+        config.attributes.pop("connection",None)
+        with scratch["engine"].connect() as connection:
+            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar()==expected
+            assert connection.exec_driver_sql("SELECT to_regclass('moneylens.statement_import_receipts')").scalar()

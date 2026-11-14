@@ -206,17 +206,19 @@ def test_goal_receipt_rls_is_owner_scoped_and_receipts_are_immutable(database,ow
             assert connection.execute("SELECT id FROM moneylens.goal_commands").fetchall()==[(UUID(first["id"]),)]
 
 
-def test_legacy_goal_migration_preserves_unknown_times_and_prior_fields(database,owners):
-    config=database["config"]
-    with database["engine"].begin() as connection:
-        config.attributes["connection"]=connection;command.downgrade(config,"0012_bank_publication_receipts")
-    identifier=uuid4()
-    with psycopg.connect(database["admin"]) as connection:
-        connection.execute("INSERT INTO moneylens.goals (tenant_id,owner_user_id,id,name,target_minor,currency,deadline,state) VALUES (%s,%s,%s,'Legacy',1234,'EUR','2026-12-01','paused')",(*owners[0][:2],identifier))
-    with database["engine"].begin() as connection:
-        config.attributes["connection"]=connection;command.upgrade(config,"head")
-    config.attributes.pop("connection",None)
-    with authenticated_app(database,owners) as (client,app,settings):
-        headers(client);view=client.get(f"/v1/goals/{identifier}").json()
-        assert (view["name"],view["target_minor"],view["state"],view["version"],view["priority"])==("Legacy",1234,"paused",1,3)
-        assert view["created_at"] is None and view["updated_at"] is None
+def test_legacy_goal_migration_preserves_unknown_times_and_prior_fields(migration_database):
+    with migration_database("0012_bank_publication_receipts") as scratch:
+        owner=tuple(uuid4() for _ in range(3));identifier=uuid4();config=scratch["config"]
+        with psycopg.connect(scratch["admin"]) as connection:
+            connection.execute("INSERT INTO moneylens.tenants(id,name) VALUES (%s,'Synthetic legacy migration')",(owner[0],))
+            connection.execute("INSERT INTO moneylens.users(tenant_id,id,subject_issuer,subject_id) VALUES (%s,%s,'integration',%s)",(*owner[:2],str(owner[1])))
+            connection.execute("INSERT INTO moneylens.accounts(tenant_id,owner_user_id,id,name,currency,account_type) VALUES (%s,%s,%s,'Legacy EUR','EUR','current')",owner)
+            connection.execute("INSERT INTO moneylens.user_state(tenant_id,owner_user_id,id) VALUES (%s,%s,%s)",(*owner[:2],uuid4()))
+            connection.execute("INSERT INTO moneylens.goals (tenant_id,owner_user_id,id,name,target_minor,currency,deadline,state) VALUES (%s,%s,%s,'Legacy',1234,'EUR','2026-12-01','paused')",(*owner[:2],identifier))
+        with scratch["engine"].begin() as connection:
+            config.attributes["connection"]=connection;command.upgrade(config,"head")
+        config.attributes.pop("connection",None)
+        with authenticated_app(scratch,[owner]) as (client,app,settings):
+            headers(client);view=client.get(f"/v1/goals/{identifier}").json()
+            assert (view["name"],view["target_minor"],view["state"],view["version"],view["priority"])==("Legacy",1234,"paused",1,3)
+            assert view["created_at"] is None and view["updated_at"] is None
