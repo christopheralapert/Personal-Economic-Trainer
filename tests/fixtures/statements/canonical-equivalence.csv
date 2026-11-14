@@ -1,0 +1,7 @@
+reference,booked_on,amount_minor,currency,description
+purchase-repeat,2026-10-03,-1234,EUR,Synthetic market
+purchase-repeat,2026-10-03,-1234,EUR,Synthetic market
+purchase-repeat,2026-10-03,-1234,EUR,Synthetic cafe
+small-debit,2026-10-04,-1,EUR,Synthetic rounding debit
+small-credit,2026-10-05,29,EUR,Synthetic rounding credit
+large-credit,2026-10-06,100001,EUR,Synthetic incoming

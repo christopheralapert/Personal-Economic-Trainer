@@ -25,16 +25,19 @@ class LhvCandidateRow:
 
 
 def parse_lhv_candidate_row(fields: list[str], *, decimal_separator: str) -> LhvCandidateRow:
-    if len(fields) != 16 or decimal_separator not in ('.', ','):
+    if len(fields) != 16 or decimal_separator not in ('.', ',') or any(not isinstance(value, str) or len(value) > 8192 for value in fields):
         raise StatementRowError('unsupported_layout')
     account, direction, raw_amount, currency, reference = (fields[i].strip() for i in (0, 5, 6, 10, 15))
     if not account or not reference or not currency:
         raise StatementRowError('missing_identity_or_currency')
+    if any(len(value) > 200 or any(ord(c) < 32 or 127 <= ord(c) <= 159 for c in value)
+           for value in (account, reference, fields[4].strip())):
+        raise StatementRowError('invalid_text')
     if currency != 'EUR':
         raise StatementRowError('unsupported_currency')
     if direction not in ('D', 'C'):
         raise StatementRowError('invalid_direction')
-    pattern = r'-?\d+(?:' + re.escape(decimal_separator) + r'\d{1,2})?'
+    pattern = r'-?[0-9]{1,14}(?:' + re.escape(decimal_separator) + r'[0-9]{1,2})?'
     if not re.fullmatch(pattern, raw_amount):
         raise StatementRowError('invalid_amount')
     try:
@@ -54,7 +57,7 @@ def parse_lhv_candidate_row(fields: list[str], *, decimal_separator: str) -> Lhv
             break
         except ValueError:
             pass
-    if booked is None:
+    if booked is None or booked == date.max:
         raise StatementRowError('invalid_date')
     return LhvCandidateRow(account=account, reference=reference, booked_on=booked,
                            amount_minor=minor, currency=currency, counterparty=fields[4].strip())

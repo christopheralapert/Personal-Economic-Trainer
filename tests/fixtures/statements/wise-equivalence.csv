@@ -1,0 +1,7 @@
+TransferWise ID,Date,Amount,Currency,Description
+purchase-repeat,03-10-2026,-12.34,EUR,Synthetic market
+purchase-repeat,03-10-2026,-12.34,EUR,Synthetic market
+purchase-repeat,03-10-2026,-12.34,EUR,Synthetic cafe
+small-debit,04-10-2026,-0.01,EUR,Synthetic rounding debit
+small-credit,05-10-2026,0.29,EUR,Synthetic rounding credit
+large-credit,06-10-2026,1000.01,EUR,Synthetic incoming
