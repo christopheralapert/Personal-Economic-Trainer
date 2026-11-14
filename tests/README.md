@@ -1,6 +1,6 @@
 # Test suites
 
-For the current combined six-format/private-Gemini build, migration proof and 700-row timing comparison, see [the import/Coach follow-up](import-coach-review.md#current-integrated-follow-up-from-f70f933--14-november-2026). Earlier reports retain their original source/build context.
+For the final signup + redesigned UI/Learn + six-format/private-Gemini build, preview, requirements matrix, recovery and Chromium/WebKit evidence, see [the integrated release handoff](signup-statements-review.md#final-integrated-release--14-november-2026). The earlier [700-row timing comparison](import-coach-review.md#current-integrated-follow-up-from-f70f933--14-november-2026) retains its own source/build context.
 
 Run commands from the repository root after installing dependencies. Browser suites require Chrome or Playwright Chromium. Most also require a production web build; the voice suite starts its own development server.
 
@@ -28,6 +28,7 @@ All main-app Playwright configurations live in `tests/config/`. They resolve tes
 - `playwright.first-login.config.ts`: invoked by the isolated identity integration fixture.
 - `playwright.statement.config.ts`: invoked by the isolated Wise statement integration fixture.
 - `playwright.signup-statements.config.ts`: fresh local self-signup + two-owner import/Coach rehearsal, with real Gemini only when explicitly opted in; see [the combined report](signup-statements-review.md).
+- `playwright.release.config.ts`: attached loopback production rehearsal, recovery/concurrent confirmation, same-tab owner isolation, exact account scopes and Chromium/WebKit mobile/desktop journeys. Requires `MONEYLENS_RELEASE_ORIGIN` and fresh signed test identities. The real-Gemini project additionally requires `MONEYLENS_RELEASE_LIVE_GEMINI=true` and the signup fixture's saved/reviewed rows; otherwise it skips. See the integrated handoff for setup and exact synthetic variants.
 - `playwright.voice.config.ts`: run `npm run test:web:voice` for Finnish, Estonian, and English dictation and read-aloud checks on `/demo?dataset=organizer1`. The runner starts the main Next.js application on an automatically selected free loopback port and stops it afterwards; no production build, database, microphone, or provider key is required. It uses local Chrome (Playwright Chromium in CI). Speech recognition, synthesis, microphone capture, and hosted voice replies are mocked. Hosted chat stays disabled; real local-rule answers supply the visible sentences. Reports stay in `test-results/voice`. Phone screenshots cover 360/390 px in light/dark appearance under `.cache/voice-review/`. See [the voice review](voice-review.md) for verified results, mock boundaries and physical phone steps.
 
 See [the production presentation handoff](presentation-handoff.md) for the current integrated production build, verified local Gemini and public local-answer checks, historical HTTPS target mismatch, coordinator startup commands, and a pending physical-phone dictation/read-aloud trial.
