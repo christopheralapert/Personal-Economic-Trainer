@@ -7,11 +7,14 @@
   --active-ink:var(--brand-deep);
   --canvas:#f5f6f5;--surface:#fff;--tile-grey:#f5f5f5;--tile-income:#e0f5e8;--tile-saving:#f4fbe6;--tile-info:#eeeefa;
   --ink:#121212;--ink-2:#5f6460;--line:#e3e6e3;--neg:#b3261e;--pos:#2f7d1f;--warn:#b86e00;--link:#0a7fb0;
-  --basket-regular:#1f6f5c;--basket-irregular:#e0902a;--basket-everyday:#7aa7c7;
-  --cat-coffee-bg:#ececf9;--cat-coffee:#5b57c9;--cat-transport-bg:#e4f6fb;--cat-transport:#16758c;--cat-leisure-bg:#e2faf7;--cat-leisure:#087d73;
-  --cat-home-bg:#ececf9;--cat-home:#5b57c9;--cat-food-bg:#f6eeec;--cat-food:#b3402f;
-  --cat-health-bg:#fde6f1;--cat-health:#b32865;--cat-shop-bg:#fbe9e9;--cat-shop:#b64d4d;
-  --cat-misc-bg:#eaeef5;--cat-misc:#5f78a6;--cat-unknown-bg:#e6e6e6;--cat-unknown:#686868;
+  /* Baskets: each colour always sits next to a text label. >=3:1 against the surface in both modes. */
+  --basket-regular:#1f6f5c;--basket-surprises:#cc7d02;--basket-everyday:#6393b7;--basket-check:#8a948e;
+  /* Categories: one stable hue per category, identical in donut, legend, rows and sheets.
+     Slot order is the donut ring order; validated (dataviz validate_palette) for adjacent CVD >=8 and normal-vision >=15,
+     L band and >=3:1 contrast in light and dark. Grey is reserved for "Not categorised" (hatched); the rollup is slate blue. */
+  --cat-groceries:#0f6f47;--cat-lifestyle:#9b76c2;--cat-utilities:#82701a;--cat-housing:#11619a;--cat-dining:#c15c42;--cat-transport:#008a7b;
+  --cat-entertainment:#7d4476;--cat-health:#64983f;--cat-hometech:#5a64b3;--cat-coffee:#7e4e00;--cat-travel:#2893b8;--cat-taxi:#b34b5f;
+  --cat-rollup:#4b5d8c;--cat-none:#8a948e;
   --r-pill:24px;--r-tile:24px;--r-input:12px;--r-sheet:28px;--r-bubble:18px;
   --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;
   --font:Roboto,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
@@ -19,13 +22,17 @@
   --secondary:var(--tile-grey);--secondary-foreground:var(--ink);--muted:var(--tile-grey);--muted-foreground:var(--ink-2);
   --accent:var(--brand-tint);--accent-foreground:var(--ink);--border:var(--line);--input:var(--ink-2);--ring:var(--brand);
   --card:var(--surface);--card-foreground:var(--ink);--popover:var(--surface);--popover-foreground:var(--ink);--destructive:var(--neg);--radius:var(--r-input);
-  --chart-1:#1f6f5c;--chart-2:#b3402f;--chart-3:#5b57c9;--chart-4:#436c88;--chart-5:#5f78a6;--chart-6:#5f6460;--chart-ink:#fff;
+  --chart-ink:#fff;
 }
 @media(prefers-color-scheme:dark){:root{
   color-scheme:dark;--brand:#3fc287;--brand-ink:#08140e;--brand-deep:#0f3b29;--brand-tint:#173528;
   --active-ink:var(--brand);
   --canvas:#0e1411;--surface:#171e1a;--tile-grey:#1f2722;--tile-income:#16331f;--tile-saving:#22301a;--tile-info:#23233a;
   --ink:#eef3ef;--ink-2:#9aa8a0;--line:#2a3630;--neg:#f2877f;--pos:#7fd06c;--warn:#e5a53c;--link:#6bc4ea;
+  --basket-regular:#3e927e;--basket-surprises:#f0a03b;--basket-everyday:#80b0d6;--basket-check:#9ba59f;
+  --cat-groceries:#2d845a;--cat-lifestyle:#a580cc;--cat-utilities:#978534;--cat-housing:#2c76b0;--cat-dining:#d97157;--cat-transport:#2ea090;
+  --cat-entertainment:#93588b;--cat-health:#6da449;--cat-hometech:#6d79ca;--cat-coffee:#946220;--cat-travel:#369ec3;--cat-taxi:#cb6073;
+  --cat-rollup:#6b7eaf;--cat-none:#9ba59f;
 }}
 @theme inline{
   --spacing-touch:48px;
@@ -34,19 +41,19 @@
   --color-canvas:var(--canvas);--color-surface:var(--surface);--color-ink:var(--ink);--color-ink-2:var(--ink-2);--color-line:var(--line);
   --color-tile-grey:var(--tile-grey);--color-tile-income:var(--tile-income);--color-tile-saving:var(--tile-saving);--color-tile-info:var(--tile-info);
   --color-neg:var(--neg);--color-pos:var(--pos);--color-warn:var(--warn);--color-link:var(--link);
-  --color-basket-regular:var(--basket-regular);--color-basket-irregular:var(--basket-irregular);--color-basket-everyday:var(--basket-everyday);
-  --color-cat-coffee:var(--cat-coffee);--color-cat-coffee-bg:var(--cat-coffee-bg);--color-cat-transport:var(--cat-transport);--color-cat-transport-bg:var(--cat-transport-bg);--color-cat-food:var(--cat-food);--color-cat-food-bg:var(--cat-food-bg);
-  --color-cat-leisure:var(--cat-leisure);--color-cat-leisure-bg:var(--cat-leisure-bg);--color-cat-home:var(--cat-home);--color-cat-home-bg:var(--cat-home-bg);
-  --color-cat-health:var(--cat-health);--color-cat-health-bg:var(--cat-health-bg);--color-cat-shop:var(--cat-shop);--color-cat-shop-bg:var(--cat-shop-bg);
-  --color-cat-misc:var(--cat-misc);--color-cat-misc-bg:var(--cat-misc-bg);--color-cat-unknown:var(--cat-unknown);--color-cat-unknown-bg:var(--cat-unknown-bg);
+  --color-basket-regular:var(--basket-regular);--color-basket-surprises:var(--basket-surprises);--color-basket-everyday:var(--basket-everyday);--color-basket-check:var(--basket-check);
+  --color-cat-groceries:var(--cat-groceries);--color-cat-lifestyle:var(--cat-lifestyle);--color-cat-utilities:var(--cat-utilities);--color-cat-housing:var(--cat-housing);
+  --color-cat-dining:var(--cat-dining);--color-cat-transport:var(--cat-transport);--color-cat-entertainment:var(--cat-entertainment);--color-cat-health:var(--cat-health);
+  --color-cat-hometech:var(--cat-hometech);--color-cat-coffee:var(--cat-coffee);--color-cat-travel:var(--cat-travel);--color-cat-taxi:var(--cat-taxi);
+  --color-cat-rollup:var(--cat-rollup);--color-cat-none:var(--cat-none);
   --color-background:var(--background);--color-foreground:var(--foreground);--color-primary:var(--primary);--color-primary-foreground:var(--primary-foreground);
   --color-secondary:var(--secondary);--color-secondary-foreground:var(--secondary-foreground);--color-muted:var(--muted);--color-muted-foreground:var(--muted-foreground);
   --color-accent:var(--accent);--color-accent-foreground:var(--accent-foreground);--color-border:var(--border);--color-input:var(--input);--color-ring:var(--ring);
   --color-card:var(--card);--color-card-foreground:var(--card-foreground);--color-popover:var(--popover);--color-popover-foreground:var(--popover-foreground);--color-destructive:var(--destructive);
   --font-sans:var(--font);--radius-xl:var(--r-input);--radius-3xl:var(--r-tile);--radius-sheet:var(--r-sheet);--radius-bubble:var(--r-bubble);--radius-inherit:inherit;
-  --text-caption:.8125rem;--text-caption--line-height:1.5;--text-balance:2rem;--text-balance--line-height:1.2;
+  --text-caption:.875rem;--text-caption--line-height:1.45;--default-transition-duration:150ms;--text-balance:2rem;--text-balance--line-height:1.2;
   --text-chart:.75rem;--spacing-app:26.875rem;--spacing-composer:9rem;--spacing-navigation:80px;
-  --spacing-tick:.1875rem;--spacing-sheet:80dvh;--spacing-tab-offset:.25rem;
+  --spacing-basket-min:.5rem;--spacing-sheet:80dvh;--spacing-tab-offset:.25rem;
 }
 @utility pb-safe{padding-bottom:env(safe-area-inset-bottom)}
 @utility pt-safe{padding-top:env(safe-area-inset-top)}
@@ -55,8 +62,10 @@
 @utility navigation-space{padding-bottom:calc(var(--spacing-navigation) + env(safe-area-inset-bottom))}
 @utility conversation-space{padding-bottom:calc(var(--spacing-composer) + var(--spacing-navigation) + env(safe-area-inset-bottom) + var(--keyboard-inset))}
 @utility scroll-above-composer{scroll-margin-bottom:calc(var(--spacing-composer) + var(--spacing-navigation) + env(safe-area-inset-bottom) + var(--keyboard-inset))}
-@utility message-arrival{animation:message-arrival .18s ease-out}
-@keyframes message-arrival{from{opacity:.5;transform:translateY(.25rem)}to{opacity:1;transform:none}}
+@utility message-arrival{animation:message-arrival .15s ease-out}
+@keyframes message-arrival{from{opacity:0;transform:translateY(.25rem)}to{opacity:1;transform:none}}
+/* Diagonal hatch: the only pattern in the system; marks payments that still need a category or basket. */
+@utility bg-hatch{background-color:color-mix(in oklab,var(--basket-check) 22%,var(--surface));background-image:repeating-linear-gradient(135deg,var(--basket-check) 0 .125rem,transparent .125rem .375rem)}
 @layer base{
   *{border-color:var(--line);scrollbar-color:var(--ink-2) var(--canvas);scrollbar-width:thin}
   html{font-family:var(--font);background:var(--canvas);color:var(--ink);font-variant-numeric:tabular-nums}
@@ -73,6 +82,6 @@
 @utility virtual-row{position:absolute;top:0;left:0;width:100%;transform:translateY(calc(var(--virtual-offset)*1px))}
 
 @utility grid-cols-transaction{grid-template-columns:auto minmax(0,1fr) auto}
-@utility overview-flow{display:flex;flex-direction:column;gap:.75rem;@media(max-height:50rem){gap:.5rem}}
+@utility overview-flow{display:flex;flex-direction:column;gap:1.5rem;@media(max-height:50rem){gap:1rem}}
 
-@utility overview-chart{width:70vw;max-width:16rem;@media(max-height:48rem){max-width:12rem}}
+@utility overview-chart{width:62vw;max-width:14rem;@media(max-height:48rem){max-width:12rem}}

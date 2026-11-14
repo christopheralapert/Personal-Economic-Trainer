@@ -33,7 +33,9 @@ test('private unresolved records are visible, paginated and used by model-interp
  await page.setViewportSize({width:390,height:844});await page.goto('/');
  await expect(page.locator('[data-overview-block="categories"]')).toContainText('73');
  await expect(page.locator('[data-chart-total]')).toHaveCount(0);
- await expect(page.getByText('Latest recorded balance',{exact:true})).toBeVisible();
+ // Facts first: the hero states confirmed spending for the month, never an account balance.
+ await expect(page.getByRole('heading',{name:/^Spent in /})).toBeVisible();
+ await expect(page.getByText('Latest recorded balance',{exact:true})).toHaveCount(0);
  await expect(page.getByText('No transactions have been imported into your private account yet.')).toHaveCount(0);
 
  await mkdir('.impeccable/review',{recursive:true});
@@ -71,7 +73,8 @@ test('private unresolved records are visible, paginated and used by model-interp
  await page.screenshot({path:'.impeccable/review/private-records-coach.png',animations:'disabled'});
  await page.setViewportSize({width:1280,height:900});await page.screenshot({path:'.impeccable/review/junction/after-private-coach-desktop.png',fullPage:true,animations:'disabled'});
  expect(coachCalls).toBe(3);
- expect((coachBodies[1] as {account_ids:string[]}).account_ids).toEqual(ids);
+ // "All included accounts" is resolved by the authenticated server, not copied from a prior response.
+ expect((coachBodies[1] as {account_ids:string[]|null}).account_ids).toBeNull();
  expect((coachBodies[1] as {conversation_context:string}).conversation_context).toContain(period.start);
  expect(banking).toEqual([]);
 });

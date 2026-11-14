@@ -22,8 +22,9 @@ for(const width of [390,360])test(`Finnish organizer presentation at ${width}px 
     await expect(page.locator(`#learn-${id}`)).toBeVisible();
     await page.getByRole("tab",{name:fi.overview,exact:true}).click();
   }
-  // Unreviewed payments are shown separately from the three classified baskets.
-  await expect(baskets.getByRole("button",{name:/^Tarkistettavat /})).toBeVisible();
+  // Unreviewed payments are shown separately from the three classified baskets and own the review action.
+  await expect(baskets.getByText("Tarkistettavat",{exact:true})).toBeVisible();
+  await expect(baskets.getByRole("button",{name:"Tarkista",exact:true})).toBeVisible();
   await page.screenshot({path:testInfo.outputPath("overview-fi.png"),fullPage:true,animations:"disabled"});
   await page.locator("#home-question").fill(question);await page.locator("#home-question").press("Enter");
   const answers=page.locator('[data-message-role="assistant"]'),answer=answers.first();
@@ -54,13 +55,14 @@ for(const width of [390,360])test(`Finnish organizer presentation at ${width}px 
   expect(demoTraffic.chat[1]).toMatchObject({dataset:"organizer1",locale:"fi",period:september});
   await page.getByRole("tab",{name:fi.whatif,exact:true}).click();
   await expect(page.locator("main")).toContainText("syyskuu 2026");
-  const dining=page.locator("section").filter({has:page.getByRole("heading",{name:fi.dining,exact:true})}).last();
-  await expect(dining).toContainText(/159,58\s€/);
-  const slider=dining.getByRole("slider");await expect(slider).toHaveAttribute("aria-valuenow","20");
+  const dining=page.getByRole("region",{name:fi.combined,exact:true});
+  await dining.getByRole("button",{name:new RegExp(`^${fi.dining} ·`)}).click();
+  const slider=dining.getByRole("slider",{name:`${fi.reduce} ${fi.dining}`,exact:true});await expect(slider).toHaveAttribute("aria-valuenow","20");
+  await expect(dining).toContainText(/−159,58\s€/);
   // Changing and restoring the percentage verifies a live calculation, not static copy.
-  await slider.focus();await page.keyboard.press("Home");await expect(dining).toContainText(/0,00\s€/);
+  await slider.focus();await page.keyboard.press("Home");await expect(dining).toContainText(/−0,00\s€/);
   await page.getByRole("button",{name:fi.resetScenario,exact:true}).click();
-  await expect(slider).toHaveAttribute("aria-valuenow","20");await expect(dining).toContainText(/159,58\s€/);
+  await expect(slider).toHaveAttribute("aria-valuenow","20");await expect(dining).toContainText(/−159,58\s€/);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:testInfo.outputPath("scenario-fi.png"),fullPage:true,animations:"disabled"});
   expect(demoTraffic.chat).toHaveLength(2);expect(demoTraffic.privatePaths).toEqual([]);

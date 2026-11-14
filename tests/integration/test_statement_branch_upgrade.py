@@ -40,6 +40,9 @@ def test_populated_current_statement_schema_keeps_owned_records_on_signup_upgrad
         with psycopg.connect(database['admin']) as connection:
             rows=connection.execute('SELECT id,account_id,amount_minor,statement_receipt_id FROM moneylens.transactions ORDER BY id').fetchall()
             state=connection.execute('SELECT data_version FROM moneylens.user_state').fetchall()
+            members=connection.execute('SELECT tenant_id,id,subject_issuer,subject_id FROM moneylens.users ORDER BY id').fetchall()
+            accounts=connection.execute('SELECT tenant_id,owner_user_id,id FROM moneylens.accounts ORDER BY id').fetchall()
+            workspaces=connection.execute('SELECT tenant_id,owner_user_id,id FROM moneylens.user_state ORDER BY id').fetchall()
         for _ in range(2):
             with database['engine'].begin() as connection:
                 database['config'].attributes['connection']=connection
@@ -47,5 +50,8 @@ def test_populated_current_statement_schema_keeps_owned_records_on_signup_upgrad
         with psycopg.connect(database['admin']) as connection:
             assert connection.execute('SELECT id,account_id,amount_minor,statement_receipt_id FROM moneylens.transactions ORDER BY id').fetchall()==rows
             assert connection.execute('SELECT data_version FROM moneylens.user_state').fetchall()==state
+            assert connection.execute('SELECT tenant_id,id,subject_issuer,subject_id FROM moneylens.users ORDER BY id').fetchall()==members
+            assert connection.execute('SELECT tenant_id,owner_user_id,id FROM moneylens.accounts ORDER BY id').fetchall()==accounts
+            assert connection.execute('SELECT tenant_id,owner_user_id,id FROM moneylens.user_state ORDER BY id').fetchall()==workspaces
             assert sum(row[2] for row in rows)==-1000
             assert connection.execute('SELECT version_num FROM alembic_version').fetchall()==[('0028_merge_identity_statements',)]

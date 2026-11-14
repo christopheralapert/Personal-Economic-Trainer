@@ -2,6 +2,11 @@
 import {useCallback,useEffect,useRef,useState} from "react";
 import {useCopy,type Locale} from "@/i18n/context";
 import {RadioGroup,RadioGroupItem} from "@/components/ui/radio-group";
+import {ChevronRight} from "lucide-react";
+import {Button} from "@/components/ui/button";
+import {Skeleton} from "@/components/ui/skeleton";
+import {InlineError} from "@/components/ui/inline-error";
+import {SettingsGroup,SettingsRow,SettingsSheetRow} from "@/components/settings-list";
 import type {components} from "@contracts";
 import {aborted,type PrivateRequest} from "./private-session";
 
@@ -15,14 +20,26 @@ export function useDashboard(request:PrivateRequest){
   useEffect(()=>{const changed=()=>void load();window.addEventListener("moneylens-data-changed",changed);return()=>window.removeEventListener("moneylens-data-changed",changed);},[load]);
   return {data,error,loading,load,setData,setError};
 }
-export function SettingsWorkspace({request,changed}:{request:PrivateRequest;changed:()=>void}){
+const tools:[string,"toolTransactions"|"toolPlan"|"toolGoals"|"toolAnalysis"|"toolCompare"|"toolInsights"][]=[["/transactions","toolTransactions"],["/plan","toolPlan"],["/goals","toolGoals"],["/analysis","toolAnalysis"],["/compare","toolCompare"],["/insights","toolInsights"]];
+/** Private settings: grouped rows, plain language, detail in one sheet, legal links only here. */
+export function SettingsWorkspace({request,changed,signOut}:{request:PrivateRequest;changed:()=>void;signOut?:()=>void}){
   const {locale,setLocale,t}=useCopy();
   const {data,error,loading,load,setData,setError}=useDashboard(request);const [busy,setBusy]=useState(false);const lock=useRef(false);
-  const toggle=async(id:string,included:boolean)=>{if(!data||lock.current)return;lock.current=true;setBusy(true);setError("");try{const next=await request<Dashboard>(`accounts/${id}/inclusion`,{included,expected_data_version:data.data_version});setData(next);changed();}catch(e){if(!aborted(e))setError("The selection could not be confirmed. Reload your data controls before retrying.");}finally{lock.current=false;setBusy(false);}};
-  return <><div className="page-heading"><div><h1>Your data. Your control.</h1><p>Review which accounts enter analysis, and how your profile is protected.</p></div></div>
-    <section className="space-y-3"><h2>{t("language")}</h2><RadioGroup aria-label={t("language")} value={locale} onValueChange={value=>setLocale(value as Locale)}>{(["en","fi","et"] as const).map((value,i)=><label key={value} className="flex min-h-14 items-center gap-3 border-b border-line"><RadioGroupItem value={value}/>{t((["english","finnish","estonian"] as const)[i])}</label>)}</RadioGroup></section>
-    {loading&&<p role="status">Loading your data controls...</p>}{error&&<div role="alert" className="error-notice"><span>{error}</span><button onClick={()=>void load()}>Reload controls</button></div>}
-    {data&&<><section className="panel bank-section"><h2>What the coach can see</h2><p>Only your owned, consented and included account records enter default analysis. This selection never authorizes a bank or transfers money.</p>{data.accounts.length===0?<p className="bank-empty">No imported accounts. Your financial history is empty.</p>:data.accounts.map(a=><label className="account-choice" key={a.id}><input type="checkbox" checked={a.included} disabled={busy} onChange={e=>void toggle(a.id,e.target.checked)}/><span>{a.name||accountLabel(a.id)}<small>{a.currency} / {a.source?.mode??"Source not verified"}</small></span></label>)}</section>
-      <section className="panel bank-section"><h2>Security and consent</h2><dl className="plan-breakdown"><div><dt>Profile</dt><dd>{data.synthetic?"Synthetic demonstration":"Verified private membership"}</dd></div><div><dt>Live Banking</dt><dd>{data.live_banking_enabled?"Enabled for explicit consent":"Disabled"}</dd></div><div><dt>Hosted AI policy</dt><dd>{data.model_policy==="free_only"?"Outbound model calls blocked":"Separately configured"}</dd></div></dl><label className="account-choice"><input type="checkbox" checked={data.allow_ai_payment_descriptions} disabled={busy} onChange={async event=>{setBusy(true);try{const next=await request<Dashboard>("settings/ai-payment-descriptions",{enabled:event.target.checked});setData(next);}catch(e){if(!aborted(e))setError("The AI privacy setting could not be saved.");}finally{setBusy(false);}}}/><span>Let AI read payment descriptions<small>Off by default. Names and descriptions stay redacted unless enabled.</small></span></label><p>Sessions use server-side ownership checks. Private data stays out of the offline cache. Disconnecting a bank blocks its source access; retained history requires a separate reviewed deletion process.</p><div className="plan-actions"><a href="/banks">Manage bank consent</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></section></>}
-  </>;
+  const toggle=async(id:string,included:boolean)=>{if(!data||lock.current)return;lock.current=true;setBusy(true);setError("");try{const next=await request<Dashboard>(`accounts/${id}/inclusion`,{included,expected_data_version:data.data_version});setData(next);changed();}catch(e){if(!aborted(e))setError(t("settingsSaveError"));}finally{lock.current=false;setBusy(false);}};
+  const describe=async(enabled:boolean)=>{setBusy(true);try{const next=await request<Dashboard>("settings/ai-payment-descriptions",{enabled});setData(next);}catch(e){if(!aborted(e))setError(t("settingsSaveError"));}finally{setBusy(false);}};
+  const check="size-5 shrink-0 accent-brand";
+  return <div className="space-y-6"><h1 className="text-xl font-semibold">{t("settings")}</h1>
+    <SettingsGroup title={t("language")}><RadioGroup aria-label={t("language")} value={locale} onValueChange={value=>setLocale(value as Locale)} className="gap-0 divide-y divide-line">{(["en","fi","et"] as const).map((value,i)=><label key={value} className="flex min-h-14 items-center gap-3 px-4"><RadioGroupItem value={value}/>{t((["english","finnish","estonian"] as const)[i])}</label>)}</RadioGroup></SettingsGroup>
+    {loading&&<div role="status" className="space-y-3"><span className="sr-only">{t("reading")}</span><Skeleton className="h-28 w-full rounded-2xl"/><Skeleton className="h-28 w-full rounded-2xl"/></div>}
+    {error&&<InlineError message={error||t("settingsLoadError")} onRetry={()=>void load()}/>}
+    {data&&<>
+      <SettingsGroup title={t("settingsDataSource")}><SettingsRow label={t("profileRow")} value={t(data.synthetic?"profileDemo":"profileVerified")}/><SettingsRow label={t("tryDemo")} href="/demo?dataset=organizer1"/></SettingsGroup>
+      <SettingsGroup title={t("coachVisibility")} note={t("coachSeesNote")}>{data.accounts.length===0?<p className="px-4 py-4 text-sm text-ink-2">{t("noAccountsYet")}</p>:data.accounts.map(a=><label key={a.id} className="flex min-h-14 items-center gap-3 px-4 py-3"><span className="min-w-0 flex-1"><span className="block text-base">{accountLabel(a.id)}</span><span className="block text-caption text-ink-2">{[a.name,a.currency].filter(Boolean).join(" · ")}</span></span><input type="checkbox" className={check} checked={a.included} disabled={busy} onChange={e=>void toggle(a.id,e.target.checked)}/></label>)}</SettingsGroup>
+      <SettingsGroup title={t("settingsAiPrivacy")}><SettingsRow label={t("onlineAi")} value={t(data.model_policy==="free_only"?"hostedAiOff":"hostedAiOn")}/><label className="flex min-h-14 items-center gap-3 px-4 py-3"><span className="min-w-0 flex-1"><span className="block text-base">{t("aiReadDescriptions")}</span><span className="block text-caption text-ink-2">{t("aiReadDescriptionsNote")}</span></span><input type="checkbox" className={check} checked={data.allow_ai_payment_descriptions} disabled={busy} onChange={event=>void describe(event.target.checked)}/></label></SettingsGroup>
+      <SettingsGroup title={t("settingsBanks")}><SettingsRow label={t("bankConnections")} value={t(data.live_banking_enabled?"bankConnectionsOn":"bankConnectionsOff")} href="/banks"/></SettingsGroup>
+      <SettingsGroup title={t("moreTools")}><SettingsSheetRow label={t("moreTools")} value={t("moreToolsNote")}><ul className="divide-y divide-line">{tools.map(([href,key])=><li key={href}><a className="flex min-h-14 items-center justify-between gap-3 py-3 text-ink no-underline" href={href}>{t(key)}<ChevronRight className="size-4 text-ink-2" aria-hidden="true"/></a></li>)}</ul></SettingsSheetRow></SettingsGroup>
+    </>}
+    <SettingsGroup title={t("settingsAbout")} note={t("disclaimer")}><SettingsRow label={t("privacyPolicy")} href="/privacy"/><SettingsRow label={t("termsOfUse")} href="/terms"/></SettingsGroup>
+    {signOut&&<Button variant="outline" className="w-full" onClick={signOut}>{t("signOut")}</Button>}
+  </div>;
 }

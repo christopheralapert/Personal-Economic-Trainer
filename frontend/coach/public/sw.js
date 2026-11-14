@@ -1,6 +1,6 @@
 /* Public synthetic demo only. Never reuse this policy for customer data. */
 const PREFIX="money-coach-public-";
-const VERSION="4b1041e9338ae6e699de";
+const VERSION="7ac19d05e487f7b9555a";
 const CACHE=PREFIX+VERSION;
 const PUBLIC=["/","/kit","/manifest.webmanifest","/icon.svg","/icon-192.png","/icon-512.png","/icon-maskable.png","/apple-touch-icon.png"];
 const MAX_ENTRIES=64, MAX_BODY=3*1024*1024, MAX_TOTAL=8*1024*1024, MAX_VERSIONS=2;

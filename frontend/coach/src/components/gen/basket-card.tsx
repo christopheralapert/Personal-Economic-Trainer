@@ -8,7 +8,7 @@ import {transactionQuestion} from "@/coach/explore-question";
 import {Button} from "@/components/ui/button";
 export function BasketCard({groups,period,onAsk}:{groups:Group[];period?:Period;onAsk?:(question:string)=>void}) {
   const {t,locale}=useCopy(),total=exactSum(groups.map(g=>g.gross));
-  const basket=[{key:"mandatory_regular",title:"regular",copy:"regularText",color:"bg-basket-regular"},{key:"mandatory_irregular",title:"irregular",copy:"irregularText",color:"bg-basket-irregular"},{key:"everyday",title:"everyday",copy:"everydayText",color:"bg-basket-everyday"},{key:"unresolved",title:"unresolved",copy:"unresolvedText",color:"bg-ink-2"}] as const;
+  const basket=[{key:"mandatory_regular",title:"regular",copy:"regularText",color:"bg-basket-regular"},{key:"mandatory_irregular",title:"irregular",copy:"irregularText",color:"bg-basket-surprises"},{key:"everyday",title:"everyday",copy:"everydayText",color:"bg-basket-everyday"},{key:"unresolved",title:"unresolved",copy:"unresolvedText",color:"bg-hatch"}] as const;
   return <div className="space-y-5"><div className="divide-y divide-line">{basket.filter(b=>b.key!=="unresolved" || groups.some(g=>g.key===b.key)).map(b=>{
     const g=groups.find(g=>g.key===b.key),share=total ? (g?.gross ?? 0)/total*100 : 0;
     const question=g && period && onAsk ? transactionQuestion(period,{basket:b.key},locale) : null;

@@ -26,7 +26,8 @@ test("explicit injected category fixtures reconcile refunds and distinguish Othe
   const input=page.getByRole("textbox",{name:en.questionLabel,exact:true}),send=page.getByRole("button",{name:en.send,exact:true});
   await input.fill("Where did my money go last month?");await send.click();const answer=page.locator("article").last();
   await expect(answer).toContainText("144,00");await expect(answer.getByRole("table")).toContainText("send");await expect(answer.getByRole("table").getByRole("row")).toHaveCount(8);
-  const other=answer.getByRole("button",{name:/50,00.*Other/}),remainder=answer.getByRole("button",{name:/27,00.*Other categories/});
+  // Net presentation counts send at 7,00, so coffee and send (27,00, 18 %) stay below the 20 % rollup limit.
+  const other=answer.getByRole("button",{name:/^Other .*50,00/}),remainder=answer.getByRole("button",{name:/^Other categories.*27,00/});
   await other.click();let detail=page.getByRole("dialog",{name:en.other,exact:true});await expect(detail).toContainText(en.emptyRecords);await detail.getByRole("button",{name:en.done,exact:true}).click();
   await remainder.click();detail=page.getByRole("dialog",{name:en.remainingCategories,exact:true});await expect(detail).toContainText("Coffee purchases");await expect(detail).toContainText("16,50");await detail.getByRole("button",{name:en.done,exact:true}).click();
   // Injected chart figures are not invented ledger records: their full reconciliation stays in the table.

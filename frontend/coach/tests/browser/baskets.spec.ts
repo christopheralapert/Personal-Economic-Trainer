@@ -9,13 +9,15 @@ test("localized overview basket actions carry the selected period and merchant a
   const requests:Record<string,unknown>[]=[];page.on("request",r=>{if(r.method()==="POST" && r.url().endsWith("/api/chat")) requests.push(r.postDataJSON());});
   await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:"reduce"});
   for(const copy of [en,fi,et]) {
-    await page.goto("/");await page.evaluate(()=>localStorage.removeItem("money-coach-preferences.v1"));await page.reload();await page.getByRole("button",{name:en.settings,exact:true}).click();await page.getByLabel(copy===fi ? en.finnish : copy===et ? en.estonian : en.english,{exact:true}).check();await page.getByRole("button",{name:copy.overview,exact:true}).click();
+    await page.goto("/");await page.evaluate(()=>localStorage.removeItem("money-coach-preferences.v1"));await page.reload();await page.getByRole("button",{name:en.settings,exact:true}).click();await page.getByLabel(copy===fi ? en.finnish : copy===et ? en.estonian : en.english,{exact:true}).check();await page.getByRole("tab",{name:copy.overview,exact:true}).click();
     await openOverview(page,copy);await page.getByRole("button",{name:copy.previousPeriod,exact:true}).click();await page.locator('[data-overview-block="baskets"]').getByRole("button").filter({hasText:copy.everydayShort}).click();await page.locator('#learn-everyday').getByRole("button").click();
+    await page.locator('#learn-everyday').getByRole("region").getByRole("button",{name:copy.askCoach,exact:true}).click();
     let answer=page.locator("article").last();await expect(answer).toContainText("250,00");await checkBasis(page,answer,copy,"30.9.2026");await expect(answer).toContainText(copy.dining);
     const merchant=answer.locator("li button").first();await merchant.click();answer=page.locator("article").last();await expect(answer).toContainText("250,00");await expect(answer).toContainText(copy.dining);
     expect(JSON.stringify(requests.at(-1))).toContain('everyday');expect(JSON.stringify(requests.at(-1))).toContain('2026-09-01');
   }
-  expect(requests).toHaveLength(6);
+  // The merchant drilldown stays inside the existing answer; only the explicit Learn action asks Coach.
+  expect(requests).toHaveLength(3);
 });
 
 test("inline basket continuation keeps intersected selectors until explicit clearing",async({page,context})=>{

@@ -8,7 +8,12 @@ import {firstBankCopy} from "../i18n/first-bank";
 import {matchesBank} from "../lib/bank-search";
 import {BankPicker,preferredBankCountry} from "./first-bank";
 import {nativeMoney} from "./import-files";
-import {Drawer,DrawerContent,DrawerHeader,DrawerTitle,DrawerDescription,DrawerFooter,DrawerClose} from "@/components/ui/drawer";
+import {Drawer,DrawerContent,DrawerHeader,DrawerTitle,DrawerDescription,DrawerFooter,DrawerBody} from "@/components/ui/drawer";
+import {Landmark,Info,History} from "lucide-react";
+import {Skeleton} from "@/components/ui/skeleton";
+import {InlineError} from "@/components/ui/inline-error";
+import {EmptyState} from "@/components/ui/empty-state";
+import {SettingsGroup,SettingsSheetRow} from "@/components/settings-list";
 
 type Institution = {name:string;country:string};
 type Connection = {mode:"live"|"sandbox";id:string;name:string;country:string;consent_state:string;account_count:number;
@@ -20,10 +25,15 @@ type Data={accounts:{id:string;name:string;currency:string;included:boolean;amou
 const amount=(minor:number,currency="EUR")=>nativeMoney(minor,currency);
 const asDate=(value:string|null)=>value?new Intl.DateTimeFormat("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Tallinn"}).format(new Date(value)):"Never";
 const daysUntil=(value:string|null,now:number)=>value===null?null:Math.ceil((new Date(value).getTime()-now)/86400000);
-const plainError=(code:string|null)=>code==="BANK_CONSENT_EXPIRED"?"Your bank consent has expired. Reconnect to continue.":code==="BANK_PROVIDER_UNAVAILABLE"?"The bank is temporarily unavailable. Try again later.":code==="BANK_ACCOUNT_ACCESS_REQUIRED"?"This account is no longer available for analysis. Review consent.":"The bank connection needs attention.";
+const errorKey=(code:string|null)=>code==="BANK_CONSENT_EXPIRED"?"bankErrorExpired":code==="BANK_PROVIDER_UNAVAILABLE"?"bankErrorUnavailable":code==="BANK_ACCOUNT_ACCESS_REQUIRED"?"bankErrorAccess":"bankErrorGeneric";
+type Status="connected"|"attention"|"expired"|"paused"|"updating"|"never";
+const statusOf=(bank:Connection&ImportState):Status=>bank.retry_exhausted?"paused":bank.import_in_progress?"updating":bank.consent_state==="expired"?"expired":bank.last_error_code||bank.sync_health==="failed"||bank.consent_state!=="active"?"attention":!bank.last_success_at?"never":"connected";
+const statusKey={connected:"statusConnected",attention:"statusAttention",expired:"statusExpired",paused:"statusPaused",updating:"statusUpdating",never:"statusNever"} as const;
+const statusTone:Record<Status,string>={connected:"bg-brand-tint text-active-ink",attention:"bg-basket-surprises/15 text-ink",expired:"bg-basket-surprises/15 text-ink",paused:"bg-tile-grey text-ink-2",updating:"bg-tile-grey text-ink-2",never:"bg-tile-grey text-ink-2"};
 
 export function LiveBankWorkspace({request,changed,children}:{request:PrivateRequest;changed:()=>void;children?:ReactNode}) {
-  const {locale}=useCopy(),copy=firstBankCopy[locale];
+  const {locale,t}=useCopy(),copy=firstBankCopy[locale];
+  const [adding,setAdding]=useState(false);
   const [flow,setFlow]=useState(false),[choice,setChoice]=useState<Institution|null>(null);
   const [returnId,setReturnId]=useState<string|null>(null),[imported,setImported]=useState<LiveRefresh|null>(null);
   const [countryReady,setCountryReady]=useState(false);
@@ -45,6 +55,7 @@ export function LiveBankWorkspace({request,changed,children}:{request:PrivateReq
   const [selected,setSelected]=useState<(Connection&ImportState)|null>(null);
   const [pastOpen,setPastOpen]=useState(false),[infoOpen,setInfoOpen]=useState(false);
   const locked=useRef(false);
+  const shortTime=(value:string)=>{const date=new Date(value),today=new Date(now).toDateString()===date.toDateString();return new Intl.DateTimeFormat(locale,today?{hour:"2-digit",minute:"2-digit",timeZone:"Europe/Tallinn"}:{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Tallinn"}).format(date);};
   const current=useRef(0);
   const directory=useRef(new Map<string,Institution[]>());
   const alive=useRef(true);
@@ -71,9 +82,9 @@ export function LiveBankWorkspace({request,changed,children}:{request:PrivateReq
       setAccessRequired(reason instanceof PrivateApiError&&["UNAUTHENTICATED","SESSION_CHANGED","FORBIDDEN","MEMBERSHIP_UNAVAILABLE","ACCESS_DENIED"].includes(reason.code));
       if(reason instanceof PrivateApiError && reason.code==="LIVE_BANKS_DISABLED"){
         setAvailable(false);setInstitutions([]);setConnections([]);setError("");
-      }else setError("Could not load the bank directory. Check your identity, provider configuration and connectivity.");
+      }else setError(t("banksLoadError"));
     }finally{if(alive.current&&version===current.current)setLoading(false);}
-  },[request,country,countryReady]);
+  },[request,country,countryReady,t]);
   useEffect(()=>{alive.current=true;void load();return()=>{alive.current=false;};},[load]);
   useEffect(()=>{const query=new URLSearchParams(window.location.search),status=query.get("live_status");
     setCountry(preferredBankCountry());setCountryReady(true);
@@ -108,13 +119,13 @@ export function LiveBankWorkspace({request,changed,children}:{request:PrivateReq
         const result=await request<Connection>(`live-banking/connections/${payload.id}/disconnect`,{});
         if(!alive.current)return;
         setDetail(null);
-        setNotice(result.revocation_confirmed ? "Local access revoked and provider revocation confirmed. Historical records are retained; deletion is a separate operator-assisted process." : "Local access is blocked. Provider revocation is unconfirmed; retry disconnect or revoke consent at your bank. Retained records have not been deleted.");
-        setConfirm(null);
+        setNotice(t(result.revocation_confirmed ? "disconnectedConfirmed" : "disconnectedUnconfirmed"));
+        setConfirm(null);setSelected(null);
       }
       changed();await load();
     }catch(reason){
       if(alive.current&&!aborted(reason))setAccessDenied(reason instanceof PrivateApiError&&reason.code==="BANK_PROVIDER_ACCESS_DENIED");
-      if(alive.current&&!aborted(reason)) setError(reason instanceof PrivateApiError ? reason.message : "The bank operation could not be confirmed. Review the connection state before retrying.");
+      if(alive.current&&!aborted(reason)) setError(t("bankActionError"));
       if(operation==="refresh" && alive.current && !aborted(reason)){
         try{const latest=await request<(Connection&ImportState)[]>("live-banking/connections");if(alive.current)setConnections(latest);}
         catch{/* Preserve the original error; status can be checked explicitly. */}
@@ -133,9 +144,9 @@ export function LiveBankWorkspace({request,changed,children}:{request:PrivateReq
   const blocked=(bank:Connection&ImportState)=>busy||!!bank.retry_exhausted||!!bank.import_in_progress||Boolean(bank.retry_not_before&&new Date(bank.retry_not_before).getTime()>now);
   const history=new URLSearchParams({start:new Date(Date.now()-90*86400000).toISOString().slice(0,10),end:new Date(Date.now()+86400000).toISOString().slice(0,10)});
   const cooldown=focused?.retry_not_before&&new Date(focused.retry_not_before).getTime()>now;
-  if(!available&&!loading)return <section className="space-y-4"><h1 className="text-xl font-semibold">{copy.demoBank}</h1><p className="text-sm text-ink-2">{copy.unavailable}</p><Button asChild className="w-full"><a href="/demo/banks">{copy.demoBank}</a></Button><Button asChild variant="outline" className="w-full"><a href="/demo?dataset=organizer1">{copy.demo}</a></Button></section>;
+  if(!available&&!loading)return <section className="space-y-4"><h1 className="text-xl font-semibold">{copy.demoBank}</h1><p className="text-sm text-ink-2">{copy.unavailable}</p><div className="grid gap-3"><Button asChild variant="outline" className="w-full"><a href="/demo/banks">{copy.demoBank}</a></Button><Button asChild variant="outline" className="w-full"><a href="/demo?dataset=organizer1">{copy.demo}</a></Button></div></section>;
   if(flow||(!loading&&connections.length===0))return <div className="space-y-6" data-bank-onboarding>
-    <p className="text-caption text-ink-2">{environment==="production"?"LIVE":environment==="sandbox"?"PROVIDER SANDBOX":"Checking bank access…"} · Money Coach · EUR · AIS</p>
+    <p className="text-caption text-ink-2">{environment ? `${t(environment==="production"?"environmentLive":"environmentSandbox")} · ${t("banksSubtitle")}` : t("banksSubtitle")}</p>
     {focused?<section className="space-y-4" aria-busy={busy}>
       <h1 className="text-xl font-semibold">{copy.connected.replace("{bank}",focused.name)}</h1>
       {imported?<><p role="status" className="text-sm">{imported.booked_transactions?copy.result.replace("{count}",String(imported.booked_transactions)):copy.none}</p><Button asChild className="w-full"><a href={`/transactions?${history}`}>{copy.view}</a></Button></>:<>
@@ -154,43 +165,43 @@ export function LiveBankWorkspace({request,changed,children}:{request:PrivateReq
     {accessDenied&&<div className="space-y-3"><Button asChild variant="outline" className="w-full"><a href="/demo/banks">{copy.demoBank}</a></Button></div>}
     <div className="grid gap-3">{visibleConnections.length>0&&<Button variant="outline" onClick={()=>{setFlow(true);setReturnId(null);setImported(null);setChoice(null);window.history.replaceState(null,"","/banks?connect=1");}}>{copy.add}</Button>}<Button asChild variant="link"><a href="/">{copy.back}</a></Button></div>
   </div>;
-  return <>
-    <div className="page-heading"><div><h1>Your banks, securely connected.</h1><p>Read-only account data from your bank, with your explicit consent.</p></div></div>
-    <p className="demo-notice"><span className="demo-dot"/><span><strong>{environment==="production" ? "LIVE" : "PROVIDER SANDBOX"}</strong> · Verified users only · No payments, transfers or bank passwords in Money Coach.</span></p>
-    {loading&&<p role="status" className="loading-state">Checking the provider directory…</p>}
-    {error&&<p role="alert" className="error-notice">{accessDenied?copy.providerDenied:error}</p>}
-    {notice&&<p role="status" className="bank-feedback">{notice}</p>}
-    {!available&&<section className="panel bank-section"><h2>Live banking is not configured on this deployment</h2>
-      <p>Sandbox and synthetic demos still work. Live Banking requires a registered Enable Banking application, a private RSA key, encrypted credential storage, a migrated database and verified OIDC login.</p>
-      <a className="secondary-button" href="/demo?dataset=organizer1">Explore the public demo</a></section>}
+  const active=selected?.consent_state==="active";
+  const describe=(bank:Connection&ImportState)=>{const status=statusOf(bank);return status==="connected"||status==="never"?t("banksSubtitle"):status==="paused"?t("bankPausedReview"):status==="updating"?t("bankImportRunning"):t(errorKey(bank.last_error_code));};
+  return <div className="space-y-6">
+    <div className="space-y-1"><h1 className="text-xl font-semibold">{t("banksTitle")}</h1><p className="text-sm text-ink-2">{environment&&<span className="mr-2 rounded-full bg-tile-grey px-2 py-0.5 text-caption text-ink-2">{t(environment==="production"?"environmentLive":"environmentSandbox")}</span>}{t("banksSubtitle")}</p></div>
+    {notice&&<p role="status" className="bank-feedback rounded-2xl border border-line bg-surface p-4 text-sm">{notice}</p>}
+    {error&&!selected&&<InlineError message={accessDenied?copy.providerDenied:error} onRetry={()=>void load()}/>}
+    {loading&&<div role="status" className="space-y-3"><span className="sr-only">{copy.loading}</span><Skeleton className="h-16 w-full rounded-2xl"/><Skeleton className="h-16 w-full rounded-2xl"/></div>}
     {available&&!loading&&<>
-      <section className="panel bank-section"><div className="review-account-heading"><h2>Your connected banks</h2><button className="secondary-button" disabled={busy} onClick={()=>void load()}>Update status</button></div>
-        {visibleConnections.length===0?<p className="bank-empty">No bank consent has been confirmed yet. Choose an institution below.</p>:<ul className="bank-list">{visibleConnections.map(bank=><li className="bank-row" key={bank.id}>
-          <div className="review-account-heading"><h3><button className="min-h-12 text-left" onClick={()=>setSelected(bank)}>{bank.name} ···{bank.id.slice(-4)}</button></h3><span className="bank-state">{bank.consent_state}</span></div>
-          <p className="field-hint">Updated {bank.last_success_at?asDate(bank.last_success_at):"never"} · {daysUntil(bank.expires_at,now)===null?"Consent expiry unknown":`${daysUntil(bank.expires_at,now)} days until consent expires`}</p>
-          <p className="bank-health">{bank.sync_health==="partial"?"Partial history — not a complete safe-to-spend assessment":bank.sync_health}</p>
-          {bank.last_error_code&&<p className="bank-source-warning">{plainError(bank.last_error_code)}</p>}
-          {bank.retry_not_before&&<p role="status" className="field-hint">{bank.retry_after_known?"Provider Retry-After":"Bank limit end unknown. Money Coach precautionary pause"}: {asDate(bank.retry_not_before)}. {bank.retry_exhausted?"Further attempts are paused for review.":new Date(bank.retry_not_before).getTime()>now?"No bank requests while waiting.":"One manual retry is available; no automatic import will run."}</p>}
-          {bank.retry_exhausted&&<p role="status" className="bank-source-warning">Three limited attempts. Further imports need operator review; your bank consent is preserved.</p>}
-          {bank.import_in_progress&&<p role="status" className="field-hint">One import is already running for all {bank.account_count} selected accounts. Use Update status after it finishes.</p>}
-          <div className="plan-actions">
-            {bank.consent_state==="active"&&<button className="primary-button" disabled={busy||bank.retry_exhausted||bank.import_in_progress||Boolean(bank.retry_not_before&&new Date(bank.retry_not_before).getTime()>now)} onClick={()=>void execute("refresh",{id:bank.id})}>Import recent transactions</button>}
-            {bank.consent_state==="active"&&<button className="secondary-button" disabled={busy} onClick={()=>void execute("inspect",{id:bank.id})}>View imported accounts</button>}
-            {["expired","revoked","denied"].includes(bank.consent_state)&&<button className="secondary-button" disabled={busy} onClick={()=>{setCountry(bank.country);setFilter(bank.name);setChoice({name:bank.name,country:bank.country});setFlow(true);}}>Reconnect</button>}
-            {(bank.consent_state!=="revoked" || bank.revocation_confirmed===false)&&<button className="text-button" disabled={busy} onClick={()=>setConfirm(bank.id)}>Disconnect</button>}
-          </div>
-          {confirm===bank.id&&<div className="bank-disconnect"><p>Revoke this read-only bank session? Previously imported records are retained until separately deleted.</p>
-            <div className="plan-actions"><button className="secondary-button" disabled={busy} onClick={()=>void execute("disconnect",{id:bank.id})}>Confirm revoke</button><button className="text-button" disabled={busy} onClick={()=>setConfirm(null)}>Cancel</button></div></div>}
-          {detail?.id===bank.id&&<section className="bank-accounts" aria-label="Imported bank data"><h4>Accounts and observed balances</h4><ul className="bank-list">{detail.data.accounts.map(account=><li key={account.id} className="bank-row"><strong>{account.name}</strong><span className="bank-account-meta">{account.included ? account.amount_minor===null ? "No balance observation" : `${amount(account.amount_minor,account.currency)} (${account.balance_kind})` : "Excluded from analysis"}</span><span className="field-hint">{asDate(account.observed_at)}</span></li>)}</ul><h4>Latest imported transactions</h4><ul className="bank-list">{detail.data.transactions.map(row=><li key={row.id} className="bank-row"><strong>{row.merchant}</strong><p>{amount(row.amount_minor,row.currency)}</p><span className="bank-account-meta">{row.booked_on} / {row.category} / {row.basket} / {row.economic_flow}</span></li>)}</ul><p className="field-hint">Up to 50 entries. Unknown transfers and credits need review; these are not complete historical totals.</p><a className="secondary-button" href="/analysis">Ask about these transactions</a></section>}
-        </li>)}</ul>}
-      </section>
-      {pastConnections.length>0&&<><button className="secondary-button" onClick={()=>setPastOpen(true)}>Past connections</button><Drawer open={pastOpen} onOpenChange={setPastOpen}><DrawerContent><DrawerHeader><DrawerTitle>Past connections</DrawerTitle></DrawerHeader><ul className="divide-y divide-line px-4 pb-4">{pastConnections.map(bank=><li className="py-3" key={bank.id}>{bank.name} ···{bank.id.slice(-4)}<span className="ml-2 bank-state">{bank.consent_state}</span><Button variant="outline" className="mt-3 w-full" onClick={()=>{setPastOpen(false);setCountry(bank.country);setChoice({name:bank.name,country:bank.country});setFlow(true);}}>Reconnect</Button></li>)}</ul></DrawerContent></Drawer></>}
-      <button className="secondary-button" onClick={()=>{setFlow(true);setChoice(null);}}>Add another bank</button>
-      <section className="panel bank-section"><h2>What happens next?</h2><button className="secondary-button" onClick={()=>setInfoOpen(true)}>Read the short version</button>
-        <p className="field-hint">A successful bank authentication does not prove full historical coverage. Imported data may contain uncategorised payments. Currency support in this pilot is currently EUR only.</p></section>
-      <Drawer open={Boolean(selected)} onOpenChange={open=>{if(!open)setSelected(null);}}><DrawerContent><DrawerHeader><DrawerTitle>{selected?.name} ···{selected?.id.slice(-4)}</DrawerTitle>      <DrawerDescription>{selected?.last_error_code?plainError(selected.last_error_code):copy.consent}</DrawerDescription>{selected?.last_error_code&&<p className="text-caption">Technical details: {selected.last_error_code}</p>}</DrawerHeader><div className="space-y-3 px-4 pb-4">{selected&&<><button className="primary-button w-full" disabled={selected?blocked(selected):true} onClick={()=>void execute("refresh",{id:selected.id})}>Update now</button><button className="secondary-button w-full" disabled={busy} onClick={()=>void execute("inspect",{id:selected.id})}>View accounts</button><button className="secondary-button w-full" onClick={()=>{setCountry(selected.country);setFilter(selected.name);setChoice({name:selected.name,country:selected.country});setFlow(true);setSelected(null);}}>Reconnect</button><button className="text-button w-full" disabled={busy} onClick={()=>setConfirm(selected.id)}>Disconnect</button>{confirm===selected.id&&<div className="bank-disconnect"><p>Disconnect this bank? Imported records are retained.</p><button className="secondary-button" onClick={()=>void execute("disconnect",{id:selected.id})}>Confirm disconnect</button></div>}</>}</div><DrawerFooter><DrawerClose asChild><button className="secondary-button">Done</button></DrawerClose></DrawerFooter></DrawerContent></Drawer>
-      <Drawer open={infoOpen} onOpenChange={setInfoOpen}><DrawerContent><DrawerHeader><DrawerTitle>What happens next?</DrawerTitle></DrawerHeader><div className="px-4 pb-6 text-sm"><p>After bank consent, recent read-only transactions are imported. Incomplete history or uncategorised payments keep spending guidance cautious.</p></div></DrawerContent></Drawer>
+      {visibleConnections.length===0?<EmptyState icon={Landmark} title={t("noBanksYet")} action={<Button onClick={()=>setAdding(true)}>{t("addBank")}</Button>}>{t("noBanksNote")}</EmptyState>:
+      <ul aria-label={t("banksTitle")} className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">{visibleConnections.map(bank=>{const status=statusOf(bank),days=daysUntil(bank.expires_at,now);return <li key={bank.id}><button type="button" className="flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-tile-grey focus-visible:bg-tile-grey" onClick={()=>{setSelected(bank);setConfirm(null);setDetail(null);setError("");}}>
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-tile-grey text-ink-2" aria-hidden="true"><Landmark className="size-5"/></span>
+        <span className="min-w-0 flex-1"><span className="block wrap-anywhere text-base font-medium">{bank.name} ···{bank.id.slice(-4)}</span><span className="block text-caption tabular-nums text-ink-2">{bank.last_success_at?t("updatedAt",{time:shortTime(bank.last_success_at)}):t("statusNever")}{days!==null&&days>=0?` · ${days===0?t("consentEndsToday"):t("consentDaysLeft",{days})}`:""}</span></span>
+        <span className={`shrink-0 rounded-full px-2 py-1 text-caption font-medium ${statusTone[status]}`}>{t(statusKey[status])}</span></button></li>;})}</ul>}
+      {visibleConnections.length>0&&<Button variant="outline" className="w-full" onClick={()=>setAdding(true)}>{t("addBank")}</Button>}
+      <SettingsGroup title={t("settingsAbout")}>
+        {pastConnections.length>0&&<SettingsSheetRow label={t("pastConnections")} value={t("pastConnectionsCount",{count:pastConnections.length})}><ul className="divide-y divide-line">{pastConnections.map(bank=><li className="flex min-h-14 items-center gap-3 py-3" key={bank.id}><History className="size-5 shrink-0 text-ink-2" aria-hidden="true"/><span className="min-w-0 flex-1 wrap-anywhere">{bank.name} ···{bank.id.slice(-4)}</span><Button variant="outline" size="chip" onClick={()=>{setCountry(bank.country);setChoice({name:bank.name,country:bank.country});setFlow(true);}}>{t("reconnect")}</Button></li>)}</ul></SettingsSheetRow>}
+        <SettingsSheetRow label={t("howBanksWork")}><p className="flex gap-3 text-sm leading-relaxed"><Info className="mt-0.5 size-5 shrink-0 text-ink-2" aria-hidden="true"/><span>{t("howBanksWorkText")}</span></p></SettingsSheetRow>
+      </SettingsGroup>
     </>}
     {children}
-  </>;
+    <Drawer open={adding} onOpenChange={setAdding}><DrawerContent><DrawerHeader><DrawerTitle>{t("addBank")}</DrawerTitle><DrawerDescription>{t("banksSubtitle")}</DrawerDescription></DrawerHeader><DrawerBody><BankPicker heading={false} country={country} onCountry={value=>{setLoading(true);setInstitutions([]);setCountry(value);}} filter={filter} onFilter={setFilter} banks={filtered} loading={loading} error={error?copy.failed:""} retry={()=>void load()} choose={bank=>{setAdding(false);setChoice(bank);setFlow(true);}}/></DrawerBody></DrawerContent></Drawer>
+    <Drawer open={Boolean(selected)} onOpenChange={open=>{if(!open){setSelected(null);setConfirm(null);setDetail(null);}}}><DrawerContent>{selected&&<>
+      <DrawerHeader><DrawerTitle>{selected.name} ···{selected.id.slice(-4)}</DrawerTitle><DrawerDescription>{describe(selected)}</DrawerDescription></DrawerHeader>
+      <DrawerBody className="space-y-4">
+        {selected.retry_not_before&&new Date(selected.retry_not_before).getTime()>now&&<p role="status" className="text-sm text-ink-2">{t("bankWait",{time:shortTime(selected.retry_not_before)})}</p>}
+        {error&&<InlineError message={accessDenied?copy.providerDenied:error}/>}
+        {detail?.id===selected.id&&<section className="space-y-3" aria-label={t("bankAccounts")}><h3 className="text-sm font-semibold text-ink-2">{t("bankAccounts")}</h3><ul className="divide-y divide-line rounded-2xl border border-line">{detail.data.accounts.map(account=><li key={account.id} className="flex min-h-14 items-center gap-3 px-4 py-3"><span className="min-w-0 flex-1 wrap-anywhere">{account.name}</span><span className="text-right text-sm tabular-nums">{account.included?account.amount_minor===null?t("noBalanceYet"):amount(account.amount_minor,account.currency):t("notInAnalysis")}</span></li>)}</ul>
+          <h3 className="text-sm font-semibold text-ink-2">{t("latestTransactions")}</h3><ul className="divide-y divide-line">{detail.data.transactions.slice(0,10).map(row=><li key={row.id} className="flex min-h-14 items-center gap-3 py-2"><span className="min-w-0 flex-1 wrap-anywhere text-sm">{row.merchant}<span className="block text-caption text-ink-2">{row.booked_on}</span></span><span className="text-sm font-semibold tabular-nums">{amount(row.amount_minor,row.currency)}</span></li>)}</ul></section>}
+        {confirm===selected.id&&<div className="space-y-3 rounded-2xl bg-tile-grey p-4"><p className="text-sm">{t("disconnectConfirm")}</p><div className="flex flex-wrap gap-3"><Button variant="destructive" disabled={busy} onClick={()=>void execute("disconnect",{id:selected.id})}>{t("confirmDisconnect")}</Button><Button variant="ghost" disabled={busy} onClick={()=>setConfirm(null)}>{t("cancelAction")}</Button></div></div>}
+        {selected.last_error_code&&<p className="text-caption text-ink-2">{t("technicalDetail",{code:selected.last_error_code})}</p>}
+      </DrawerBody>
+      <DrawerFooter>
+        {active&&<Button disabled={blocked(selected)} onClick={()=>void execute("refresh",{id:selected.id})}>{busy?copy.importing:t("updateNow")}</Button>}
+        {active&&detail?.id!==selected.id&&<Button variant="outline" disabled={busy} onClick={()=>void execute("inspect",{id:selected.id})}>{t("viewAccounts")}</Button>}
+        <Button variant={active?"outline":"default"} onClick={()=>{setCountry(selected.country);setFilter(selected.name);setChoice({name:selected.name,country:selected.country});setFlow(true);setSelected(null);}}>{t("reconnect")}</Button>
+        {(selected.consent_state!=="revoked"||selected.revocation_confirmed===false)&&confirm!==selected.id&&<Button variant="ghost" className="text-neg" disabled={busy} onClick={()=>setConfirm(selected.id)}>{t("disconnect")}</Button>}
+      </DrawerFooter></>}
+    </DrawerContent></Drawer>
+  </div>;
 }

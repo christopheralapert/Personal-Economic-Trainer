@@ -55,7 +55,7 @@ function DrawerContent({
       <DrawerPrimitive.Content
         data-slot="drawer-content"
         className={cn(
-          "group/drawer-content fixed z-50 flex h-auto flex-col bg-background",
+          "group/drawer-content pb-safe fixed z-50 flex h-auto flex-col bg-background",
           "data-[vaul-drawer-direction=top]:inset-x-0 data-[vaul-drawer-direction=top]:top-0 data-[vaul-drawer-direction=top]:mb-24 data-[vaul-drawer-direction=top]:max-h-sheet data-[vaul-drawer-direction=top]:rounded-b-lg data-[vaul-drawer-direction=top]:border-b",
           "data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:max-h-sheet data-[vaul-drawer-direction=bottom]:rounded-t-sheet data-[vaul-drawer-direction=bottom]:border-t",
           "data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:w-3/4 data-[vaul-drawer-direction=right]:border-l data-[vaul-drawer-direction=right]:sm:max-w-sm",
@@ -76,7 +76,7 @@ function DrawerHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="drawer-header"
       className={cn(
-        "flex flex-col gap-0.5 p-4 group-data-[vaul-drawer-direction=bottom]/drawer-content:text-center group-data-[vaul-drawer-direction=top]/drawer-content:text-center md:gap-1.5 md:text-left",
+        "flex flex-col gap-1 px-4 pb-3 pt-4 text-left",
         className
       )}
       {...props}
@@ -88,10 +88,15 @@ function DrawerFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="drawer-footer"
-      className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+      className={cn("mt-auto flex flex-col gap-3 border-t border-line p-4", className)}
       {...props}
     />
   )
+}
+
+/** Scrollable sheet content between header and footer. */
+function DrawerBody({ className, ...props }: React.ComponentProps<"div">) {
+  return <div data-slot="drawer-body" className={cn("min-h-0 flex-1 overflow-y-auto px-4 pb-4", className)} {...props} />
 }
 
 function DrawerTitle({
@@ -101,7 +106,7 @@ function DrawerTitle({
   return (
     <DrawerPrimitive.Title
       data-slot="drawer-title"
-      className={cn("font-semibold text-foreground", className)}
+      className={cn("text-xl font-semibold text-foreground", className)}
       {...props}
     />
   )
@@ -129,6 +134,7 @@ export {
   DrawerContent,
   DrawerHeader,
   DrawerFooter,
+  DrawerBody,
   DrawerTitle,
   DrawerDescription,
 }

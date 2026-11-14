@@ -9,11 +9,11 @@ test("category and merchant actions keep the selected source period through the 
   const questions:string[]=[];page.on("request",request=>{if(request.method()==="POST" && request.url().endsWith("/api/chat")) questions.push(request.postDataJSON().messages[0].parts[0].text);});
   await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:"reduce"});
   for(const copy of [en,fi,et]) {
-    await page.goto("/");await page.evaluate(()=>localStorage.removeItem("money-coach-preferences.v1"));await page.reload();await page.getByRole("button",{name:en.settings,exact:true}).click();await page.getByLabel(copy===en ? en.english : copy===fi ? en.finnish : en.estonian,{exact:true}).check();await page.getByRole("button",{name:copy.overview,exact:true}).click();
+    await page.goto("/");await page.evaluate(()=>localStorage.removeItem("money-coach-preferences.v1"));await page.reload();await page.getByRole("button",{name:en.settings,exact:true}).click();await page.getByLabel(copy===en ? en.english : copy===fi ? en.finnish : en.estonian,{exact:true}).check();await page.getByRole("tab",{name:copy.overview,exact:true}).click();
     await openOverview(page,copy);await page.getByRole("button",{name:copy.switchCurrent.replace("{month}",copy===fi ? "marraskuu" : copy===et ? "november" : "November"),exact:true}).click();
     await page.getByRole("button",{name:new RegExp(copy.taxi)}).first().click();await page.getByRole("dialog").getByRole("button",{name:copy.exploreCategory.replace("{category}",copy.taxi),exact:true}).click();
     let answer=page.locator("article").last();await expect(answer).toContainText("12,50");await expect(answer).not.toContainText("18,90");expect(questions.at(-1)).toContain('"taxi"');expect(questions.at(-1)).toContain("2026-11-01");expect(questions.at(-1)).toContain("2026-11-04");
-    await answer.getByRole("button",{name:copy.exploreMerchant.replace("{merchant}","Taxi Helsinki"),exact:true}).click();
+    await answer.getByRole("button",{name:"Taxi Helsinki",exact:true}).click();await page.getByRole("dialog").getByRole("button",{name:copy.exploreMerchant.replace("{merchant}","Taxi Helsinki"),exact:true}).click();
     answer=page.locator("article").last();await expect(answer).toContainText("12,50");await expect(answer).not.toContainText("18,90");expect(questions.at(-1)).toContain('"Taxi Helsinki"');expect(questions.at(-1)).toContain("2026-11-04");
   }
   expect(questions).toHaveLength(6);

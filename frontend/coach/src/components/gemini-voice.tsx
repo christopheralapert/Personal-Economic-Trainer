@@ -11,10 +11,10 @@ import {RadioGroup,RadioGroupItem} from "./ui/radio-group";
 const stopPlayback="money-coach-stop-playback",stopListening="money-coach-stop-listening";
 const maxAudioBytes=524288,maxRecordingMs=20000;
 function voiceStatus(code:unknown):Key {return code==="voice_disabled" ? "geminiVoiceDisabled" : code==="voice_limit" || code==="voice_busy" || code==="provider_wait" ? "geminiVoiceWait" : "geminiVoiceFailed";}
-export function VoiceSettings(){
+export function VoiceSettings({embedded=false}:{embedded?:boolean}={}){
  const {t,privacy,voiceProvider,setVoiceProvider}=useCopy(),[enabled,setEnabled]=useState<boolean|null>(null);
  useEffect(()=>{const controller=new AbortController();void coachFetch("/api/voice/capabilities",{signal:controller.signal,cache:"no-store"}).then(response=>response.ok ? response.json() : null).then(value=>setEnabled(value?.enabled===true)).catch(()=>{if(!controller.signal.aborted)setEnabled(false);});return()=>controller.abort();},[]);
- return <section className="space-y-3"><h3 className="font-semibold">{t("voiceSettings")}</h3><RadioGroup aria-label={t("voiceSettings")} value={privacy ? "browser" : voiceProvider} onValueChange={value=>setVoiceProvider(value as "browser"|"gemini")}>
+ return <section className="space-y-3" aria-label={t("voiceSettings")}>{!embedded && <h3 className="font-semibold">{t("voiceSettings")}</h3>}<RadioGroup aria-label={t("voiceSettings")} value={privacy ? "browser" : voiceProvider} onValueChange={value=>setVoiceProvider(value as "browser"|"gemini")}>
   <label className="flex min-h-14 items-center gap-3"><RadioGroupItem value="browser"/>{t("voiceBrowser")}</label>
   <label className="flex min-h-14 items-center gap-3"><RadioGroupItem value="gemini" disabled={privacy || enabled===false}/>{t("geminiVoice")}</label>
  </RadioGroup><p className="text-sm text-ink-2">{t(privacy ? "geminiVoicePrivacy" : "geminiVoiceDisclosure")}</p>{enabled===false && <p role="status" className="text-sm text-ink-2">{t("geminiVoiceDisabled")}</p>}</section>;

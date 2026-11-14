@@ -5,7 +5,7 @@ const live=process.env.MONEYLENS_SIGNUP_LIVE_GEMINI==="true";
 test.skip(!fixtures,"Requires generated synthetic fixtures and a fresh isolated signup server; never run against a real identity provider.");
 const file=(page:Page,name:string)=>page.locator(`[data-statement-file="${name}"]`);
 async function signIn(page:Page,subject:string){
- await page.goto("/banks");await page.getByRole("link",{name:"Sign in with your identity provider",exact:true}).click();
+ await page.goto("/banks");await page.getByRole("link",{name:"Connect your bank",exact:true}).click();
  await expect(page.getByRole("heading",{name:"Isolated synthetic identity",exact:true})).toBeVisible();
  await page.getByRole("link",{name:subject,exact:true}).click();await expect(page.getByRole("link",{name:"Learn",exact:true})).toBeVisible();
  const session=await page.evaluate(async()=>{const r=await fetch("/api/v1/auth/session");if(!r.ok)throw Error("Session unavailable");return r.json();});

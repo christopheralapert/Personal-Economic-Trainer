@@ -8,10 +8,10 @@ import {date} from "@/lib/format";
 import {MoneyAmount} from "./gen/money-amount";
 import {Badge} from "./ui/badge";
 
-export function ConnectedBanks() {
+export function ConnectedBanks({embedded=false}:{embedded?:boolean}={}) {
   const {data}=useMoneyData(),{t}=useCopy(),banks=bankSummaries(data),snapshot=sourceDate(data.as_of);
-  return <section aria-labelledby="connected-banks-title" className="space-y-3 border-t border-line pt-6">
-    <h3 id="connected-banks-title" className="font-semibold">{t("connectedBanks")}</h3>
+  return <section aria-label={t("connectedBanks")} className={embedded ? "space-y-3" : "space-y-3 border-t border-line pt-6"}>
+    {!embedded && <h3 className="font-semibold">{t("connectedBanks")}</h3>}
     <p className="text-sm leading-relaxed text-ink-2">{t("demoBanksNote")}</p>
     <p className="text-caption text-ink-2">{t("bankBalanceBasis",{date:date(snapshot)})}</p>
     <ul>{banks.map(bank=><li key={bank.id} className="flex min-h-14 items-start gap-3 border-b border-line py-4 last:border-b-0">

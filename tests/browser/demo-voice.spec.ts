@@ -290,7 +290,7 @@ test("enabling privacy interrupts hosted recording and restores local-only recog
  await expect(page.getByText(copy.geminiRecording,{exact:true})).toBeVisible();
  await page.getByRole("button",{name:copy.settings,exact:true}).click();
  await expect.poll(()=>page.evaluate(()=>window.voiceTest.tracksStopped)).toBe(1);
- await page.getByRole("checkbox",{name:new RegExp(copy.privacyMode)}).check();
+ await page.getByRole("switch",{name:copy.privacyMode,exact:true}).check();
  await page.getByRole("button",{name:copy.back,exact:true}).click();
  await expect(page.getByText(copy.geminiVoiceNotice,{exact:true})).toHaveCount(0);
  await expect(page.getByText(copy.geminiCoachVoiceNotice,{exact:true})).toHaveCount(0);
