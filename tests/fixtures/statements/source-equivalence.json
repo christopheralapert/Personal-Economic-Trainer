@@ -1,0 +1,22 @@
+{
+  "bank_rows": [
+    {"reference":"sim-1","booked_on":"2026-10-03","amount_minor":-1234,"currency":"EUR","merchant":"Synthetic market"},
+    {"reference":"sim-2","booked_on":"2026-10-03","amount_minor":-1234,"currency":"EUR","merchant":"Synthetic market"},
+    {"reference":"sim-3","booked_on":"2026-10-03","amount_minor":-1234,"currency":"EUR","merchant":"Synthetic cafe"},
+    {"reference":"sim-4","booked_on":"2026-10-04","amount_minor":-1,"currency":"EUR","merchant":"Synthetic rounding debit"},
+    {"reference":"sim-5","booked_on":"2026-10-05","amount_minor":29,"currency":"EUR","merchant":"Synthetic rounding credit"},
+    {"reference":"sim-6","booked_on":"2026-10-06","amount_minor":100001,"currency":"EUR","merchant":"Synthetic incoming"}
+  ],
+  "extra_account_rows": [
+    {"reference":"extra-1","booked_on":"2026-10-03","amount_minor":-707,"currency":"EUR","merchant":"Synthetic extra purchase"},
+    {"reference":"extra-2","booked_on":"2026-10-05","amount_minor":2,"currency":"EUR","merchant":"Synthetic extra credit"}
+  ],
+  "expected": {
+    "selected_count":6,
+    "selected_cash_net_minor":96327,
+    "selected_unreviewed_outgoing_minor":3703,
+    "union_count":8,
+    "union_cash_net_minor":95622,
+    "union_unreviewed_outgoing_minor":4410
+  }
+}

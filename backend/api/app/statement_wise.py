@@ -56,12 +56,14 @@ def preview_wise_csv(content: bytes) -> WisePreview:
             if len(record) != len(header) or any(len(cell) > MAX_CELL for cell in record):
                 raise WiseStatementError('invalid_row')
             reference, raw_date, raw_amount, currency, description = (record[i].strip() for i in indexes)
-            if not reference or len(reference) > 200 or not DAY.fullmatch(raw_date):
+            if not reference or len(reference) > 200 or any(ord(c) < 32 or 127 <= ord(c) <= 159 for c in reference) or not DAY.fullmatch(raw_date):
                 raise WiseStatementError('invalid_reference_or_date')
             try:
                 booked_on = datetime.strptime(raw_date, '%d-%m-%Y').date()
             except ValueError:
                 raise WiseStatementError('invalid_date') from None
+            if booked_on == date.max:
+                raise WiseStatementError('invalid_date')
             if len(description) > 200 or any(ord(c) < 32 or 127 <= ord(c) <= 159 for c in description):
                 raise WiseStatementError('invalid_description')
             if currency != 'EUR':
