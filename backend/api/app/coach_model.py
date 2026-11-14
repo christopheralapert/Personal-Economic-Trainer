@@ -10,7 +10,7 @@ from pydantic import Field,StrictInt
 
 from .analysis_tools import LedgerSearchToolV1,SpendingToolV1,SpendingComparisonToolV1,SpendingReductionToolV1
 from .coach_intent import (CoachInterpretationV1,CoachAnalysisIntentV1,CoachHabitsIntentV1,
-    interpretation_message,question_context,question_has_identifiers,interpret_question)
+    interpretation_message,question_context,question_has_identifiers,interpret_question,unsupported_amount_filter)
 from .contracts import Contract
 from .model_adapter import ModelError,ModelInput,ToolDefinition
 from .spending_comparison import comparison_window
@@ -33,6 +33,7 @@ TOOLS=(ToolDefinition("interpret_money_question",
 
 async def interpret_with_model(model,body,now,budget,*,timings=None):
     if question_has_identifiers(body.question): return interpret_question(body,now=now)
+    if unsupported_amount_filter(body.question): return interpret_question(body,now=now)
     context=question_context(body.conversation_context)
     followup=re.match(r"^(?:and|what about|entä|aga)(?:\s|\?|$)",body.question.strip(),re.I)
     standalone_intent=re.search(r"\b(?:spend\w*|sav\w*|reduc\w*|cut\w*|transaction\w*|kulut\w*|käyt\w*|vähenn\w*|tapahtum\w*|sääst\w*|tehing\w*|vähend\w*)\b",body.question,re.I)

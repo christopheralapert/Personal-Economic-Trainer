@@ -301,6 +301,23 @@ def reduction(text,currency):
     raise Clarification("CHANGE_REQUIRED")
 
 
+def unsupported_amount_filter(question):
+    # The current closed ledger-search schema cannot represent amount predicates.
+    # Do not let a model silently drop one. Quoted merchant literals are data.
+    text=re.sub(r'"(?:\\.|[^"\\])*"','""',question)
+    operator=re.search(r'(?:\b(?:over|under|above|below|more than|less than|at least|at most|between|yli|alle|vähintään|enintään|üle|alla|vähemalt|över)\s*(?:(?:EUR|€)\s*)?\d|[<>]=?\s*(?:(?:EUR|€)\s*)?\d)',text,re.I)
+    return bool(operator and (re.search(r'\b(?:show|list|find|transactions?|näytä|näita|tapahtum\w*|tehing\w*)\b',text,re.I) or re.search(r'€|\b(?:EUR|euros?|euro\w*)\b',text,re.I)))
+
+
+def unsupported_amount_message(locale):
+    return {
+        'en':'Amount filters are not supported yet, so no search was run. Should I show the selected category and period without an amount limit?',
+        'fi':'Summarajauksia ei vielä tueta, joten hakua ei tehty. Näytänkö valitun kululuokan ja ajanjakson ilman summarajaa?',
+        'et':'Summapiiranguga otsingut veel ei toetata, seega otsingut ei tehtud. Kas näitan valitud kategooriat ja perioodi ilma summapiiranguta?',
+        'sv':'Beloppsfilter stöds ännu inte, så ingen sökning gjordes. Ska jag visa vald kategori och period utan beloppsgräns?',
+    }[locale]
+
+
 def interpret_question(body,*,now):
     body=CoachQuestionV1.model_validate(body.model_dump(mode="python"),strict=True)
     if not isinstance(now,datetime) or now.utcoffset() is None: raise ValueError("A server-owned aware instant is required")
@@ -310,6 +327,8 @@ def interpret_question(body,*,now):
         return CoachInterpretationV1(status="ready" if intent else status,reason=reason,message=interpretation_message(reason,body.card_locale),
             resolved_at=now,intent=intent,next_view=next_view)
     if question_has_identifiers(text): return result("IDENTIFIER_NOT_ALLOWED")
+    if unsupported_amount_filter(text):
+        answer=result("FILTER_REQUIRED");answer.message=unsupported_amount_message(body.card_locale);return answer
     try: text=followup_question(text,body,now) or normalize_local_question(text,now)
     except Clarification as error: return result(str(error))
     if re.fullmatch(r"(?:(?:what is safe for me to|how much (?:can|could) i safely) (?:spend|save)|(?:paljonko|kuinka paljon) voin (?:turvallisesti )?(?:käyttää|kuluttaa|säästää)|kui palju (?:võin|saan) (?:turvaliselt )?(?:kulutada|säästa))(?: (?:this|last) (?:week|month))?",text,re.I):

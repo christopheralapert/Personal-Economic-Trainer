@@ -14,7 +14,7 @@ from uuid import uuid4
 from .analysis_tools import execute_tool
 from .answer_cards import AnswerCardV1,render_answer,transaction_sentence
 from .auth_routes import write_principal
-from .coach_intent import CoachInterpretationV1,CoachQuestionV1,interpret_question,interpretation_message,question_has_identifiers
+from .coach_intent import CoachInterpretationV1,CoachQuestionV1,interpret_question,interpretation_message,question_has_identifiers,unsupported_amount_filter,unsupported_amount_message
 from .contracts import Contract
 from .model_adapter import ModelError,ToolCall,TurnBudget
 from .analysis_tools import SpendingToolResultV1
@@ -74,7 +74,7 @@ async def query(body:CoachQuestionV1,request:Request,response:Response,user=Depe
     now=request.app.state.coach_clock() if hasattr(request.app.state,"coach_clock") else datetime.now(timezone.utc)
     usage=None
     bank=requested_bank(body.question)
-    use_model=not body.privacy and config.model_enabled and config.model_billing_policy=="paid_allowed" and not user.synthetic and not question_has_identifiers(body.question)
+    use_model=not body.privacy and config.model_enabled and config.model_billing_policy=="paid_allowed" and not user.synthetic and not question_has_identifiers(body.question) and not unsupported_amount_filter(body.question)
     if use_model and bank is None:
         key=str(user.scope.user_id);now_seconds=time.monotonic();today=datetime.now(timezone.utc).date().isoformat()
         last,day,total=_model_usage_window.get(key,(0.0,today,0))
@@ -110,7 +110,7 @@ async def query(body:CoachQuestionV1,request:Request,response:Response,user=Depe
             await run_in_threadpool(record_usage,request,user,usage)
             _model_usage_window[key]=(now_seconds,day,total+budget.input_tokens+budget.output_tokens)
     else:interpretation=interpret_question(body,now=now)
-    interpretation.message=interpretation_message(interpretation.reason,body.card_locale)
+    interpretation.message=unsupported_amount_message(body.card_locale) if interpretation.reason=="FILTER_REQUIRED" and unsupported_amount_filter(body.question) else interpretation_message(interpretation.reason,body.card_locale)
     intent=interpretation.intent
     if intent is None: return finish(interpretation=interpretation)
     call=ToolCall(intent.tool.name,intent.tool.arguments) if intent.kind=="analysis" else ToolCall("spending_totals",intent.arguments)
