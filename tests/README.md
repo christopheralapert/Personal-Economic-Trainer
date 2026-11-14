@@ -2,6 +2,8 @@
 
 For the final signup + redesigned UI/Learn + six-format/private-Gemini build, preview, requirements matrix, recovery and Chromium/WebKit evidence, see [the integrated release handoff](signup-statements-review.md#final-integrated-release--14-november-2026). The earlier [700-row timing comparison](import-coach-review.md#current-integrated-follow-up-from-f70f933--14-november-2026) retains its own source/build context.
 
+The [release-branch amount-limit guard follow-up](signup-statements-review.md#amount-limit-guard-integrated-into-the-release-branch) records the independent fix, zero-model-call ET/EN/FI checks, preserved regular taxi evidence and the production preview on 33129. `tests/config/playwright.amount-guard.config.ts` attaches to the explicitly isolated signed test-OIDC/PostgreSQL fixture with native Gemini **mock transport only**, not live inference.
+
 Run commands from the repository root after installing dependencies. Browser suites require Chrome or Playwright Chromium. Most also require a production web build; the voice suite starts its own development server.
 
 | Folder | Purpose | Command |

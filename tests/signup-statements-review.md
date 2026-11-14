@@ -2,6 +2,68 @@
 
 ## Final integrated release — 14 November 2026
 
+### Amount-limit guard integrated into the release branch
+
+The actual integration HEAD before this follow-up was **`6dc1e0d`**, retaining **`f239923`** and the finished signup/UI history. Independent fix checkpoint **`c243dc1`** is on **`integration/release-signup-ui-next`**. The later handoff commit changes documentation only. **`experiment/nemotron-search-next` remains at `1ae60ad`**, unmerged and unchanged.
+
+Commit `770caac` was inspected before integration: its three application-file changes are independent, but its modification to `test_search_provider_privacy.py` depends on the experimental `399cfe7` test and Nemotron probe, neither present on the release branch. Consequently this is a **focused port, not a cherry-pick**. Native-Gemini-only regressions replace that dependency. The small follow-up admission guard from `10ac0cf` is retained so unsupported filters cannot consume or be rejected by the model cooldown. The prefix `€20`, missed by the original predicate, is now covered as well. No experimental provider, adapter switch or research routes were added to the ordinary API. No migration or published contract changed.
+
+**New production artifact:** `frontend/web/.next/amount-guard-33129`, **build `c243dc1-131377e695625033`**, running on **33129**, isolated API **18049**. It was built from the committed fix. Existing public worker/assets were not regenerated. Next's automatic temporary tsconfig includes were restored to the original content; that generated change is not part of the patch. The same build header was checked on all three handoff URLs:
+
+1. Anonymous organizer demo: **http://127.0.0.1:33129/demo?dataset=organizer1**
+2. Anonymous Learn: **http://127.0.0.1:33129/demo?dataset=organizer1&tab=learn**
+3. Private test entry: **http://127.0.0.1:33129/banks**
+
+At the private entry choose **Connect your bank → Isolated synthetic identity → model-review** for saved sample data, or **fresh-preview** for an empty workspace. No password or preexisting cookie is needed. These are RSA-signed local **test-OIDC** identities, not Auth0. Browser checks verified both entry paths in fresh 390 × 844 Chrome contexts and verified repeat login reuses the empty workspace. Sample data is prepared through real CSV/XML import and classification, not by the model fixture. The preview's private Coach date is deliberately fixed to 14 November 2026, so “last month” is October; the anonymous organizer dataset retains its own September anchor, so its previous month is August.
+
+**Gemini/voice policy on 33129:** real Gemini text **OFF**, hosted Gemini audio **OFF**; `/api/voice/capabilities` reports `enabled=false`. Private model interpretation uses the existing native `gemini-3.5-flash` adapter with an explicitly **mocked HTTP transport**, no real key and no paid network calls. Its ordinary `source=model`, `provider=gemini-direct` test response is **not evidence of real Gemini availability**. The test chooser states this limitation. The fixture recognizes only the documented EN/FI/ET taxi sample questions; other non-private model questions clarify rather than simulating a general live model. Privacy mode stays local. The real application Gemini path is unchanged. The launcher does not read or edit `.env`, and strips inference/identity/database settings from the child Next environment.
+
+#### Guard and regular-question evidence
+
+`tests/browser/amount-guard.spec.ts` passed **3/3** on that production build. Its first test asks these exact questions with Privacy **off**, then repeats immediately after a model-test answer:
+
+| Language | Unsupported request | Visible local explanation starts with |
+| --- | --- | --- |
+| ET | `Näita eelmise kuu üle 20 € taksosõite` | `Summapiiranguga otsingut veel ei toetata, seega otsingut ei tehtud.` |
+| EN | `Show last month's taxi rides over EUR 20.` | `Amount filters are not supported yet, so no search was run.` |
+| FI | `Näytä viime kuun yli 20 euron taksimatkat.` | `Summarajauksia ei vielä tueta, joten hakua ei tehty.` |
+
+Each response has one localized clarification question, `source=rule`, no provider/usage, and **no card, habits or transaction rows**. The native model HTTP counter is unchanged. Database regressions also forbid ledger-tool execution and model admission for the limited request, both with Privacy on/off and immediately after a model answer. Thus an unfiltered result cannot be presented as the requested filtered search.
+
+For the normal sample, sign into **model-review**, open **Coach**, choose **Eesti** and **Synthetic taxi A account**, and ask **`Kui palju kulutasin taksodele eelmisel kuul?`**. Expected recorded spending is **30,97 EUR for 2026-10-01–2026-10-31**, with two evidence rows. The browser compared exact saved row IDs/cents, account and both period boundaries, opened the underlying list and an actual transaction detail, then enabled Privacy and confirmed the same 3097-cent result with no further model request. Equivalent EN/FI questions passed. The three normal non-private questions made exactly **3 mocked-native-Gemini HTTP requests total**; all guard and Privacy requests made zero additional requests. No real provider call was made in this follow-up.
+
+The anonymous FI demo separately returned **“Käytit takseihin elokuussa 2026 yhteensä 30,97 €.”**, opened the organizer transaction and showed all six Learn topics without a session cookie. The empty identity had zero accounts/ledger rows and an editable Coach, with no sample-data answer carried over.
+
+#### Commands, results and retained services
+
+| Command | Result in this follow-up |
+| --- | --- |
+| `node .cache/check-integrated-amount-guard.cjs` | **1008 passed**, full API plus guard, Coach, multilingual and private-Gemini PostgreSQL selections; model transport mocked |
+| `.venv\Scripts\python.exe -m pytest -c backend/api/pyproject.toml tests/api/test_unsupported_search_amount.py -p no:cacheprovider` | **10 passed**, including the exact ET request, € suffix/prefix, date ranges, quoted merchant and 20% scenario non-regressions |
+| `npm run typecheck`; `node node_modules/typescript/bin/tsc -p .cache/tsconfig.amount-guard.json` | Both workspaces and strict new browser/config types passed, including after production build |
+| `node .cache/build-amount-guard.cjs` | Production web build passed; dedicated directory, no public-worker regeneration |
+| `node .cache/seed-amount-guard.cjs` | **1 passed**, fresh signed test-OIDC signup → synthetic Wise CSV/CAMT XML → saved History/classification → local Coach, repeat/overlap/ownership checks |
+| `node .cache/check-amount-guard.cjs` | **3 passed (19.9 s)**, fresh-browser guard/regular evidence, anonymous demo/Learn, empty-identity entry/repeat login |
+| `npm run test:structure`; `.venv\Scripts\python.exe scripts/check_contracts.py` | **12 passed**, published-v1 compatibility passed |
+| `.venv\Scripts\python.exe -m py_compile scripts/run_guard_preview.py`; Alembic `heads` | Syntax passed; unchanged single `0028_merge_identity_statements` head |
+
+The first added €-prefix regression caught a missing case and was fixed before the checkpoint; the first browser-only typecheck caught an incorrect dictionary key and passed after correction. There were no failing final assertions. Four existing dependency/intentional-forged-value warnings did not fail the Python run. No `Hook failed` occurred.
+
+The sample import confirmation → visible scoped History was **400 ms** in this run (three synthetic rows, 160-byte CSV + 539-byte XML). Local A/B/all questions were **71/62/57 ms**, exact **30,97/7,00/37,97 EUR**, with opened evidence. These are individual warm-artifact observations, not model-speed measurements; the Gemini transport in this follow-up is a mock. No physical-device speech or real Auth0 check was performed.
+
+The new preview and its uniquely created PostgreSQL database are left running. Older 33125/33128 previews still returned their existing `68d4044-131377e695625033` artifact, and the presentation backend on 33110 still returned `0d49b43-131377e695625033`; none was stopped, rebuilt or redeployed. Public HTTPS, ngrok, model/audio settings, `.env`, the experimental branch and other worktrees remain untouched. **No push, PR or deployment.**
+
+If this local preview stops, the retained-checkout launch sequence is:
+
+```powershell
+Set-Location C:/Users/chris/Documents/Repo/Personal-Economic-Trainer
+docker start moneylens-coach-test-20261114
+node .cache/build-amount-guard.cjs
+node .cache/start-amount-guard.cjs
+```
+
+Leave that terminal open. In a second terminal, run `node .cache/seed-amount-guard.cjs` **once per fresh database**, then `node .cache/check-amount-guard.cjs`. The ignored convenience launchers and synthetic fixtures are retained in this checkout; no secret is embedded in them. Rebuilding after a documentation commit changes the source-prefix build ID. The committed launcher is `.venv\Scripts\python.exe scripts/run_guard_preview.py --test-only`: it requires a dedicated loopback `MONEYLENS_TEST_DATABASE_URL`, refuses occupied ports, creates/migrates its own disposable database and never reads live model keys. Its header-protected POST `http://127.0.0.1:18049/rehearsal/shutdown` stops only this owned fixture and cleans up only its created database/roles; do not stop the shared PostgreSQL container or old previews. The browser config accepts explicit `MONEYLENS_GUARD_ORIGIN=http://127.0.0.1:33129` and `MONEYLENS_GUARD_API=http://127.0.0.1:18049`.
+
 ### Follow-up: ordinary versus isolated-test configuration
 
 The **same existing artifact**, build **`68d4044-131377e695625033`**, was started in two additional local configurations without rebuilding or changing the public presentation. `node .cache/check-deployment-modes.cjs` completed **2 browser tests passed** (3.0 s), with the committed `tests/config/playwright.deployment-modes.config.ts` and `tests/browser/deployment-modes.spec.ts`.
