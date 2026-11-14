@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pydantic-settings
+httpx
+pytest
+tzdata
+alembic
+psycopg[binary]
+sqlalchemy
+boto3
+PyJWT[crypto]
+psycopg-pool
+pypdf==6.21.4
