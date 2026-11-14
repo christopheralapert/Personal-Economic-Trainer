@@ -31,6 +31,8 @@ deploy/         Dockerfiles and local infrastructure/preview Compose files
 
 Run the commands below from the repository root. JavaScript workspaces share the root `package-lock.json`; Python uses the root `.venv`. App-local tests remain alongside their owning application in `frontend/coach`.
 
+For PowerShell setup, environment-variable readers, and the local values needed for the synthetic demo, isolated database tests, or optional Auth0/Gemini, see the [local setup guide](deploy/local-setup.md).
+
 Only repository-wide files stay at the top level: this README, npm manifests, `.env.example`, and Git/Docker ignore settings. Test configuration lives with tests, migration configuration lives with the database, and container configuration lives in `deploy/`.
 
 ## Run the web app
