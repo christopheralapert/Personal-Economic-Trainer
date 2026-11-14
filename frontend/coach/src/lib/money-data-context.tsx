@@ -12,7 +12,7 @@ export function MoneyDataProvider({children,defaultDataset="starter"}:{children:
  const [scope,update]=useState<DataScope>(emptyScope),[ready,setReady]=useState(false),data=useMemo(()=>scopedDataset(source,scope),[source,scope]);
  useEffect(()=>{
   const requests=generation;let selected=defaultDataset;
-  try{const url=new URL(window.location.href),requested=url.searchParams.get("dataset"),parsed=datasetKeySchema.safeParse(requested??localStorage.getItem("money-coach-dataset.v1")??defaultDataset);selected=parsed.success ? parsed.data : defaultDataset;}catch{}
+  try{const url=new URL(window.location.href),requested=url.searchParams.get("dataset"),parsed=datasetKeySchema.safeParse(defaultDataset==='session'?'session':requested??localStorage.getItem("money-coach-dataset.v1")??defaultDataset);selected=parsed.success&&parsed.data!=='session' ? parsed.data : defaultDataset;}catch{}
   void selectDataset(selected,false);
   return ()=>{requests.current++;};
  // Selection loads atomically; stale imports may not replace a newer choice.
@@ -28,11 +28,11 @@ export function MoneyDataProvider({children,defaultDataset="starter"}:{children:
    let saved=emptyScope;
    try{const raw=localStorage.getItem(checked==="starter" ? key : key+"."+checked);if(raw && raw.length<=65536){const parsed=dataScopeSchema.parse(JSON.parse(raw));scopedDataset(loaded,parsed);saved=parsed;}}catch{}
    if(clear)clearThreads();update(saved);setSource(loaded);setDataset(checked);
-   try{localStorage.setItem("money-coach-dataset.v1",checked);const url=new URL(window.location.href);if(url.searchParams.has("dataset")){url.searchParams.delete("dataset");window.history.replaceState(window.history.state,"",url);}}catch{}
+   try{if(checked!=='session')localStorage.setItem("money-coach-dataset.v1",checked);const url=new URL(window.location.href);if(checked!=='session'&&url.pathname==='/demo'){url.searchParams.set("dataset",checked);window.history.replaceState(window.history.state,"",url);}}catch{}
    setReady(true);
   }catch{if(turn===generation.current)setLoadError(true);}
  }
 
- return <Context value={{ready,loadError,dataset,source,selectDataset,controlsOpen,openControls:()=>setControlsOpen(true),closeControls:()=>setControlsOpen(false),data,scope,signature:dataset==="starter" ? JSON.stringify(scope) : `${dataset}/${JSON.stringify(scope)}`,setScope,correct:(id,basket,category)=>setScope({...scope,corrections:{...scope.corrections,[id]:{basket,...(category ? {category} : {})}}}),queue:classificationQueue(data,scope.corrections),reset:()=>setScope(emptyScope)}}>{children}</Context>;
+ return <Context value={{ready,loadError,dataset,source,selectDataset,controlsOpen,openControls:()=>setControlsOpen(true),closeControls:()=>setControlsOpen(false),data,scope,signature:dataset==="starter" ? JSON.stringify(scope) : `${dataset}/${dataset==='session'?source.accounts.map(a=>a.id).join(',')+'/':''}${JSON.stringify(scope)}`,setScope,correct:(id,basket,category)=>setScope({...scope,corrections:{...scope.corrections,[id]:{basket,...(category ? {category} : {})}}}),queue:classificationQueue(data,scope.corrections),reset:()=>setScope(emptyScope)}}>{children}</Context>;
 }
 export function useMoneyData(){return useContext(Context);}

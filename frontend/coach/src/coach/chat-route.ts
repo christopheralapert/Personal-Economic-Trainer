@@ -13,7 +13,7 @@ import type {CoachMessage} from './catalog';
 const bodySchema=z.object({dataset:datasetKeySchema.optional(),scope:dataScopeSchema.optional(),period:periodSchema.optional(),context:questionContextSchema.optional(),privacy:z.boolean().default(true),messages:z.array(z.object({role:z.enum(["user","assistant","system"]),parts:z.array(z.object({type:z.string(),text:z.string().max(2000).optional()}).passthrough()).max(30)}).passthrough()).min(1).max(50),locale:z.enum(["en","fi","et"]).default("en"),savingsPercent:z.number().int().min(0).max(100).default(10)}).passthrough();
 const latestSchema=z.object({role:z.literal("user"),parts:z.array(z.object({type:z.literal("text"),text:z.string().max(2000)}).strict()).min(1).max(30)}).passthrough();
 function rejected(status:number) {return new Response(null,{status,headers:{"Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff",[REVISION_HEADER]:COACH_REVISION}});}
-export function createChatRoute(execute=executeCoach) {
+export function createChatRoute(execute=executeCoach,readDataset=(_request:Request,key:string)=>loadDataset(key)) {
  return async function POST(request:Request) {
   const origin=request.headers.get("origin");
   if(origin) {try {const parsed=new URL(origin);if(!["http:","https:"].includes(parsed.protocol) || parsed.host!==request.headers.get("host")) return rejected(403);} catch {return rejected(403);}}
@@ -29,7 +29,7 @@ export function createChatRoute(execute=executeCoach) {
   let outcome;
   try {
    if(localText)outcome={message:{id:crypto.randomUUID(),role:'assistant',parts:[{type:'text',text:localText}]} as CoachMessage,source:'rule' as const,diagnostic:'conversation_control'};
-   else {if(body.scope)scopedDataset(await loadDataset(body.dataset??'starter'),body.scope);outcome=await execute(request,query,['en','fi','et'].includes(language)?language as typeof body.locale:body.locale,body.savingsPercent,body.context,body.period,body.scope,body.dataset,body.privacy);}
+   else {if(body.scope)scopedDataset(await readDataset(request,body.dataset??'starter'),body.scope);outcome=await execute(request,query,['en','fi','et'].includes(language)?language as typeof body.locale:body.locale,body.savingsPercent,body.context,body.period,body.scope,body.dataset,body.privacy);}
   }
   // Keep framework error pages and execution details out of the chat transport.
   catch(error) {return rejected(error instanceof CoachCancelledError || request.signal.aborted ? 400 : 503);}

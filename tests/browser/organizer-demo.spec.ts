@@ -38,7 +38,7 @@ test('public access screen opens the organizer profile even after another demo w
  await page.goto('/access');
  await page.evaluate(()=>localStorage.setItem('money-coach-dataset.v1','extended'));
  const privateRequests:string[]=[];page.on('request',r=>{if(new URL(r.url()).pathname.startsWith('/api/v1/'))privateRequests.push(new URL(r.url()).pathname);});
- await page.getByRole('link',{name:'Try the demo'}).click();
+  await page.getByRole('link',{name:'Try with sample data',exact:true}).click();
  await expect(page.locator('header')).toContainText('S-Pankki challenge demo · Synthetic data · 30.9.2026');
  await expect(page.locator('[data-overview-block="period"]')).toContainText('September 2026');
  expect(privateRequests).toEqual([]);

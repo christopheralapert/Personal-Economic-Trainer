@@ -69,7 +69,7 @@ for(const width of [390,360])test(`Finnish organizer presentation at ${width}px 
   expect(demoTraffic.chat).toHaveLength(2);expect(demoTraffic.privatePaths).toEqual([]);
 });
 
-for(const [path,label] of [["/","Try with demo data"],["/access","Try the demo"],["/demo/banks","Try with demo data"]]){
+for(const [path,label] of [["/","Try with sample data"],["/access","Try with sample data"],["/demo/banks","Try with sample data"]]){
   test(`public entry ${path} opens organizer1 after a different saved profile`,async({page,demoTraffic})=>{
     await page.addInitScript(()=>localStorage.setItem("money-coach-dataset.v1","extended"));
     await page.goto(path);
@@ -81,16 +81,9 @@ for(const [path,label] of [["/","Try with demo data"],["/access","Try the demo"]
   });
 }
 
-test("bank rehearsal header and all four tabs enter the organizer presentation",async({page,demoTraffic})=>{
-  await page.addInitScript(()=>localStorage.setItem("money-coach-dataset.v1","starter"));
-  for(const [tab,label] of [["overview","Overview"],["coach","Coach"],["whatif","What if"],["learn","Learn"]]){
-    await page.goto("/demo/banks");
-    const link=page.getByRole("navigation").getByRole("link",{name:label,exact:true});
-    await expect(link).toHaveAttribute("href",`/demo?dataset=organizer1&tab=${tab}`);await link.click();
-    await expect(page.locator("header")).toContainText("30.9.2026");
-    await expect(page.getByRole("tab",{name:label,exact:true})).toHaveAttribute("aria-selected","true");
-  }
-  await page.goto("/demo/banks");await page.locator("header").getByRole("link",{name:"Money Coach",exact:true}).click();
-  await expect(page.locator('[data-overview-block="period"]')).toContainText("September 2026");
-  expect(demoTraffic.privatePaths).toEqual([]);
+test("legacy demo-bank entry opens the import-first landing without a bank picker",async({page,demoTraffic})=>{
+ await page.goto('/demo/banks');await expect(page).toHaveURL(/\/demo$/);
+ await expect(page.getByRole('link',{name:'Import bank statement',exact:true})).toHaveAttribute('href','/import');
+ await expect(page.getByRole('link',{name:'Try file import',exact:true})).toHaveAttribute('href','/demo/import');
+ await expect(page.getByRole('heading',{name:'Choose your bank',exact:true})).toHaveCount(0);expect(demoTraffic.privatePaths).toEqual([]);
 });

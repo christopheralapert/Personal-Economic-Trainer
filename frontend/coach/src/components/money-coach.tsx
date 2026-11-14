@@ -50,7 +50,7 @@ import {acknowledgement,languageCommand,languageConfirmation,localLanguageUnavai
 import {appLanguageCommand} from '@/coach/app-language-command';
 
 const tabs=[{key:"overview",Icon:ChartNoAxesColumn},{key:"coach",Icon:MessageCircle},{key:"whatif",Icon:SlidersHorizontal},{key:"learn",Icon:BookOpen}] as const;
-export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embeddedDemo?:boolean;onlineCoachEnabled?:boolean}={}) {
+export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false,showImportDemo=false}:{embeddedDemo?:boolean;onlineCoachEnabled?:boolean;showImportDemo?:boolean}={}) {
   const {ready:sourceReady,loadError,data,dataset,scope,signature,controlsOpen,closeControls}=useMoneyData();
   const snapshot=sourceDate(data.as_of);
   const {locale,setLocale,setAppLanguage,languageStatus,conversationLocale,setConversationLocale,savings,privacy,setPrivacy,voiceProvider,t}=useCopy(),[tab,setTab]=useState("overview"),[settings,setSettings]=useState(false),[goal,setGoal]=useState(false),[savedGoal,setSavedGoal]=useState<SavingsGoal|null>(null),[requestFailed,setRequestFailed]=useState(false);
@@ -126,10 +126,11 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
   function stop() {latest.current++;pending.current=null;sending.current=false;window.dispatchEvent(new Event('money-coach-stop-translation'));void chat.stop();setLocalBusy(false);}
   function clear() {try{sessionStorage.removeItem(threadKey('en'));}catch{}stop();setConversationLocale(locale);setChatViews(createViewStore());chat.setMessages([]);chat.clearError();setFallback(false);setRequestFailed(false);}
   useEffect(()=>{
+    if(!sourceReady)return;
     const url=new URL(window.location.href),question=url.searchParams.get("question");
     if(question) {setInput(question.slice(0,2000));setTab("coach");url.searchParams.delete("question");window.history.replaceState(window.history.state,"",url);}
     if(url.searchParams.get("goal")==="1") {setGoal(true);url.searchParams.delete("goal");window.history.replaceState(window.history.state,"",url);}
-  },[]);
+  },[sourceReady]);
   useEffect(()=>{if(tab!=="coach") return;const answer=chat.messages.filter(message=>message.role==="assistant").at(-1);if(!answer || lastScroll.current===answer.id) return;lastScroll.current=answer.id;requestAnimationFrame(()=>document.querySelector(`[data-message-id="${CSS.escape(answer.id)}"]`)?.scrollIntoView({behavior:"instant",block:"start"}));},[chat.messages,tab]);
   useEffect(()=>{if(questionInput.current && focusDraft.current && tab==="coach" && !settings && !goal && !controlsOpen && !busy){questionInput.current.focus({preventScroll:true});focusDraft.current=false;}},[tab,settings,goal,controlsOpen,busy]);
   const askBridge=useRef(ask);askBridge.current=ask;
@@ -144,6 +145,7 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
       <Tabs value={settings || goal || controlsOpen ? "" : tab} onValueChange={value=>{if(controlsOpen)closeControls();setSettings(false);setGoal(false);setTab(value);}}>
         {controlsOpen ? <MyDataPanel/> : settings ? <PreferencesScreen legal={embeddedDemo} savedGoal={savedGoal} onPrivacyChange={value=>{stop();setPrivacy(value);}} onGoal={()=>{setGoalOrigin("settings");setSettings(false);setGoal(true);}}/> : goal ? <SavingsGoalFlow initial={savedGoal} onBack={()=>{setGoal(false);setSettings(goalOrigin==="settings");}} onSave={value=>{setSavedGoal(value);setGoal(false);setSettings(goalOrigin==="settings");toast.success(t("goalSaved"));}}/> : <>
         <TabsContent value="overview">
+          {showImportDemo&&<Button asChild variant="outline" className="mb-4 w-full"><a href="/demo/import">{{en:'Try file import',fi:'Kokeile tiedoston tuontia',et:'Proovi failiimporti'}[locale]}</a></Button>}
           <ViewScope store={visitViews} name="overview"><OverviewFocus onAsk={askFromEntry} onLearn={basket=>{setTab("learn");requestAnimationFrame(()=>document.getElementById(`learn-${basket}`)?.scrollIntoView({block:"start",behavior:"instant"}));}} busy={busy}/></ViewScope>
         </TabsContent>
         <TabsContent value="coach">

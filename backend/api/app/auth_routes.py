@@ -130,7 +130,7 @@ def logout(request: Request, user=Depends(write_principal)):
 
 
 @router.get("/v1/auth/login")
-def login(request: Request, prompt: Literal["login"] | None = None):
+def login(request: Request, prompt: Literal["login"] | None = None, return_to: Literal['/import'] | None = None):
     config = request.app.state.settings
     if not config.oidc_issuer:
         raise AuthError("IDENTITY_PROVIDER_UNAVAILABLE",503)
@@ -139,6 +139,7 @@ def login(request: Request, prompt: Literal["login"] | None = None):
     target = request.app.state.oidc.authorization_url(state,reauthenticate=True) if prompt else request.app.state.oidc.authorization_url(state)
     response = RedirectResponse(target,status_code=303)
     set_cookie(response,config,binding,binding=True)
+    response.set_cookie('moneylens_return',return_to or '/',max_age=600,secure=config.app_origin.startswith('https:'),httponly=True,samesite='lax',path='/')
     return response
 
 
@@ -168,7 +169,9 @@ def callback(request: Request):
         clear_cookie(response,config)
         clear_cookie(response,config,binding=True)
         return response
-    response = RedirectResponse(config.app_origin+"/",status_code=303)
+    target='/import' if request.cookies.get('moneylens_return')=='/import' else '/'
+    response = RedirectResponse(config.app_origin+target,status_code=303)
+    response.delete_cookie('moneylens_return',path='/',secure=config.app_origin.startswith('https:'),httponly=True,samesite='lax')
     set_cookie(response,config,token)
     clear_cookie(response,config,binding=True)
     return response

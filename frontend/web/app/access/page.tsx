@@ -1,4 +1,4 @@
-import {AccessNotReady} from "@web/components/access-not-ready";
+import {DemoEntry} from "@web/components/demo-entry";
 import {Preferences} from "@/i18n/context";
 export const dynamic="force-dynamic";
-export default function AccessPage(){return <Preferences><AccessNotReady/></Preferences>;}
+export default function AccessPage(){return <Preferences><DemoEntry/></Preferences>;}

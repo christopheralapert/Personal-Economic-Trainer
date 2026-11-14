@@ -140,7 +140,8 @@ def test_pooled_connection_context_is_reset_and_timeouts_remain(database,owners)
         assert client.get("/health/ready").json()["database"] == "connected"
 
 
-def test_full_oidc_callback_binds_browser_single_use_state_and_server_membership(database,owners):
+@pytest.mark.parametrize('return_to',[None,'/import'])
+def test_full_oidc_callback_binds_browser_single_use_state_and_server_membership(database,owners,return_to):
     options = {"oidc_issuer":"https://identity.example","oidc_client_id":"moneylens","oidc_client_secret":"test-only-secret",
         "oidc_authorization_url":"https://identity.example/authorize","oidc_token_url":"https://identity.example/token",
         "oidc_jwks_url":"https://identity.example/keys"}
@@ -149,7 +150,8 @@ def test_full_oidc_callback_binds_browser_single_use_state_and_server_membership
         public = {**jwt.algorithms.RSAAlgorithm.to_jwk(private.public_key(),as_dict=True),"kid":"integration-key"}
         with psycopg.connect(database["admin"],autocommit=True) as connection:
             connection.execute("UPDATE moneylens.users SET subject_issuer=%s,subject_id='verified-subject' WHERE tenant_id=%s AND id=%s",(options["oidc_issuer"],*owners[2][:2]))
-        response = client.get("/v1/auth/login",follow_redirects=False)
+        assert client.get('/v1/auth/login?return_to=https://untrusted.example',follow_redirects=False).status_code==422
+        response = client.get("/v1/auth/login",params={'return_to':return_to} if return_to else None,follow_redirects=False)
         assert response.status_code == 303
         state = parse_qs(urlsplit(response.headers["location"]).query)["state"][0]
         def respond(request):
@@ -169,7 +171,8 @@ def test_full_oidc_callback_binds_browser_single_use_state_and_server_membership
         assert client.get(path,params=params,headers={"Cookie":""},follow_redirects=False).status_code == 400
         assert client.get(path,params=[("code","a"),("code","b"),("state",state)],follow_redirects=False).status_code == 400
         response = client.get(path,params=params,follow_redirects=False)
-        assert response.status_code == 303 and response.headers["location"] == ORIGIN+"/"
+        assert response.status_code == 303 and response.headers["location"] == ORIGIN+(return_to or '/')
+        assert 'moneylens_return' not in client.cookies
         assert "must-never-reach-the-browser" not in str(response.headers)
         assert [row["id"] for row in client.get("/v1/accounts").json()] == [str(owners[2][2])]
         assert client.get("/v1/auth/session").json()["synthetic"] is False

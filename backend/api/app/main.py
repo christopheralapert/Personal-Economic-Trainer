@@ -48,6 +48,8 @@ from .bank_adapter import BankError
 from .demo_banks import router as demo_banks_router
 from .model_adapter import build_model,ModelError
 from .request_limits import PlanningBodyLimit
+from .demo_statements import router as demo_statement_router
+from threading import RLock
 
 
 class Health(Contract):
@@ -129,9 +131,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     api = FastAPI(title="MoneyLens API", version="0.2.0", lifespan=lifespan,
         description="Synthetic development and server-verified OIDC sessions. Customer banking workflows and live providers remain separate release gates.")
     api.state.settings = config
+    api.state.demo_statements = {}
+    api.state.demo_statement_lock = RLock()
     api.add_middleware(PlanningBodyLimit)
     api.include_router(public_router)
     api.include_router(education_router)
+    api.include_router(demo_statement_router)
     if config.auth_enabled:
         api.include_router(auth_router)
         api.include_router(ledger_router)

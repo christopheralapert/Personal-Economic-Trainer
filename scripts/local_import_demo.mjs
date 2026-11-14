@@ -1,0 +1,10 @@
+import {spawn} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+const root=fileURLToPath(new URL('../',import.meta.url)),mode=process.argv[2],port=Number(process.argv[3]??33142),apiPort=Number(process.argv[4]??18062);
+if(!['build','start'].includes(mode)||![port,apiPort].every(n=>Number.isInteger(n)&&n>=1024&&n<=65535)||port===apiPort)throw Error('Use: node scripts/local_import_demo.mjs build|start [webPort] [apiPort]');
+const env=Object.fromEntries(Object.entries(process.env).filter(([name])=>!['MONEYLENS_','MONEY_COACH_','GEMINI_','VERDA_','OPENAI_','NEXT_PUBLIC_'].some(prefix=>name.startsWith(prefix))));
+Object.assign(env,{MONEYLENS_NEXT_DIST:`.next/import-demo-${port}`,MONEYLENS_API_URL:`http://127.0.0.1:${apiPort}`,MONEY_COACH_PUBLIC_GEMINI_ENABLED:'false',MONEY_COACH_GEMINI_VOICE_ENABLED:'false',MONEY_COACH_LOCAL_AI_EVALUATION:'false',NEXT_TELEMETRY_DISABLED:'1'});
+if(mode==='start')env.MONEYLENS_TEST_DATABASE_URL=process.env.MONEYLENS_TEST_DATABASE_URL??'postgresql://moneylens_test_admin:synthetic_test_only@127.0.0.1:55440/postgres';
+const child=spawn(mode==='build'?process.execPath:path.join(root,'.venv/Scripts/python.exe'),mode==='build'?['node_modules/next/dist/bin/next','build','frontend/web']:['scripts/run_guard_preview.py','--test-only','--port',String(port),'--api-port',String(apiPort),'--dist',env.MONEYLENS_NEXT_DIST,'--classification-model','mock'],{cwd:root,env,stdio:'inherit',windowsHide:true});
+child.on('exit',code=>process.exitCode=code??1);for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>child.kill(signal));

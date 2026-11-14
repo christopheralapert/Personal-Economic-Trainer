@@ -15,9 +15,9 @@ import {COACH_REVISION} from "./transport";
 import type {createCoachExecutor} from "./server-executor";
 
 /** Explicit public synthetic evaluation, independent of private and local-test grants. */
-export function createPublicCoachExecutor({env=process.env,network=globalThis.fetch}:{env?:Record<string,string|undefined>;network?:typeof fetch}={}){
+export function createPublicCoachExecutor({env=process.env,network=globalThis.fetch,readDataset=(_request:Request,key:string)=>loadDataset(key)}:{env?:Record<string,string|undefined>;network?:typeof fetch;readDataset?:(request:Request,key:string)=>ReturnType<typeof loadDataset>}={}){
  const execute:ReturnType<typeof createCoachExecutor>=async(request,question,locale,savingsPercent,context,period,scope,dataset,privacy)=>{
-  const data=scopedDataset(await loadDataset(dataset??"starter"),scope),execution={signal:request.signal,data,context,period};
+  const data=scopedDataset(await readDataset(request,dataset??"starter"),scope),execution={signal:request.signal,data,context,period};
   const fallback=async(diagnostic:string)=>({message:await new RuleProvider().answer(question,locale,savingsPercent,execution),source:"rule" as const,diagnostic});
   throwIfCancelled(request.signal);if(privacy!==false)return fallback("privacy_rule");
   const key=env.GEMINI_API_KEY,file=env.MONEY_COACH_MODEL_USAGE_PATH;

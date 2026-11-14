@@ -1,4 +1,3 @@
-import {DemoBankOnboarding} from "@web/components/demo-bank-onboarding";
-import {Preferences} from "@/i18n/context";
+import {redirect} from 'next/navigation';
 export const dynamic="force-dynamic";
-export default function DemoBanksPage(){return <Preferences><DemoBankOnboarding/></Preferences>;}
+export default function DemoBanksPage(){redirect('/demo');}

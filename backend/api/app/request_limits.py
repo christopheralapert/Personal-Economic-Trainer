@@ -9,7 +9,7 @@ class PlanningBodyLimit:
     async def __call__(self, scope, receive, send):
         path = scope.get("path", "")
         bounded = path.startswith("/v1/statements/") or path == "/v1/imports" or path.startswith("/v1/imports/") or path == "/v1/plans" or path.startswith("/v1/plans/") or path == "/v1/bank-connections" or path.startswith("/v1/bank-connections/") or path.startswith("/v1/benchmarks/") or path == "/v1/goals" or path.startswith("/v1/goals/") or path.startswith("/v1/insights/") or path == "/v1/coaching/preferences" or path in ("/v1/analysis/tools/execute","/v1/analysis/spending/reduction")
-        bounded = bounded or path.startswith("/v1/ledger/transactions/") or path.startswith("/v1/accounts/") or path.startswith("/v1/live-banking/") or path in ("/v2/analysis/tools/execute","/v2/analysis/tools/answer","/v2/analysis/tools/answer/card","/v1/analysis/spending/habits","/v1/coach/query")
+        bounded = bounded or path.startswith('/v1/demo-statements/') or path.startswith("/v1/ledger/transactions/") or path.startswith("/v1/accounts/") or path.startswith("/v1/live-banking/") or path in ("/v2/analysis/tools/execute","/v2/analysis/tools/answer","/v2/analysis/tools/answer/card","/v1/analysis/spending/habits","/v1/coach/query")
         if scope["type"] != "http" or scope["method"] != "POST" or not bounded:
             await self.app(scope, receive, send)
             return

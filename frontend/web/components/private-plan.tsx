@@ -15,15 +15,14 @@ import {EducationHelp} from "./education-help";
 import {SettingsWorkspace} from "./dashboard-workspace";
 import {CoachWorkspace,TransactionWorkspace,ScenarioWorkspace} from "./money-tools";
 import {PrivateOverview} from "./private-overview";
-import {ChartNoAxesColumn,MessageCircle,SlidersHorizontal,BookOpen,Settings,ChevronLeft,Landmark,Sparkles} from "lucide-react";
-import {firstBankCopy} from "../i18n/first-bank";
+import {ChartNoAxesColumn,MessageCircle,SlidersHorizontal,BookOpen,Settings,ChevronLeft} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {PrivateLearn} from "./private-learn";
 import {useKeyboardViewport} from "@/lib/use-keyboard-viewport";
 import {useCopy} from "@/i18n/context";
-import {useRouter} from "next/navigation";
 import {ImportWorkspace} from "./import-workspace";
 import {StatementImport} from "./statement-import";
+import {DemoEntry} from "./demo-entry";
 import {SettingsGroup,SettingsSheetRow} from "@/components/settings-list";
 
 type Schema = components["schemas"];
@@ -81,32 +80,23 @@ function PlanningWorkspace({session, request, changed}: {session: Session; reque
   </>;
 }
 
-export type PrivatePageName="dashboard"|"plan"|"banks"|"compare"|"goals"|"insights"|"analysis"|"coach"|"transactions"|"scenarios"|"settings"|"learn";
+export type PrivatePageName="dashboard"|"plan"|"banks"|"compare"|"goals"|"insights"|"analysis"|"coach"|"transactions"|"scenarios"|"settings"|"learn"|"imports";
 
 export function PrivatePlan({page = "plan",oidcAvailable=false,demoAvailable=false}: {oidcAvailable?:boolean;demoAvailable?:boolean;page?: PrivatePageName}) {
   const access = usePrivateSession();
+  useEffect(()=>{if(page==='imports'&&access.phase==='signed-out'&&oidcAvailable)window.location.replace('/api/v1/auth/login?return_to=%2Fimport');},[page,access.phase,oidcAvailable]);
   useKeyboardViewport(page==="coach"&&access.phase==="ready");
-  const {t,locale}=useCopy(),router=useRouter();
+  const {t}=useCopy();
   const privateKey=access.session ? `${access.session.session_id}:${access.session.permission_version}:${access.session.owner.tenant_id}:${access.session.owner.user_id}:${access.session.synthetic}` : "signed-out";
   const primary=[{key:"dashboard",href:"/",label:t("overview"),Icon:ChartNoAxesColumn},{key:"coach",href:"/coach",label:t("coach"),Icon:MessageCircle},{key:"scenarios",href:"/scenarios",label:t("whatif"),Icon:SlidersHorizontal},{key:"learn",href:"/learn",label:t("learn"),Icon:BookOpen}];
   return <div className="private-coach-shell mx-auto min-h-dvh w-full max-w-app bg-canvas navigation-space">
     <header className="pt-safe"><div className="flex min-h-touch items-center justify-between gap-3 px-4"><div className="min-w-0"><a className="text-xl font-semibold text-ink no-underline" href="/">Money Coach</a></div><Button asChild variant="ghost" size="icon"><a href={page==="settings"?"/":"/settings"} aria-label={page==="settings"?t("back"):t("settings")}>{page==="settings"?<ChevronLeft className="size-5"/>:<Settings className="size-5"/>}</a></Button></div></header>
     <main id="main" tabIndex={-1} className={page==="dashboard"?"px-4":"space-y-6 px-4 py-6"} aria-busy={access.phase==="checking"}>
         {access.error && <p className="error-notice" role="alert">{access.error}</p>}
-        {access.phase === "ready" && access.session ? page === "settings" ? <SettingsWorkspace key={privateKey} request={access.request} changed={access.announce} signOut={()=>void access.signOut()}/> : page === "coach" ? <CoachWorkspace key={privateKey} request={access.request}/> : page === "transactions" ? <TransactionWorkspace key={privateKey} request={access.request}/> : page === "scenarios" ? <ScenarioWorkspace key={privateKey} request={access.request}/> : page === "dashboard" ? <PrivateOverview key={privateKey} request={access.request}/> : page === "learn" ? <PrivateLearn key={privateKey} request={access.request}/> : page === "analysis" ? <AnalysisWorkspace key={privateKey} request={access.request} synthetic={access.session.synthetic}/> : page === "banks" ? access.session.synthetic ? <><StatementImport key={`statement:${privateKey}`} request={access.request} changed={access.announce}/><p className="demo-notice"><strong>DEMO</strong> Synthetic bank accounts. Real-bank connections require a verified profile.</p><BankWorkspace key={privateKey} request={access.request} transfer={access.transfer} changed={access.announce}/></> : <><LiveBankWorkspace key={privateKey} request={access.request} changed={access.announce}><RetainedImports key={privateKey} request={access.request} transfer={access.transfer} changed={access.announce}/></LiveBankWorkspace><StatementImport key={`statement:${privateKey}`} request={access.request} changed={access.announce}/></> : page === "compare" ? <PopulationWorkspace key={privateKey} request={access.request}/> : page === "goals" ? <GoalWorkspace key={privateKey} request={access.request} changed={access.announce}/> : page === "insights" ? <CoachingWorkspace key={privateKey} request={access.request} changed={access.announce}/> : <PlanningWorkspace key={privateKey} session={access.session} request={access.request} changed={access.announce}/> :
-          <section className="private-sign-in space-y-4 py-6"><h1 className="text-xl font-semibold">{t("signedOutTitle")}</h1>
-            {access.phase === "checking" ? <p role="status">Checking your session…</p> : access.phase === "offline" ? <>
-              <p>You&apos;re offline. Private balances, drafts and actions have been cleared from this view. Reconnect to verify your session and load fresh information.</p>
-              <button className="secondary-button" onClick={() => void access.refresh()}>Check connection</button>
-            </> : access.phase === "paused" ? <><p>Return to this window to verify your session before opening private figures.</p><button className="secondary-button" onClick={() => void access.refresh()}>Verify session</button></> : <>
-              <p className="text-sm text-ink-2">{t("signedOutText")}</p>
-              <div className="grid gap-3">{oidcAvailable&&<Button asChild variant="outline" className="h-auto min-h-14 w-full justify-start gap-3 rounded-2xl px-4"><a href="/api/v1/auth/login"><Landmark className="size-5" aria-hidden="true"/>{firstBankCopy[locale].connect}</a></Button>}<Button asChild variant="outline" className="h-auto min-h-14 w-full justify-start gap-3 rounded-2xl px-4"><a href="/demo?dataset=organizer1"><Sparkles className="size-5" aria-hidden="true"/>{t("tryDemo")}</a></Button></div>
-              {demoAvailable && <div className="grid grid-cols-2 gap-3"><Button variant="outline" onClick={() => void access.signIn("aino")}>Continue as Aino</Button><Button variant="outline" onClick={() => void access.signIn("mika")}>Continue as Mika</Button></div>}
-              <p className="text-caption text-ink-2">Private drafts stay in memory and are cleared when you sign out, change profile, go offline or leave this window. Reopening requires a verified session.</p>
-            </>}
-          </section>}
-        {!["dashboard","transactions","learn","coach","scenarios","banks","settings"].includes(page) && access.phase==="ready" && access.session && <EducationHelp key={`${privateKey}:${page}`} request={access.request}
-          initialTopic={{learn:"spending_baskets",coach:"observed_spending",transactions:"observed_spending",scenarios:"scenario_assumptions",settings:"cash_flow",dashboard:"cash_flow",plan:"shared_surplus",banks:"cash_flow",compare:"population_mean",goals:"protected_money",insights:"scenario_assumptions",analysis:"observed_spending"}[page]}/>}
+        {access.phase === "ready" && access.session ? page === "imports" ? <StatementImport key={privateKey} request={access.request} changed={access.announce}/> : page === "settings" ? <SettingsWorkspace key={privateKey} request={access.request} changed={access.announce} signOut={()=>void access.signOut()}/> : page === "coach" ? <CoachWorkspace key={privateKey} request={access.request}/> : page === "transactions" ? <TransactionWorkspace key={privateKey} request={access.request}/> : page === "scenarios" ? <ScenarioWorkspace key={privateKey} request={access.request}/> : page === "dashboard" ? <PrivateOverview key={privateKey} request={access.request}/> : page === "learn" ? <PrivateLearn key={privateKey} request={access.request}/> : page === "analysis" ? <AnalysisWorkspace key={privateKey} request={access.request} synthetic={access.session.synthetic}/> : page === "banks" ? access.session.synthetic ? <><StatementImport key={`statement:${privateKey}`} request={access.request} changed={access.announce}/><p className="demo-notice"><strong>DEMO</strong> Synthetic bank accounts. Real-bank connections require a verified profile.</p><BankWorkspace key={privateKey} request={access.request} transfer={access.transfer} changed={access.announce}/></> : <><LiveBankWorkspace key={privateKey} request={access.request} changed={access.announce}><RetainedImports key={privateKey} request={access.request} transfer={access.transfer} changed={access.announce}/></LiveBankWorkspace><StatementImport key={`statement:${privateKey}`} request={access.request} changed={access.announce}/></> : page === "compare" ? <PopulationWorkspace key={privateKey} request={access.request}/> : page === "goals" ? <GoalWorkspace key={privateKey} request={access.request} changed={access.announce}/> : page === "insights" ? <CoachingWorkspace key={privateKey} request={access.request} changed={access.announce}/> : <PlanningWorkspace key={privateKey} session={access.session} request={access.request} changed={access.announce}/> :
+          <section className="private-sign-in space-y-4 py-6">{access.phase==='checking'?<p role="status">Checking your session…</p>:access.phase==='offline'?<><p>You are offline. Reconnect to open your private workspace.</p><Button onClick={()=>void access.refresh()}>Check connection</Button></>:access.phase==='paused'?<Button onClick={()=>void access.refresh()}>Verify session</Button>:<DemoEntry embedded/>}</section>}
+        {!["dashboard","transactions","learn","coach","scenarios","banks","settings","imports"].includes(page) && access.phase==="ready" && access.session && <EducationHelp key={`${privateKey}:${page}`} request={access.request}
+          initialTopic={{learn:"spending_baskets",coach:"observed_spending",transactions:"observed_spending",scenarios:"scenario_assumptions",settings:"cash_flow",dashboard:"cash_flow",plan:"shared_surplus",banks:"cash_flow",compare:"population_mean",goals:"protected_money",insights:"scenario_assumptions",analysis:"observed_spending",imports:"observed_spending"}[page]}/>}
     </main>
     <nav aria-label="Main navigation" className="pb-safe bottom-keyboard fixed inset-x-0 z-40 mx-auto grid min-h-navigation w-full max-w-app grid-cols-4 border-t border-line bg-surface px-2 py-1">{primary.map(({key,href,label,Icon})=><a key={key} href={href} aria-current={key===page?"page":undefined} className={`flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-caption no-underline ${page===key?"bg-brand-tint text-active-ink":"text-ink-2"}`}><Icon className="size-6"/><span>{label}</span></a>)}</nav>
   </div>;
