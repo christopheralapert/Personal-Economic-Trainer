@@ -2,6 +2,19 @@
 
 ## Final integrated release — 14 November 2026
 
+### Follow-up: ordinary versus isolated-test configuration
+
+The **same existing artifact**, build **`68d4044-131377e695625033`**, was started in two additional local configurations without rebuilding or changing the public presentation. `node .cache/check-deployment-modes.cjs` completed **2 browser tests passed** (3.0 s), with the committed `tests/config/playwright.deployment-modes.config.ts` and `tests/browser/deployment-modes.spec.ts`.
+
+| Configuration | Runtime boundary and browser proof | Result |
+| --- | --- | --- |
+| Ordinary, http://127.0.0.1:33126, API 18046 | Production API settings; `MONEYLENS_ALLOW_DEMO=false`, self-signup false, no test issuer or test chooser. Anonymous organizer demo 200. Private Coach shows the signed-out prompt and no financial content; test-issuer/summary routes, demo login, session/login and accounts are unavailable (404). | Passed: no test authentication path is exposed. |
+| Isolated signed test OIDC, http://127.0.0.1:33127, API 18047 | Fresh disposable PostgreSQL, explicit test issuer and signup enabled. Membership count stays **0** before callback, after invalid browser state (400), at the issuer chooser, and after an invalid RSA signature (401). A valid signed issuer/subject creates **1** membership; repeat login keeps **1**. An independent no-cookie API context stays unauthenticated (401). | Passed: workspace creation follows successful verification, never merely opening the chooser. |
+
+Both configurations returned the identical `X-MoneyLens-Build`. Ordinary mode deliberately **does not pretend that Auth0 is configured**: the existing root `.env` has no OIDC issuer/client settings and API authentication is disabled there. Its private routes fail closed; a successful ordinary real-Auth0 login remains unverified and needs the real issuer/client/endpoints and restricted database settings. The local `.env` is unchanged; the normal-mode launcher overrides development/demo switches in its process only. The public frontend synthetic demo is independent of the API's synthetic-session-login flag.
+
+Retained local launch commands: `node .cache/start-normal-release.cjs` and `node .cache/start-config-test.cjs`; the latter must have a fresh database for the zero-member test. To rerun, stop only that owned test fixture with POST `http://127.0.0.1:18047/rehearsal/shutdown`, start it again, then run `node .cache/check-deployment-modes.cjs`. Existing main preview on 33125 stays running. The normal configuration has **no rehearsal routes**, including shutdown. No public deployment or push occurred.
+
 Branch: **`integration/release-signup-ui-next`**. Integration checkpoint **`68d4044`** merges finished signup **`003f115`** with **`8ac89b7`**, including its ancestor **`53b119c`**. Voice **`bb02609`** was already an ancestor; it was not reapplied. Verification checkpoint **`e12e6f9`** adds recovery, scope, browser compatibility, exact preview metadata and provenance tests. Subsequent handoff changes are documentation only; `git log -1 --oneline` identifies that final documentation commit.
 
 **Running production artifact:** `frontend/web/.next/release-final-20261114`, **build `68d4044-131377e695625033`**. Both application production builds passed. The artifact's source is the integration checkpoint; later test/report commits do not change application code. All final routes below returned HTTP 200 with that exact build header.
