@@ -9,6 +9,8 @@ import {Input} from "@/components/ui/input";
 import {CategoryIcon} from "@/components/gen/category-icon";
 import {euros,planDate} from "./plan-format";
 import {Drawer,DrawerContent,DrawerHeader,DrawerTitle,DrawerTrigger} from "@/components/ui/drawer";
+import {useDashboard} from "./dashboard-workspace";
+import {StatementDates} from "./statement-dates";
 
 type Schema=components["schemas"];
 type Answer=Schema["CoachAnswerV1"];
@@ -31,6 +33,8 @@ const destinations:Record<string,{href:string;label:string}>={
 };
 
 export function CoachQuery({request,initialQuestion=""}:{request:PrivateRequest;initialQuestion?:string}) {
+  const {data}=useDashboard(request);
+  const [account,setAccount]=useState("");
   const [question,setQuestion]=useState(initialQuestion),[locale,setLocale]=useState<Locale>("en");
   const [turns,setTurns]=useState<Turn[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState("");
   const [searchRows,setSearchRows]=useState<Schema["LedgerRowV1"][]>([]),[searchCursor,setSearchCursor]=useState<string|null>(null);
@@ -48,7 +52,7 @@ export function CoachQuery({request,initialQuestion=""}:{request:PrivateRequest;
     const text=raw.trim();if(busy||!text)return;
     const generation=++latest.current,id=++nextId.current,previous=turns.at(-1)?.answer;
     const previousScope=previous?.transactions?.scope??(previous?ledgerEvidence(previous):null);
-    const accountIds=previousScope?.account_ids??null;
+    const accountIds=account?[account]:null;
     const previousIntent=previous?.interpretation.intent;
     const selected=previousIntent?.kind==="analysis"?previousIntent.tool:null;
     const selectors=selected&&"start" in selected.arguments?selected.arguments:null;
@@ -98,6 +102,8 @@ export function CoachQuery({request,initialQuestion=""}:{request:PrivateRequest;
   }
 
   return <section className="space-y-5" aria-label="Coach conversation">
+    <label className="grid gap-1 text-sm">Accounts<select aria-label="Coach accounts" className="min-h-12 rounded-xl border border-line bg-surface px-3 text-ink" value={account} disabled={busy} onChange={e=>{latest.current++;setAccount(e.target.value);setTurns([]);setSearchRows([]);setSearchCursor(null);setError('');}}><option value="">All included accounts</option>{data?.accounts.filter(a=>a.included&&a.currency==='EUR').map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
+    <StatementDates request={request} accountId={account}/>
     <div className="space-y-5" aria-live="polite" aria-relevant="additions" aria-busy={busy}>
       {!turns.length&&<p className="text-sm text-ink-2">Ask about your records.</p>}
       {turns.map((turn,index)=><article key={turn.id} className="space-y-3" data-coach-turn><div className="ml-8 rounded-bubble rounded-br-sm bg-brand p-4 text-brand-ink"><p className="wrap-anywhere text-sm">{turn.question}</p></div>{turn.answer&&<div className="message-arrival rounded-bubble rounded-bl-sm bg-surface p-4">{answerView(turn.answer,index===turns.length-1)}</div>}</article>)}

@@ -10,11 +10,12 @@ from cryptography.fernet import Fernet, InvalidToken
 from fastapi import APIRouter, Depends, Request
 from pydantic import Field, StrictStr
 from typing import Annotated
-from .auth_routes import write_principal
+from .auth_routes import write_principal, principal
 from .database import TrustedScope, tenant_transaction
 from .contracts import Contract
 from .identity import AuthError, authorized_transaction
 from .statement_wise import preview_wise_csv, WiseStatementError
+from . import statement_files
 
 router=APIRouter()
 
@@ -46,8 +47,10 @@ def receipt(connection,owner,digest):
 
 
 @router.post('/v1/statements/wise/preview')
-def preview(body:WiseUpload,request:Request,user=Depends(write_principal)):
+def preview(body:WiseUpload | statement_files.FileUpload,request:Request,user=Depends(write_principal)):
     enabled(request)
+    if isinstance(body,statement_files.FileUpload):
+        return statement_files.preview(body,request,user,cipher,clean,receipt)
     content=body.csv.encode('utf-8')
     if len(content)>65536: raise AuthError('IMPORT_TOO_LARGE',413)
     try: data=preview_wise_csv(content)
@@ -81,7 +84,10 @@ def preview(body:WiseUpload,request:Request,user=Depends(write_principal)):
 
 
 @router.post('/v1/statements/wise/confirm')
-def confirm(body:WiseConfirm,request:Request,user=Depends(write_principal)):
+def confirm(body:WiseConfirm | statement_files.FileConfirm,request:Request,user=Depends(write_principal)):
+    if isinstance(body,statement_files.FileConfirm):
+        enabled(request)
+        return statement_files.confirm(body,request,user,cipher,clean,receipt)
     enabled(request);owner=(user.scope.tenant_id,user.scope.user_id)
     with request.app.state.pools.finance.connection() as connection:
         with authorized_transaction(connection,user,write=True):
@@ -122,6 +128,12 @@ def confirm(body:WiseConfirm,request:Request,user=Depends(write_principal)):
             connection.execute('UPDATE moneylens.user_state SET data_version=data_version+1 WHERE tenant_id=%s AND owner_user_id=%s',owner)
             connection.execute('DELETE FROM moneylens.statement_previews WHERE tenant_id=%s AND owner_user_id=%s AND id=%s',(*owner,body.preview_id))
     return {'state':'published','account_id':str(account),'count':len(rows),'start':stage[2].isoformat(),'end_exclusive':stage[3].isoformat()}
+
+
+@router.get('/v1/statements/wise/accounts')
+def statement_accounts(request:Request,user=Depends(principal)):
+    enabled(request)
+    return statement_files.accounts(request,user)
 
 
 def purge_expired_batch(pools, after=None):

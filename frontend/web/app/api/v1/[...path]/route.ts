@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {privateHeaders,proxyPrivate} from "../../private-proxy";
 
 export const dynamic = "force-dynamic";
-const fixed = new Set(["POST:statements/wise/preview", "POST:statements/wise/confirm", "GET:dashboard", "GET:auth/session", "POST:auth/demo", "POST:auth/logout", "GET:auth/login", "GET:auth/callback", "GET:accounts", "GET:accounts/sources", "GET:ledger/transactions", "GET:ledger/inventory", "GET:analysis/spending", "GET:analysis/spending/comparison", "GET:analysis/tools", "POST:analysis/tools/execute", "POST:analysis/spending/reduction", "POST:analysis/spending/habits", "GET:public/benchmarks/consumption", "GET:public/benchmarks/category-crosswalk", "GET:public/benchmarks/cohorts", "POST:benchmarks/cohort-selection", "POST:benchmarks/comparison", "GET:coaching/preferences", "POST:coaching/preferences", "GET:insights", "POST:insights/refresh", "GET:insights/planning-preview", "POST:insights/spending-preview", "GET:planning/context", "POST:plans", "GET:plans/current"]);
+const fixed = new Set(["GET:statements/wise/accounts", "POST:statements/wise/preview", "POST:statements/wise/confirm", "GET:dashboard", "GET:auth/session", "POST:auth/demo", "POST:auth/logout", "GET:auth/login", "GET:auth/callback", "GET:accounts", "GET:accounts/sources", "GET:ledger/transactions", "GET:ledger/inventory", "GET:analysis/spending", "GET:analysis/spending/comparison", "GET:analysis/tools", "POST:analysis/tools/execute", "POST:analysis/spending/reduction", "POST:analysis/spending/habits", "GET:public/benchmarks/consumption", "GET:public/benchmarks/category-crosswalk", "GET:public/benchmarks/cohorts", "POST:benchmarks/cohort-selection", "POST:benchmarks/comparison", "GET:coaching/preferences", "POST:coaching/preferences", "GET:insights", "POST:insights/refresh", "GET:insights/planning-preview", "POST:insights/spending-preview", "GET:planning/context", "POST:plans", "GET:plans/current"]);
 const job = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function proxy(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
@@ -51,7 +51,7 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
       (path.length === 5 && path[2] === "allocations" && job.test(path[3] ?? "") &&
         ["link", "unlink"].includes(path[4]) && request.method === "POST")));
   if (!fixed.has(`${request.method}:${endpoint}`) && !permittedClassification && !permittedAccount && !permittedJob && !permittedPlan && !permittedBank && !permittedLiveBank && !permittedGoal && !permittedInsight && !permittedImport && !permittedEducation && !permittedCoach) return NextResponse.json({ error: { code: "NOT_FOUND" } }, { status: 404, headers });
-  return proxyPrivate(request,`/v1/${endpoint}`,endpoint === "statements/wise/preview" ? 400000 : endpoint === "plans" && request.method === "POST" ? 65536 : 8192);
+  return proxyPrivate(request,`/v1/${endpoint}`,endpoint === "statements/wise/preview" ? 2800000 : endpoint === "plans" && request.method === "POST" ? 65536 : 8192);
 }
 
 export const GET = proxy;

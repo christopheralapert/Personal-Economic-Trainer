@@ -4597,6 +4597,126 @@
         "title": "Evidence",
         "type": "object"
       },
+      "FileConfirm": {
+        "additionalProperties": false,
+        "properties": {
+          "previews": {
+            "items": {
+              "$ref": "#/components/schemas/FileSelection"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Previews",
+            "type": "array"
+          }
+        },
+        "required": [
+          "previews"
+        ],
+        "title": "FileConfirm",
+        "type": "object"
+      },
+      "FileSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "const": "EUR",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "keep_separate": {
+            "default": false,
+            "title": "Keep Separate",
+            "type": "boolean"
+          },
+          "new_account_label": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Account Label"
+          },
+          "preview_id": {
+            "format": "uuid",
+            "title": "Preview Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "preview_id"
+        ],
+        "title": "FileSelection",
+        "type": "object"
+      },
+      "FileUpload": {
+        "additionalProperties": false,
+        "properties": {
+          "content_base64": {
+            "maxLength": 2796204,
+            "minLength": 1,
+            "title": "Content Base64",
+            "type": "string"
+          },
+          "date_order": {
+            "anyOf": [
+              {
+                "enum": [
+                  "day_first",
+                  "month_first"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date Order"
+          },
+          "format": {
+            "enum": [
+              "csv",
+              "pdf",
+              "xlsx",
+              "xml",
+              "mt940",
+              "qif"
+            ],
+            "title": "Format",
+            "type": "string"
+          }
+        },
+        "required": [
+          "format",
+          "content_base64"
+        ],
+        "title": "FileUpload",
+        "type": "object"
+      },
       "FinancialResult": {
         "additionalProperties": false,
         "properties": {
@@ -13777,6 +13897,37 @@
         ],
         "title": "ValidationError",
         "type": "object"
+      },
+      "WiseConfirm": {
+        "additionalProperties": false,
+        "properties": {
+          "preview_id": {
+            "format": "uuid",
+            "title": "Preview Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "preview_id"
+        ],
+        "title": "WiseConfirm",
+        "type": "object"
+      },
+      "WiseUpload": {
+        "additionalProperties": false,
+        "properties": {
+          "csv": {
+            "maxLength": 65536,
+            "minLength": 1,
+            "title": "Csv",
+            "type": "string"
+          }
+        },
+        "required": [
+          "csv"
+        ],
+        "title": "WiseUpload",
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -20282,6 +20433,110 @@
           }
         ],
         "summary": "Ai Payment Descriptions"
+      }
+    },
+    "/v1/statements/wise/accounts": {
+      "get": {
+        "operationId": "statement_accounts_v1_statements_wise_accounts_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Statement Accounts"
+      }
+    },
+    "/v1/statements/wise/confirm": {
+      "post": {
+        "operationId": "confirm_v1_statements_wise_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/WiseConfirm"
+                  },
+                  {
+                    "$ref": "#/components/schemas/FileConfirm"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm"
+      }
+    },
+    "/v1/statements/wise/preview": {
+      "post": {
+        "operationId": "preview_v1_statements_wise_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/WiseUpload"
+                  },
+                  {
+                    "$ref": "#/components/schemas/FileUpload"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preview"
       }
     },
     "/v2/analysis/tools": {
