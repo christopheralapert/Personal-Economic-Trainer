@@ -1,5 +1,6 @@
 """Opt-in browser -> production BFF -> signed test OIDC -> isolated PostgreSQL."""
 import os
+from io import BytesIO
 from pathlib import Path
 import socket
 import subprocess
@@ -12,11 +13,14 @@ import httpx
 import jwt
 import psycopg
 import pytest
+from pypdf import PdfWriter
+from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 import uvicorn
 
 from app.main import create_app
 from app.oidc import OIDC
 from app.settings import Settings
+from app.statement_pdf import extract_statement_text
 from scripts.provision_oidc_member import provision_member
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,9 +28,29 @@ ORIGIN = 'http://127.0.0.1:33111'
 ISSUER = 'https://identity.example'
 
 
+def text_pdf():
+    """Controlled text layer, deliberately not a claimed Wise export layout."""
+    writer = PdfWriter()
+    page = writer.add_blank_page(width=595, height=842)
+    font = DictionaryObject({NameObject('/Type'): NameObject('/Font'),
+        NameObject('/Subtype'): NameObject('/Type1'), NameObject('/BaseFont'): NameObject('/Helvetica')})
+    page[NameObject('/Resources')] = DictionaryObject({NameObject('/Font'):
+        DictionaryObject({NameObject('/F1'): writer._add_object(font)})})
+    stream = DecodedStreamObject()
+    stream.set_data(b'BT /F1 12 Tf 40 780 Td (Synthetic EUR statement) Tj '
+        b'0 -20 Td (2026-10-03 Synthetic shop -5.00 EUR) Tj ET')
+    page[NameObject('/Contents')] = writer._add_object(stream)
+    result = BytesIO()
+    writer.write(result)
+    content = result.getvalue()
+    assert extract_statement_text(content) == (
+        'Synthetic EUR statement\n2026-10-03 Synthetic shop -5.00 EUR',)
+    return content
+
+
 @pytest.mark.skipif(os.environ.get('MONEYLENS_STATEMENT_BROWSER_TEST') != 'true',
                     reason='Requires a dedicated production web build and isolated PostgreSQL')
-def test_browser_wise_import_against_isolated_api_and_postgres(database, monkeypatch):
+def test_browser_wise_import_against_isolated_api_and_postgres(database, monkeypatch, tmp_path):
     # Fail on occupied ports; never stop or reuse someone else's services.
     for port in (33111, 18030):
         with socket.socket() as probe:
@@ -70,6 +94,9 @@ def test_browser_wise_import_against_isolated_api_and_postgres(database, monkeyp
     clean = {k: v for k, v in os.environ.items() if not k.startswith(('MONEYLENS_', 'MONEY_COACH_', 'OPENAI_'))}
     web_env = {**clean, 'MONEYLENS_STATEMENT_BROWSER_TEST': 'true', 'MONEYLENS_API_URL': 'http://127.0.0.1:18030',
         'MONEYLENS_ALLOW_DEMO': 'false', 'MONEYLENS_OIDC_ISSUER': ISSUER}
+    pdf = tmp_path / 'synthetic-text-statement.pdf'
+    pdf.write_bytes(text_pdf())
+    web_env['MONEYLENS_TEST_STATEMENT_PDF'] = str(pdf)
     if os.environ.get('MONEYLENS_NEXT_DIST'):
         web_env['MONEYLENS_NEXT_DIST'] = os.environ['MONEYLENS_NEXT_DIST']
     web = None
@@ -95,6 +122,8 @@ def test_browser_wise_import_against_isolated_api_and_postgres(database, monkeyp
             assert connection.execute("SELECT count(*) FROM moneylens.users WHERE subject_id='wise-browser-unknown'").fetchone()[0] == 0
             assert connection.execute('SELECT count(*) FROM moneylens.tenants WHERE id=ANY(%s)', (tenants,)).fetchone()[0] == 2
             assert connection.execute('SELECT count(*) FROM moneylens.user_state WHERE owner_user_id=ANY(%s)', (users,)).fetchone()[0] == 2
+            assert connection.execute('SELECT data_version FROM moneylens.user_state WHERE owner_user_id=ANY(%s)', (users,)).fetchall() == [(2,), (2,)]
+            assert connection.execute('SELECT count(*) FROM moneylens.accounts WHERE owner_user_id=ANY(%s)', (users,)).fetchone()[0] == 2
             assert connection.execute('SELECT count(*) FROM moneylens.statement_previews WHERE owner_user_id=ANY(%s)', (users,)).fetchone()[0] == 0
             assert connection.execute('SELECT count(*),sum(row_count) FROM moneylens.statement_import_receipts WHERE owner_user_id=ANY(%s)', (users,)).fetchone() == (2, 4)
             counts = connection.execute('''SELECT owner_user_id,count(*),sum(amount_minor)
