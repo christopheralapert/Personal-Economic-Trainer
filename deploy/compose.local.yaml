@@ -1,0 +1,57 @@
+# Stateless fixture preview. Existing host development database/storage and .env
+# are deliberately not read. Private features use docs/development.md for now.
+name: moneylens-preview
+services:
+  api:
+    image: moneylens-api:local-preview
+    build:
+      context: ..
+      dockerfile: deploy/api.Dockerfile
+      target: api
+    environment:
+      MONEYLENS_ENVIRONMENT: development
+      MONEYLENS_APP_ORIGIN: http://127.0.0.1:33110
+      MONEYLENS_ALLOW_DEMO: "true"
+      MONEYLENS_AUTH_ENABLED: "false"
+      MONEYLENS_IMPORTS_ENABLED: "false"
+      MONEYLENS_MODEL_ENABLED: "false"
+      MONEYLENS_MODEL_BILLING_POLICY: free_only
+    networks: [application]
+    init: true
+    read_only: true
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    cpus: 1
+    pids_limit: 128
+    stop_grace_period: 30s
+  web:
+    image: moneylens-web:local-preview
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+      target: web
+    environment:
+      MONEYLENS_API_URL: http://api:8000
+      MONEYLENS_DEMO_API_URL: http://api:8000
+    ports: ["127.0.0.1:33110:3000"]
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [application, ingress]
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /app/apps/web/.next/cache:size=64m,uid=1000,gid=1000,mode=0700
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    cpus: 1
+    pids_limit: 128
+    stop_grace_period: 30s
+networks:
+  application:
+    internal: true
+  ingress: {}
