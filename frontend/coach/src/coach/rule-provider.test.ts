@@ -5,6 +5,28 @@ import {dictionaries} from "@/i18n/dictionaries";
 import {conceptRequests} from "./query-language";
 import {hasOnlyGroundedNumbers} from "./answer-grounding";
 describe("typed offline coaching",()=>{
+  it("keeps the local EN/FI/ET search, category, follow-up, scenario and missing-plan matrix grounded",async()=>{
+    const cases=[
+      ["en",'Show transactions at "Helsinki" last month',"How much did I spend on taxis last month?","And in September 2026?","What if I cut dining out by 20% last month?"],
+      ["fi",'Näytä tapahtumat paikassa "Helsinki" viime kuussa',"Paljonko kulutin takseihin viime kuussa?","Entä syyskuussa 2026?","Mitä jos vähennän ravintolakuluja 20% viime kuussa?"],
+      ["et",'Näita tehinguid kaupmehelt "Helsinki" eelmisel kuul',"Kui palju kulutasin taksodele eelmisel kuul?","Aga septembris 2026?","Mis siis, kui vähendan restoranikulusid 20% võrra eelmisel kuul?"],
+    ] as const;
+    for(const [locale,search,category,follow,reduction] of cases) {
+      const provider=new RuleProvider();
+      const searched=await provider.answer(search,locale,10);
+      expect(searched.parts.find(part=>part.type==="tool-showTransactions")).toMatchObject({input:{merchant:"Helsinki",period:{start:"2026-10-01",end:"2026-11-01"}},output:{rows:[{merchant:"Taxi Helsinki",amount_minor:-1890}]}});
+      const spent=await provider.answer(category,locale,10);
+      expect(spent.parts.find(part=>part.type==="tool-showTransactions")).toMatchObject({input:{category:"taxi"},output:{netExpenses:4000}});
+      const followed=await provider.answer(follow,locale,10,{context:{tool:"showTransactions",input:{period:{start:"2026-10-01",end:"2026-11-01"},category:"taxi",merchant:"Helsinki"}}});
+      expect(followed.parts.find(part=>part.type==="tool-showTransactions")).toMatchObject({input:{category:"taxi",merchant:"Helsinki",period:{start:"2026-09-01",end:"2026-10-01"}},output:{rows:[]}});
+      const scenario=await provider.answer(reduction,locale,10);
+      expect(scenario.parts.find(part=>part.type==="tool-showWhatIf")).toMatchObject({output:{result:{monthly:5000}}});
+      for(const question of [dictionaries[locale].qSafe,dictionaries[locale].qSave]) {
+        const review=await provider.answer(question,locale,10);
+        expect(review.parts.find(part=>part.type==="tool-showSafeToSpend")).toMatchObject({output:{result:{status:"review_required",amount:null}}});
+      }
+    }
+  });
   it("accepts the natural Estonian taxi plural without loosening quoted source matching",async()=>{
     const provider=new RuleProvider();
     for(const category of ["taksole","taksodele"]) {

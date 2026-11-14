@@ -1,4 +1,6 @@
 """Localized templates over freshly grounded facts; no model-written prose."""
+from datetime import timedelta
+from types import SimpleNamespace
 from typing import Annotated,Literal
 
 from pydantic import Field
@@ -7,7 +9,7 @@ from .answer_grounding import GroundedAnswerV1,ground_answer
 from .contracts import Contract
 from .identity import AuthError
 
-AnswerLocale=Literal["en","fi","sv"]
+AnswerLocale=Literal["en","fi","sv","et"]
 Text=Annotated[str,Field(min_length=1,max_length=600)]
 
 
@@ -89,6 +91,35 @@ COPY={
         "unequal":"Jaksoissa on eri määrä kalenteripäiviä. Kokonaissummia ei ole suhteutettu kestoon.",
         "overlap":"Jaksot ovat päällekkäisiä ja sisältävät samoja kirjauksia. Ne eivät ole riippumattomia ennen–jälkeen-havaintoja.",
     },
+    "et": {
+        "titles":["Vaadeldud kulutused","Kulutuste võrdlus","Ajalooline oletus","Ülevaadatud plaan","Teenuse tõendid"],
+        "summaries":[
+            "Kirjendatud kulud miinus tagasimaksed valitud perioodil. See kirjeldab varasemaid tehinguid ega määra kuluraha.",
+            "Võrdlus kasutab kahe perioodi kirjendamiskuupäevi. Erinevus ei ole prognoos ega kuluraha.",
+            "See on varasemate kulude oletuslik vähendamine. Tehinguid ei muudeta ja raha ei liigutata.",
+            "Kulutamine ja säästmine jagavad sama ülevaadatud ülejääki. Arvutus võib aeguda; uuenda seda enne otsustamist.",
+            "Teenuse täielikud tõendid on lisatud. Selle toimingu jaoks puudub veel lühike rahaline vastus.",
+        ],
+        "statuses":{"ready":"Valmis vaatamiseks","limited":"Piiratud tõendid","blocked":"Vajab ülevaatust"},
+        "labels":["Kirjendatud kulud","Kirjendatud tagasimaksed","Vaadeldud netokulutused","Kulutehingute arv","Tagasimaksete arv",
+            "Perioodi algus","Perioodi lõpp (välja arvatud)","Võrdlusperioodi netokulutused","Valitud perioodi netokulutused",
+            "Netokulutuste muutus","Netokulutuste muutus (%)","Oletuslik kulude vähendus","Netokulutused oletusliku muutuse järel",
+            "Ülevaadatud ühine ülejääk","Plaani vaatlushetk","Arvutuse aegumine","Soovitud perioodi lõpp (välja arvatud)","Kaitstud kuni"],
+        "periods":{"current":"Valitud periood","baseline":"Võrdlusperiood"},
+        "unavailable":"Teadmata","minor":"valuuta väikseimat ühikut",
+        "scope":"Arvud kehtivad ainult lisatud tõendite kontode, filtrite ja kuupäevade kohta. Need ei kinnita kogu rahalist olukorda.",
+        "reasons":{
+            "INCOMPLETE_HISTORY":"Allikate ajalugu ei kata kogu valitud perioodi. Vastete puudumine ei tõesta kulutuste puudumist.",
+            "UNRESOLVED_FLOWS":"Mõne tehingu majanduslik eesmärk on teadmata. Vaata nende liigitus üle.",
+            "LIMITED_COMPARISON":"Vaadeldud perioodid ei võimalda tingimusteta kulutuste võrdlust. Kontrolli ulatust ja kaetust.",
+            "SCENARIO_BLOCKED":"Ajaloolist oletust ei saa arvutada. Kontrolli allikaid, liigitust ja soovitud vähendust.",
+            "PLAN_MISSING":"Ülevaadatud plaan puudub. Kasutatav summa on teadmata, mitte null.",
+            "PLAN_BLOCKED":"See plaan ei anna ajakohast kuluraha. Uuenda allikaid ja vaata sisendid üle.",
+            "FACT_PROJECTION_NOT_IMPLEMENTED":"Kasuta lisatud tüübitud tõendeid; selle toimingu jaoks puuduvad veel kokkuvõtlikud rahalised faktid.",
+        },
+        "unequal":"Perioodides on erinev arv kalendripäevi. Kogusummasid ei ole kestuse järgi kohandatud.",
+        "overlap":"Perioodid kattuvad ja sisaldavad samu tehinguid. Need ei ole sõltumatud enne ja pärast vaatlused.",
+    },
     "sv": {
         "titles": ["Observerad konsumtion","Jämförelse av konsumtion","Historiskt alternativ","Granskad plan","Tjänstens underlag"],
         "summaries": [
@@ -140,6 +171,68 @@ def value_text(fact,locale,copy):
     return number+(" EUR" if fact.kind=="money" else "%" if locale=="en" else "\u00a0%")
 
 
+def money_text(amount,currency,locale):
+    return value_text(SimpleNamespace(value=amount,kind="money",currency=currency),locale,COPY[locale])
+
+
+def period_text(scope):
+    return str(scope.start),str(scope.end_exclusive-timedelta(days=1))
+
+
+def transaction_sentence(page,locale):
+    start,end=period_text(page.scope);count=len(page.rows)
+    amount=money_text(sum(row.amount_minor for row in page.rows),page.scope.currency,locale)
+    # A bounded search page contains all flows. Its signed cash movement is never spending.
+    return {
+        "en":f"This page shows {count} booked transactions from {start} through {end}, with a net cash movement of {amount}. This page is not a spending total; the attached records include unresolved flows and may continue on another page.",
+        "fi":f"Tällä sivulla on {count} kirjattua tapahtumaa ajalta {start}–{end}, ja niiden nettorahavirta on {amount}. Tämä ei ole kulutuksen kokonaissumma; mukana voi olla selvittämättömiä rahavirtoja ja tapahtumat voivat jatkua seuraavalla sivulla.",
+        "et":f"Sellel lehel on {count} kirjendatud tehingut ajavahemikus {start}–{end}, netorahavooga {amount}. See ei ole kulutuste kogusumma; lisatud tehingud võivad sisaldada teadmata rahavooge ja jätkuda järgmisel lehel.",
+        "sv":f"Denna sida visar {count} bokförda transaktioner från {start} till och med {end}, med ett nettokassaflöde på {amount}. Detta är ingen konsumtionssumma; posterna kan ha oklart syfte och fortsätta på nästa sida.",
+    }[locale]
+
+
+def answer_sentence(answer,locale,*,unknown=False):
+    copy=COPY[locale];result=answer.artifact.result
+    facts={fact.fact_id:value_text(fact,locale,copy) for fact in answer.facts}
+    if answer.presentation=="observed_spending":
+        start,end=period_text(result.scope)
+        if unknown:
+            return {
+                "en":f"Spending cannot be established from these records for {start} through {end}; the amount is unknown, not zero. Review unclassified entries and the selected scope.",
+                "fi":f"Kulutusta ei voi määrittää näistä tiedoista ajalta {start}–{end}; summa on tuntematon, ei nolla. Tarkista luokittelemattomat tapahtumat ja rajaus.",
+                "et":f"Kulutusi ei saa nende andmete põhjal ajavahemikus {start}–{end} määrata; summa on teadmata, mitte null. Vaata liigitamata tehingud ja valitud ulatus üle.",
+                "sv":f"Konsumtionen kan inte fastställas från dessa uppgifter för {start} till och med {end}; beloppet är okänt, inte noll. Granska oklassificerade poster och urvalet.",
+            }[locale]
+        amount=facts["net_minor"]
+        sentence={"en":f"Recorded net spending was {amount} from {start} through {end}.",
+            "fi":f"Kirjattu nettokulutus oli {amount} ajalta {start}–{end}.",
+            "et":f"Kirjendatud netokulutused olid {amount} ajavahemikus {start}–{end}.",
+            "sv":f"Bokförd nettokonsumtion var {amount} från {start} till och med {end}."}[locale]
+    elif answer.presentation=="spending_comparison":
+        start,end=period_text(result.current.scope);first,last=period_text(result.baseline.scope)
+        amount,before,delta=(facts[key] for key in ("current.net_minor","baseline.net_minor","change.net_minor"))
+        sentence={"en":f"Recorded net spending was {amount} from {start} through {end}, compared with {before} from {first} through {last}; the observed change was {delta}.",
+            "fi":f"Kirjattu nettokulutus oli {amount} ajalta {start}–{end} ja {before} ajalta {first}–{last}; havaittu muutos oli {delta}.",
+            "et":f"Kirjendatud netokulutused olid {amount} ajavahemikus {start}–{end} ja {before} ajavahemikus {first}–{last}; vaadeldud muutus oli {delta}.",
+            "sv":f"Bokförd nettokonsumtion var {amount} från {start} till och med {end}, jämfört med {before} från {first} till och med {last}; förändringen var {delta}."}[locale]
+    elif answer.presentation=="historical_scenario":
+        start,end=period_text(result.baseline.scope)
+        amount=facts["reduction.amount_minor"];remaining=facts["counterfactual.net_minor"]
+        if answer.status=="blocked":
+            return {"en":f"The hypothetical reduction for {start} through {end} is unknown; review the attached source coverage, classification and reduction before calculating an amount.",
+                "fi":f"Oletettu vähennys ajalta {start}–{end} on tuntematon; tarkista lähteiden kattavuus, luokittelu ja vähennys ennen summan laskemista.",
+                "et":f"Oletuslik vähendus ajavahemikus {start}–{end} on teadmata; kontrolli enne summa arvutamist allikate kaetust, liigitust ja vähendust.",
+                "sv":f"Den hypotetiska minskningen för {start} till och med {end} är okänd; granska källtäckning, klassificering och minskning före beräkning."}[locale]
+        sentence={"en":f"The hypothetical cost reduction for {start} through {end} is {amount}, leaving {remaining} in historical net spending.",
+            "fi":f"Oletettu kulujen vähennys ajalta {start}–{end} on {amount}, jolloin menneeksi nettokulutukseksi jää {remaining}.",
+            "et":f"Oletuslik kulude vähendus ajavahemikus {start}–{end} on {amount}, jättes varasemaks netokulutuseks {remaining}.",
+            "sv":f"Den hypotetiska kostnadsminskningen för {start} till och med {end} är {amount}, med {remaining} kvar i historisk nettokonsumtion."}[locale]
+    elif answer.presentation=="reviewed_plan" and answer.status=="blocked":
+        return copy["reasons"]["PLAN_MISSING" if result.plan is None else "PLAN_BLOCKED"]
+    else: return copy["summaries"][PRESENTATIONS.index(answer.presentation)]
+    return sentence+" "+copy["summaries"][PRESENTATIONS.index(answer.presentation)]
+
+
 def render_answer(result,locale:AnswerLocale="en"):
     if locale not in COPY: raise AuthError("ANSWER_LOCALE_UNSUPPORTED",422)
     # Always ground the typed service artifact again, never trust caller-created
@@ -148,9 +241,6 @@ def render_answer(result,locale:AnswerLocale="en"):
     copy=COPY[locale];labels=dict(zip(MEANINGS,copy["labels"],strict=True))
     unknown=(result.name=="spending_totals" and result.result.expense_count==0 and result.result.refund_count==0
         and (result.result.unresolved_flow_count>0 or result.result.scope.dataset_coverage!="covered_synthetic_snapshot"))
-    unestablished={"en":"Spending cannot be established from these records. Review unclassified entries and the selected scope.",
-        "fi":"Kulutusta ei voi määrittää näistä tiedoista. Tarkista luokittelemattomat tapahtumat ja rajaus.",
-        "sv":"Konsumtionen kan inte fastställas från dessa uppgifter. Granska oklassificerade poster och urvalet."}
     rows=[]
     for fact in answer.facts:
         label=labels[fact.meaning]
@@ -163,5 +253,5 @@ def render_answer(result,locale:AnswerLocale="en"):
         if not answer.artifact.result.equal_duration: notices.append(copy["unequal"])
         if answer.artifact.result.overlapping_windows: notices.append(copy["overlap"])
     index=PRESENTATIONS.index(answer.presentation)
-    return AnswerCardV1(locale=locale,title=copy["titles"][index],summary=unestablished[locale] if unknown else copy["summaries"][index],
+    return AnswerCardV1(locale=locale,title=copy["titles"][index],summary=answer_sentence(answer,locale,unknown=unknown),
         status_label=copy["statuses"][answer.status],rows=rows,notices=notices,answer=answer)

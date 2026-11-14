@@ -50,7 +50,7 @@ def test_ambiguous_unsupported_and_dated_allowance_questions_never_open_the_fina
         auth=headers(client)
         def forbidden(*args,**kwargs): raise AssertionError("An unresolved question must not execute a financial query")
         monkeypatch.setattr(coach_routes,"execute_tool",forbidden)
-        for question,status in (("What kind of spender am I?","clarification_required"),("And September?","unsupported"),
+        for question,status in (("What kind of spender am I?","clarification_required"),("And September?","clarification_required"),
             ("How much could I save if I reduced dining out by 20%?","clarification_required"),
             ("What is safe for me to spend this week?","review_required")):
             response=ask(client,auth,question)

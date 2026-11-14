@@ -68,13 +68,13 @@ def test_owned_73_booked_records_paginate_and_model_results_match_same_scope(dat
         if not cursor:break
     assert len(pages)==len(set(pages))==73 and set(pages)==ids
     direct=client.get('/v1/analysis/spending',params=PERIOD).json()
-    spent=client.post('/v1/coach/query',headers=auth,json={"question":"How much did I spend in October 2026?"})
+    spent=client.post('/v1/coach/query',headers=auth,json={"question":"How much did I spend in October 2026?","privacy":False})
     assert spent.status_code==200,spent.text
     answer=spent.json();actual=answer['card']['answer']['artifact']['result']
     assert actual['net_minor']==direct['net_minor']==300
     assert actual['expense_count']==direct['expense_count']==3 and actual['unresolved_flow_count']==70
     assert answer['interpretation']['method']=='structured_model' and answer['model_usage']['estimated_cost_microusd']>1
-    search=client.post('/v1/coach/query',headers=auth,json={"question":"Show transactions in October 2026"})
+    search=client.post('/v1/coach/query',headers=auth,json={"question":"Show transactions in October 2026","privacy":False})
     assert search.status_code==200,search.text
     search=search.json();assert len(search['transactions']['rows'])==50 and search['transactions']['next_cursor']
     assert search['transactions']['scope']['account_ids']==direct['scope']['account_ids']
@@ -87,7 +87,7 @@ def test_owned_73_booked_records_paginate_and_model_results_match_same_scope(dat
     # MyData exclusion applies to inventory, ledger and the model-selected tools.
     with psycopg.connect(database["admin"]) as c:c.execute("UPDATE moneylens.accounts SET included=false WHERE tenant_id=%s AND owner_user_id=%s",owners[0][:2])
     assert client.get('/v1/ledger/inventory',params=PERIOD).json()['total_booked_count']==0
-    hidden=client.post('/v1/coach/query',headers=auth,json={"question":"Show transactions in October 2026"}).json()
+    hidden=client.post('/v1/coach/query',headers=auth,json={"question":"Show transactions in October 2026","privacy":False}).json()
     assert hidden['transactions']['rows']==[]
     login(1)
     other=client.get('/v1/ledger/inventory',params=PERIOD).json()
