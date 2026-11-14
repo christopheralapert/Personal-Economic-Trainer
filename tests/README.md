@@ -24,6 +24,7 @@ All main-app Playwright configurations live in `tests/config/`. They resolve tes
 - `playwright.container.config.ts`: foundation checks against an already running container preview; run `npm run test:web:container`.
 - `playwright.finance.config.ts`: invoked by the isolated finance integration fixture; its opt-in guard remains enabled.
 - `playwright.first-login.config.ts`: invoked by the isolated identity integration fixture.
+- `playwright.statement.config.ts`: invoked by the isolated Wise statement integration fixture.
 
 List the default browser cases without starting servers:
 
@@ -38,6 +39,22 @@ The demo suite starts the production web build on port 31361. It checks Finnish 
 To test an already running local production web build, set `MONEYLENS_DEMO_TEST_ORIGIN` to its HTTP origin, including the port, before running `npm run test:demo`. Only loopback origins are accepted. The supplied server stays running after the suite finishes; the test transport still forces local-rule chat and intercepts private APIs.
 
 Shared Coach handoff: on `/demo?dataset=organizer1`, press Tab to focus “Skip to content”, then Enter. The URL gains `#main`, but focus stays on the link: `document.querySelector('#main')` is `null`. `frontend/web/app/layout.tsx` supplies the link, while both loading and ready `<main>` elements in `frontend/coach/src/components/money-coach.tsx` omit its target ID. This reproduces in the production web build; the shared-component fix is left to the coordinator.
+
+## Wise statement browser regression
+
+Build this checkout with `npm run build:web`, then run the opt-in fixture from the repository root:
+
+```powershell
+$env:MONEYLENS_TEST_DATABASE_URL = '<isolated PostgreSQL administrator connection>'
+$env:MONEYLENS_STATEMENT_BROWSER_TEST = 'true'
+.venv\Scripts\python.exe -m pytest -c backend/api/pyproject.toml tests/integration/test_wise_browser.py -s
+```
+
+The fixture creates and removes a unique database and restricted runtime/identity roles. Ports 33111 and 18030 must be free. It starts this checkout's production frontend and API, uses signed offline test-OIDC tokens with PKCE and nonce checks, and disables bank providers and hosted models. Only the issuer page is simulated in the browser; statement, ledger and Coach requests pass through the real frontend proxy to PostgreSQL. Screenshots and failure traces stay under ignored `test-results/statement/`. Use `MONEYLENS_NEXT_DIST` only when the build used that same directory.
+
+Verified on 2026-11-14: native file selection, preview without creating an account, confirmation, reopening the page, reload, repeated confirmation, same-page and reopened-file repeats, saved Coach records, and two-user isolation. The two repeated-reference EUR rows remain separate; repeated imports do not add rows. Each user can independently import the same bytes. The file picker clears after a successful preview so the same file can be selected again.
+
+A verified identity without an administrator-provisioned membership reaches `/access`; login does **not** automatically create a workspace. Provisioning creates the private tenant and user state. PDF does **not** reach saved transactions: the upload flow accepts Wise EUR CSV only; `statement_pdf.py` is an offline text extractor with separate unit tests. Coach verification uses local rules and owned server tools, without a hosted model.
 
 The coach's `playwright.public.config.ts` checks speech and privacy controls against an already running main web build. Start `npm start -- --port 33110`, then run `npx playwright test --config frontend/coach/playwright.public.config.ts`. Set `MONEY_COACH_PUBLIC_ORIGIN` if the preview uses another local origin. Keep hosted services disabled: the suite mocks microphone input, speech output, and hosted voice responses and forces local-rule answers for mocked voice cases. It does not establish physical-device speech support or live provider availability.
 

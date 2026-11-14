@@ -1,5 +1,5 @@
 ﻿"use client";
-import {useState} from "react";
+import {useRef,useState} from "react";
 import {useCopy} from "@/i18n/context";
 import {Button} from "@/components/ui/button";
 import {PrivateApiError,type PrivateRequest} from "./private-session";
@@ -14,10 +14,11 @@ type Published={state:"published";account_id:string;count:number;start:string;en
 type Result=Preview|Published;
 export function StatementImport({request,changed}:{request:PrivateRequest;changed:()=>void}) {
  const {locale}=useCopy(),c=copy[locale];
+ const input=useRef<HTMLInputElement>(null);
  const [file,setFile]=useState<File|null>(null),[result,setResult]=useState<Result|null>(null),[error,setError]=useState(""),[busy,setBusy]=useState(false);
  async function preview(){
   if(!file||busy)return;setBusy(true);setError("");setResult(null);
-  try {if(file.size>65536)throw new Error("size");const csv=new TextDecoder("utf-8",{fatal:true}).decode(await file.arrayBuffer());const value=await request<Result>("statements/wise/preview",{csv});setFile(null);setResult(value);}
+  try {if(file.size>65536)throw new Error("size");const csv=new TextDecoder("utf-8",{fatal:true}).decode(await file.arrayBuffer());const value=await request<Result>("statements/wise/preview",{csv});setFile(null);if(input.current)input.current.value="";setResult(value);}
   catch(e){setError(e instanceof PrivateApiError&&e.code==="STATEMENT_OVERLAP"?c.overlap:e instanceof PrivateApiError&&e.code==="IMPORT_UNAVAILABLE"?c.unavailable:c.invalid);}
   finally{setBusy(false);}
  }
@@ -27,5 +28,5 @@ export function StatementImport({request,changed}:{request:PrivateRequest;change
   catch(e){setError(e instanceof PrivateApiError&&e.code==="STATEMENT_OVERLAP"?c.overlap:c.failed);}
   finally{setBusy(false);}
  }
- return <section className="space-y-3 border-t border-line py-4"><h2 className="text-lg font-semibold">{c.title}</h2><p className="text-sm text-ink-2">{c.note}</p><label className="grid gap-1 text-sm">{c.choose}<input type="file" accept=".csv,text/csv" disabled={busy} onChange={e=>{setFile(e.target.files?.[0]??null);setResult(null);setError("");}}/></label><Button variant="outline" disabled={!file||busy} onClick={()=>void preview()}>{c.preview}</Button>{error&&<p role="alert" className="text-sm text-neg">{error}</p>}{result?.state==="preview"&&<div className="space-y-2" aria-live="polite"><p className="text-sm">{result.account} · {result.currency} · {result.count} {c.entries}</p><p className="text-sm text-ink-2">{c.dates}: {result.start} – {result.end_exclusive} ({c.partial})</p>{result.repeated_reference_groups>0&&<p className="text-sm text-ink-2">{c.repeated}</p>}<Button disabled={busy} onClick={()=>void confirm()}>{c.confirm}</Button></div>}{result?.state==="published"&&<div className="space-y-2" role="status"><p className="text-sm">{result.count} {c.ready}</p><Button asChild variant="outline"><a href={`/transactions?account_id=${result.account_id}&start=${result.start}&end=${result.end_exclusive}`}>{c.view}</a></Button></div>}</section>;
+ return <section className="space-y-3 border-t border-line py-4"><h2 className="text-lg font-semibold">{c.title}</h2><p className="text-sm text-ink-2">{c.note}</p><label className="grid gap-1 text-sm">{c.choose}<input ref={input} type="file" accept=".csv,text/csv" disabled={busy} onChange={e=>{setFile(e.target.files?.[0]??null);setResult(null);setError("");}}/></label><Button variant="outline" disabled={!file||busy} onClick={()=>void preview()}>{c.preview}</Button>{error&&<p role="alert" className="text-sm text-neg">{error}</p>}{result?.state==="preview"&&<div className="space-y-2" aria-live="polite"><p className="text-sm">{result.account} · {result.currency} · {result.count} {c.entries}</p><p className="text-sm text-ink-2">{c.dates}: {result.start} – {result.end_exclusive} ({c.partial})</p>{result.repeated_reference_groups>0&&<p className="text-sm text-ink-2">{c.repeated}</p>}<Button disabled={busy} onClick={()=>void confirm()}>{c.confirm}</Button></div>}{result?.state==="published"&&<div className="space-y-2" role="status"><p className="text-sm">{result.count} {c.ready}</p><Button asChild variant="outline"><a href={`/transactions?account_id=${result.account_id}&start=${result.start}&end=${result.end_exclusive}`}>{c.view}</a></Button></div>}</section>;
 }
