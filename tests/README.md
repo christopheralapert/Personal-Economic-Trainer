@@ -27,6 +27,8 @@ All main-app Playwright configurations live in `tests/config/`. They resolve tes
 - `playwright.statement.config.ts`: invoked by the isolated Wise statement integration fixture.
 - `playwright.voice.config.ts`: run `npm run test:web:voice` for Finnish, Estonian, and English dictation and read-aloud checks on `/demo?dataset=organizer1`. The runner starts the main Next.js application on an automatically selected free loopback port and stops it afterwards; no production build, database, microphone, or provider key is required. It uses local Chrome (Playwright Chromium in CI). Speech recognition, synthesis, microphone capture, and hosted voice replies are mocked. Hosted chat stays disabled; real local-rule answers supply the visible sentences. Reports stay in `test-results/voice`. See [the voice review](voice-review.md) for the separate Coach language issue.
 
+See [the production presentation handoff](presentation-handoff.md) for the verified integrated build, the HTTPS target mismatch, coordinator startup commands, and a physical-phone dictation/read-aloud trial.
+
 List the default browser cases without starting servers:
 
 ```sh
