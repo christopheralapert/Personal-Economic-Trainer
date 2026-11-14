@@ -23,7 +23,7 @@ export function GeminiVoiceInput({onText,disabled}:{onText:(text:string)=>void;d
  const {t,locale}=useCopy(),[state,setState]=useState<"idle"|"starting"|"recording"|"transcribing">("idle"),[status,setStatus]=useState<Key|null>(null);
  const active=useRef(0),recorder=useRef<MediaRecorder|null>(null),stream=useRef<MediaStream|null>(null),request=useRef<AbortController|null>(null),timer=useRef<ReturnType<typeof setTimeout>|null>(null);
  const clean=useCallback(()=>{if(timer.current)clearTimeout(timer.current);timer.current=null;if(recorder.current?.state==="recording")recorder.current.stop();recorder.current=null;stream.current?.getTracks().forEach(track=>track.stop());stream.current=null;},[]);
- const cancel=useCallback(()=>{active.current++;request.current?.abort();request.current=null;clean();setState("idle");},[clean]);
+ const cancel=useCallback(()=>{active.current++;request.current?.abort();request.current=null;clean();setState("idle");setStatus(null);},[clean]);
  useEffect(()=>{window.addEventListener(stopListening,cancel);return()=>{window.removeEventListener(stopListening,cancel);cancel();};},[cancel]);
  useEffect(()=>{if(disabled)cancel();},[disabled,cancel]);
  async function start(){
@@ -45,7 +45,7 @@ export function GeminiVoiceInput({onText,disabled}:{onText:(text:string)=>void;d
   try {const response=await coachFetch("/api/voice/transcribe",{method:"POST",headers:{"Content-Type":blob.type,"X-Money-Coach-Privacy":"off","X-Money-Coach-Language":locale},body:blob,signal:controller.signal});const value=await response.json();if(generation!==active.current)return;if(!response.ok){setStatus(voiceStatus(value.error));return;}if(typeof value.text!=="string" || !value.text.trim() || value.text.length>2000){setStatus("geminiVoiceFailed");return;}onText(value.text);setStatus("geminiTranscriptReady");}
   catch{if(generation===active.current)setStatus("geminiVoiceFailed");}finally{if(generation===active.current)setState("idle");}
  }
- return <div className="contents">{state==="recording" ? <><Button type="button" variant="ghost" size="icon" aria-label={t("speechStop")} onClick={()=>recorder.current?.stop()}><Square className="size-5"/></Button><Button type="button" variant="ghost" size="icon" aria-label={t("speechCancel")} onClick={cancel}><X className="size-5"/></Button></> : state!=="idle" ? <Button type="button" variant="ghost" size="icon" aria-label={t("speechCancel")} onClick={cancel}><X className="size-5"/></Button> : <Button type="button" variant="ghost" size="icon" aria-label={t("speechStart")} disabled={disabled} onClick={()=>void start()}><Mic className="size-5"/></Button>}
+ return <div className="contents">{state!=="idle" ? <div className="order-last flex w-full flex-wrap items-center gap-2">{state==="recording" && <Button type="button" variant="outline" size="chip" onClick={()=>recorder.current?.stop()}><Square className="size-5"/>{t("speechStop")}</Button>}<Button type="button" variant="ghost" size="chip" onClick={cancel}><X className="size-5"/>{t("speechCancel")}</Button></div> : <Button type="button" variant="ghost" size="icon" aria-label={t("speechStart")} disabled={disabled} onClick={()=>void start()}><Mic className="size-5"/></Button>}
  {(state!=="idle" || status) && <span role="status" className="order-last w-full text-caption text-ink-2">{t(state==="recording" ? "geminiRecording" : state==="transcribing" ? "geminiTranscribing" : state==="starting" ? "geminiVoicePreparing" : status!)}</span>}</div>;
 }
 

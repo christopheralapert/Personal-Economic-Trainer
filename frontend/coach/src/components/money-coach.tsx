@@ -90,6 +90,7 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
   }
   async function ask(question:string) {
     if(sending.current || busy || !question.trim()) return;
+    window.dispatchEvent(new Event("money-coach-stop-listening"));
     sending.current=true;question=question.trim();
     const generation=++latest.current;setInput("");setTab("coach");setSettings(false);setGoal(false);setFallback(false);setRequestFailed(false);
     const context=isFollowUpQuestion(question) ? displayedContext(chat.messages,chatViews) : undefined;
@@ -129,7 +130,7 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
           {fallback && <p role="status" className="py-4 text-caption text-ink-2">{t("fallback")}</p>}
           {requestFailed && <p role="alert" className="py-4 text-sm text-neg">{t("requestFailed")}</p>}
           <div ref={end} className="scroll-above-composer"/>
-          <div className="above-navigation pb-safe fixed inset-x-0 z-30 mx-auto w-full max-w-app border-t border-line bg-surface px-4 py-3"><form className="flex flex-wrap items-center gap-2" onSubmit={event=>{event.preventDefault();void ask(input);}}><Input ref={bindQuestionInput} className="min-w-0 flex-1 basis-0" aria-label={t("questionLabel")} placeholder={t("questionLabel")} maxLength={2000} autoComplete="off" value={input} disabled={busy} onChange={e=>setInput(e.target.value)}/><VoiceInput disabled={busy} onText={setInput}/><Button size="icon" aria-label={t("send")} disabled={busy || !input.trim()}><ArrowUp className="size-5"/></Button></form>{!privacy && onlineCoachEnabled && voiceProvider!=="gemini" && <p className="mt-1 text-caption text-ink-2">{t("geminiCoachNotice")}</p>}{!privacy && <p className="mt-1 text-caption text-ink-2">{t(voiceProvider==="gemini" ? onlineCoachEnabled ? "geminiCoachVoiceNotice" : "geminiVoiceNotice" : "speechOnline")}</p>}<p className="mt-2 text-caption text-ink-2">{t("disclaimer")}</p></div>
+          <div className="above-navigation pb-safe fixed inset-x-0 z-30 mx-auto w-full max-w-app border-t border-line bg-surface px-4 py-3"><form className="flex flex-wrap items-center gap-2" onSubmit={event=>{event.preventDefault();void ask(input);}}><Input ref={bindQuestionInput} className="min-w-0 flex-1 basis-0" aria-label={t("questionLabel")} placeholder={t("questionLabel")} maxLength={2000} autoComplete="off" value={input} disabled={busy} onChange={e=>{window.dispatchEvent(new Event("money-coach-stop-listening"));setInput(e.target.value);}}/><VoiceInput disabled={busy} onText={setInput}/><Button size="icon" aria-label={t("send")} disabled={busy || !input.trim()}><ArrowUp className="size-5"/></Button></form>{!privacy && onlineCoachEnabled && voiceProvider!=="gemini" && <p className="mt-1 text-caption text-ink-2">{t("geminiCoachNotice")}</p>}{!privacy && <p className="mt-1 text-caption text-ink-2">{t(voiceProvider==="gemini" ? onlineCoachEnabled ? "geminiCoachVoiceNotice" : "geminiVoiceNotice" : "speechOnline")}</p>}<p className="mt-2 text-caption text-ink-2">{t("disclaimer")}</p></div>
         </TabsContent>
         <TabsContent value="whatif"><ViewScope store={visitViews} name="simulator"><Simulator goal={savedGoal}/></ViewScope></TabsContent>
         <TabsContent value="learn"><PersonalizedLearn onAsk={askFromEntry}/></TabsContent>
