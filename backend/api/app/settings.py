@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     oidc_authorization_url: str | None = None
     oidc_token_url: str | None = None
     oidc_jwks_url: str | None = None
+    oidc_self_signup_enabled: bool = False
     # Explicit opt-in, read-only PSD2/AIS connector. Only verified non-demo identities.
     live_banking_enabled: bool = False
     enable_banking_environment: Literal["sandbox","production"] = "sandbox"
@@ -87,6 +88,11 @@ class Settings(BaseSettings):
             raise ValueError("The public synthetic demo must be explicitly disabled in production")
         origin = urlsplit(self.app_origin)
         local = self.environment in ("development", "test")
+        if self.oidc_self_signup_enabled and (not self.auth_enabled or not all((
+            self.oidc_issuer, self.oidc_client_id, self.oidc_client_secret,
+            self.oidc_authorization_url, self.oidc_token_url, self.oidc_jwks_url,
+        ))):
+            raise ValueError("Self-service signup requires authenticated sessions and a complete OIDC provider")
         if self.live_banking_enabled:
             if not self.auth_enabled or not all((self.enable_banking_app_id,self.enable_banking_private_key_pem,self.live_banking_cipher_key)):
                 raise ValueError("Live banking requires authenticated sessions, an application ID, an RSA key and an encryption key")

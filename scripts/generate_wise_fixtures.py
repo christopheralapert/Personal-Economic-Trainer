@@ -66,3 +66,15 @@ def write_bundle(directory):
     (directory/'broken.pdf').write_bytes(b'%PDF-broken')
     second=bundle('BE00000000000000',tuple((r,d,a,p.replace('Synthetic','Second account')) for r,d,a,p in ROWS))
     (directory/'second.xml').write_bytes(second['xml'])
+
+
+def write_signup_bundle(directory):
+    """Exact-cent two-account regression plus a deliberately overlapping CSV."""
+    directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
+    first=(('same-reference','03-10-2026','-15.00','Synthetic taxi A'),
+        ('same-reference','03-10-2026','-15.97','Synthetic taxi A'))
+    (directory/'synthetic-taxis-a.csv').write_bytes(bundle(rows=first)['csv'])
+    (directory/'synthetic-taxis-b.xml').write_bytes(bundle(iban='BE00000000000000',
+        rows=(('taxi-b','04-10-2026','-7.00','Synthetic taxi B'),))['xml'])
+    (directory/'synthetic-overlap-a.csv').write_bytes(bundle(rows=first+(
+        ('extra-reference','05-10-2026','-1.00','Synthetic taxi overlap'),))['csv'])

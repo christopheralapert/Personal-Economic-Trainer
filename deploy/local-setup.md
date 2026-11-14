@@ -74,13 +74,15 @@ MONEYLENS_OIDC_JWKS_URL=https://tenant.example/.well-known/jwks.json
 
 Supply all six OIDC values together, using the exact issuer including its trailing slash and the actual tenant endpoints. The API expects RS256 ID tokens and authorization-code flow with PKCE; token exchange uses HTTP Basic client authentication. Register `http://127.0.0.1:3000/api/v1/auth/callback` as the Auth0 application's callback. Keep the browser origin consistent (`localhost` and `127.0.0.1` are different origins).
 
-A verified Auth0 identity also needs an administrator-provisioned membership. Put only `MONEYLENS_MIGRATION_DATABASE_URL=postgresql://moneylens:moneylens_local@127.0.0.1:5432/moneylens` in ignored `.cache/admin-invitations.env` (create `.cache` first), then substitute the verified Auth0 User ID and configured issuer:
+For automatic private workspace creation, first apply migrations through `0028_merge_identity_statements`, then set `MONEYLENS_OIDC_SELF_SIGNUP_ENABLED=true` for the API and restart it. Only a successfully verified issuer + subject creates or reuses an empty workspace; email does not select it. Existing blocked or conflicting membership is not repaired. Leave the flag false to retain invitation-only access.
+
+For invitation-only access, a verified Auth0 identity also needs an administrator-provisioned membership. Put only `MONEYLENS_MIGRATION_DATABASE_URL=postgresql://moneylens:moneylens_local@127.0.0.1:5432/moneylens` in ignored `.cache/admin-invitations.env` (create `.cache` first), then substitute the verified Auth0 User ID and configured issuer:
 
 ```powershell
 .venv\Scripts\python.exe scripts/provision_oidc_member.py --issuer 'https://tenant.example/' --user-id 'auth0|example-user-id'
 ```
 
-That tool reads the separate administrator file and the pinned issuer from `.env`; login alone does not create membership and otherwise leads to `/access`. Keep administrator credentials out of the shared application `.env`. For later explicit migrations, Alembic reads `MONEYLENS_MIGRATION_DATABASE_URL` from its process (and can load root `.env`); pass it only to a separate administrator terminal running `.venv\Scripts\python.exe -m alembic -c backend/db/alembic.ini upgrade head`, then remove it from that terminal.
+That tool reads the separate administrator file and the pinned issuer from `.env`; with self-service signup disabled, login alone does not create membership and otherwise leads to `/access`. Keep administrator credentials out of the shared application `.env`. For later explicit migrations, Alembic reads `MONEYLENS_MIGRATION_DATABASE_URL` from its process (and can load root `.env`); pass it only to a separate administrator terminal running `.venv\Scripts\python.exe -m alembic -c backend/db/alembic.ini upgrade head`, then remove it from that terminal.
 
 Start `npm run dev:api` and `npm run dev` in separate terminals; open <http://127.0.0.1:3000/api/v1/auth/login>. The API listens on 8000 by default (`MONEYLENS_API_PORT` changes its listener; `MONEYLENS_API_URL` must match on the web side). Keep imports, live banking and `MONEYLENS_MODEL_ENABLED` disabled for this setup.
 
@@ -125,7 +127,7 @@ Values the coordinator must obtain locally:
 
 - **Synthetic demo:** none; copy the example and retain disabled hosted-service flags.
 - **Database test:** only `MONEYLENS_TEST_DATABASE_URL`; the dedicated container example supplies it without real credentials. Do not substitute a development/production instance.
-- **Auth0:** the six exact OIDC values listed above, plus the verified Auth0 User ID for `--user-id`. Register the callback above. Local bootstrap generates both restricted database URLs and a session secret of at least 32 characters; with an existing database, its administrator must supply these three instead and apply migrations. `MONEYLENS_MIGRATION_DATABASE_URL` belongs only in the separate administrator file/process. Set the authentication flags and app origin as shown.
+- **Auth0:** the six exact OIDC values listed above, plus the verified Auth0 User ID for `--user-id` only when using invitations instead of self-service signup. Register the callback above. Local bootstrap generates both restricted database URLs and a session secret of at least 32 characters; with an existing database, its administrator must supply these three instead and apply migrations. `MONEYLENS_MIGRATION_DATABASE_URL` belongs only in the separate administrator file/process. Set the authentication flags and app origin as shown.
 - **Gemini chat:** `GEMINI_API_KEY`, `MONEY_COACH_MODEL_USAGE_PATH` and the exact browser origin in `MONEY_COACH_PUBLIC_AI_ORIGINS`; explicitly enable `MONEY_COACH_PUBLIC_GEMINI_ENABLED`. **Voice, if wanted:** additionally supply `MONEY_COACH_VOICE_LEDGER_PATH` and enable `MONEY_COACH_GEMINI_VOICE_ENABLED`; retain the example's bounded policy/20-attempt limit.
 
 `.gitignore` excludes `.env`, `.env.*` except `.env.example`, and `.cache/`. Confirm with `git check-ignore -v -- .env .cache/admin-invitations.env .cache/model-usage.json`; stage only the intended documentation/example files, never local secrets.

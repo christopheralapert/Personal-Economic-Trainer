@@ -74,12 +74,27 @@ class Identity:
                 WHERE expires_at<statement_timestamp() FOR UPDATE SKIP LOCKED LIMIT 100)
                 DELETE FROM moneylens_identity.{table} target USING expired WHERE target.{key}=expired.{key}""")
 
-    def login(self, issuer, subject, *, synthetic=False, previous=None):
+    def login_oidc(self, subject, *, previous=None):
+        """Called only after the server verifies the pinned provider's code response."""
+        return self.login(self.settings.oidc_issuer, subject, previous=previous,
+            self_signup=self.settings.oidc_self_signup_enabled)
+
+    def login(self, issuer, subject, *, synthetic=False, previous=None, self_signup=False):
         if issuer == DEMO_ISSUER and (not synthetic or not self.settings.allow_demo):
             raise AuthError("SYNTHETIC_LOGIN_DISABLED",403)
+        if self_signup and (not self.settings.oidc_self_signup_enabled or synthetic or not issuer
+            or issuer != self.settings.oidc_issuer):
+            raise AuthError("MEMBERSHIP_UNAVAILABLE",403)
         with self.pools.identity() as connection, connection.cursor(row_factory=dict_row) as cursor:
-            rows = cursor.execute("""SELECT tenant_id,id,permission_version,active,is_synthetic FROM moneylens.users
-                WHERE subject_issuer=%s AND subject_id=%s LIMIT 2""", (issuer,subject)).fetchall()
+            if self_signup:
+                # The narrow database function serializes creation with all user
+                # writers, including administrator invitations. No table writes
+                # or financial reads are granted to the identity connection.
+                rows = cursor.execute("SELECT * FROM moneylens_identity.ensure_workspace(%s,%s)",
+                    (issuer,subject)).fetchall()
+            else:
+                rows = cursor.execute("""SELECT tenant_id,id,permission_version,active,is_synthetic FROM moneylens.users
+                    WHERE subject_issuer=%s AND subject_id=%s LIMIT 2""", (issuer,subject)).fetchall()
             if len(rows) != 1 or not rows[0]["active"] or rows[0]["is_synthetic"] != synthetic:
                 raise AuthError("MEMBERSHIP_UNAVAILABLE",403)
             row = rows[0]

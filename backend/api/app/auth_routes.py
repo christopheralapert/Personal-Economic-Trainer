@@ -156,11 +156,11 @@ def callback(request: Request):
     subject = request.app.state.oidc.exchange(query["code"],query["state"])
     previous = request.cookies.get(cookie_name(config))
     try:
-        token = request.app.state.identity.login(config.oidc_issuer,subject,previous=previous)
+        token = request.app.state.identity.login_oidc(subject,previous=previous)
     except AuthError as exc:
         if exc.code != "MEMBERSHIP_UNAVAILABLE":
             raise
-        # Identity verification has succeeded, but it grants no membership.
+        # Verification cannot override an unavailable or blocked membership.
         # Do not leave another account's previous browser session active.
         if previous:
             request.app.state.identity.revoke(previous)
