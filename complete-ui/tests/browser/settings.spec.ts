@@ -1,6 +1,6 @@
 import {test,expect} from "@playwright/test";
 import path from "node:path";
-const captures=path.resolve(__dirname,"../../../../.impeccable/review/money-coach");
+const captures=path.resolve(__dirname,"../../../.impeccable/review/money-coach");
 test("settings show source-backed mock banks and capability-gated install states across languages and widths",async({page})=>{
   // Synthetic browser capability events exercise UI states without installing an OS app.
   await page.addInitScript(()=>window.addEventListener("beforeinstallprompt",event=>{if(event.isTrusted) event.stopImmediatePropagation();}));

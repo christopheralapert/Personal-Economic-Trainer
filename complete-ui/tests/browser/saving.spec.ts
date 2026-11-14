@@ -1,7 +1,7 @@
 import {test,expect} from "@playwright/test";
 import path from "node:path";
 import {en,fi,et} from "../../src/i18n/dictionaries";
-const captures=path.resolve(__dirname,"../../../../.impeccable/review/money-coach");
+const captures=path.resolve(__dirname,"../../../.impeccable/review/money-coach");
 
 test("localized saving education prepares a review with the configured target and opens the existing local goal flow",async({page})=>{
   let calls=0;page.on("request",r=>{if(r.method()==="POST" && r.url().endsWith("/api/chat")) calls++;});

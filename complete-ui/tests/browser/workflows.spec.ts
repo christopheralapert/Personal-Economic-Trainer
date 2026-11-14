@@ -2,7 +2,7 @@ import {test,expect} from "@playwright/test";
 import path from "node:path";
 import {en,fi,et} from "../../src/i18n/dictionaries";
 
-const captures=path.resolve(__dirname,"../../../../.impeccable/review/money-coach");
+const captures=path.resolve(__dirname,"../../../.impeccable/review/money-coach");
 
 test("learning opens a scoped answer with one request and follow-ups match the answer in every locale",async({page})=>{
   let calls=0;page.on("request",request=>{if(request.method()==="POST" && request.url().endsWith("/api/chat")) calls++;});

@@ -2,7 +2,7 @@ import {openOverview} from "../view-navigation";
 import {test,expect} from "@playwright/test";
 import path from "node:path";
 import {en} from "../../src/i18n/dictionaries";
-const captures=path.resolve(__dirname,"../../../../.impeccable/review/money-coach");
+const captures=path.resolve(__dirname,"../../../.impeccable/review/money-coach");
 
 test("empty source periods withhold summary and basket totals while a recorded period restores them",async({page})=>{
  await page.goto('/?question='+encodeURIComponent('Where did my money go from 2026-11-02 through 2026-11-02?'));await page.getByRole('button',{name:en.send,exact:true}).click();let answer=page.locator('article').last();await expect(answer).toContainText(en.emptyRecords);await expect(answer).not.toContainText('0,00');

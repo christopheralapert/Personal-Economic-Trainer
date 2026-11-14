@@ -3,7 +3,7 @@ import {checkBasis} from "../basis";
 import {test,expect,type Locator,type Page} from "@playwright/test";
 import path from "node:path";
 
-const captures=path.resolve(__dirname,"../../../../.impeccable/review/money-coach");
+const captures=path.resolve(__dirname,"../../../.impeccable/review/money-coach");
 async function withinViewport(locator:Locator,page:Page) {
   await expect(async()=>{
     const bounds=await locator.boundingBox();expect(bounds).not.toBeNull();

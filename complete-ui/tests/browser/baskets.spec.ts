@@ -3,7 +3,7 @@ import {checkBasis} from "../basis";
 import {test,expect} from "@playwright/test";
 import path from "node:path";
 import {en,fi,et} from "../../src/i18n/dictionaries";
-const captures=path.resolve(__dirname,"../../../../.impeccable/review/money-coach");
+const captures=path.resolve(__dirname,"../../../.impeccable/review/money-coach");
 
 test("localized overview basket actions carry the selected period and merchant actions preserve the basket",async({page})=>{
   const requests:Record<string,unknown>[]=[];page.on("request",r=>{if(r.method()==="POST" && r.url().endsWith("/api/chat")) requests.push(r.postDataJSON());});

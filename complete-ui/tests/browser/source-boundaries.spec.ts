@@ -1,7 +1,7 @@
 import {openOverview} from "../view-navigation";
 import {test,expect} from "@playwright/test";
 import path from "node:path";
-const captures=path.resolve(__dirname,"../../../../.impeccable/review/money-coach");
+const captures=path.resolve(__dirname,"../../../.impeccable/review/money-coach");
 
 test("date presets remain drafts and future dates cannot change the snapshot-based overview",async({page})=>{
  await page.goto('/?question='+encodeURIComponent('Where did my money go last month?'));await page.getByRole('button',{name:'Send question',exact:true}).click();const answer=page.locator('article').last(),trigger=answer.getByRole('button',{name:'Choose period',exact:true}),sheet=page.getByRole('dialog');await trigger.click();await sheet.getByRole('button',{name:'Snapshot month to date',exact:true}).click();await expect(sheet.getByLabel('From',{exact:true})).toHaveValue('2026-11-01');await expect(sheet.getByLabel('Through',{exact:true})).toHaveValue('2026-11-04');await expect(answer).toContainText('864,50');await page.keyboard.press('Escape');await trigger.click();await expect(sheet.getByLabel('From',{exact:true})).toHaveValue('2026-10-01');await sheet.getByLabel('Through',{exact:true}).fill('2026-11-05');await sheet.getByRole('button',{name:'Show period',exact:true}).click();await expect(sheet.getByRole('alert')).toHaveText('Choose dates on or before the source snapshot.');await expect(answer).toContainText('864,50');await sheet.getByRole('button',{name:'Snapshot month to date',exact:true}).click();await sheet.getByRole('button',{name:'Show period',exact:true}).click();await expect(answer).toContainText('12,50');

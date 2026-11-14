@@ -4,7 +4,7 @@ import path from "node:path";
 import {extendedDemo} from "../../src/engine/datasets";
 import {lastMonth,summary,spendByCategory} from "../../src/engine";
 import {money} from "../../src/lib/format";
-const output=path.resolve(__dirname,"../../../../.impeccable/review/extended-data");
+const output=path.resolve(__dirname,"../../../.impeccable/review/extended-data");
 test("six-month source reaches every surface, survives refresh and stays isolated from the reference",async({page})=>{
  await page.setViewportSize({width:390,height:844});
  for(const colorScheme of ["light","dark"] as const){

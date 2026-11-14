@@ -3,7 +3,7 @@ import {checkBasis} from "../basis";
 import {test,expect} from "@playwright/test";
 import path from "node:path";
 import {en,fi,et} from "../../src/i18n/dictionaries";
-const captures=path.resolve(__dirname,"../../../../.impeccable/review/money-coach");
+const captures=path.resolve(__dirname,"../../../.impeccable/review/money-coach");
 
 test("category and merchant actions keep the selected source period through the actual localized chat route",async({page})=>{
   const questions:string[]=[];page.on("request",request=>{if(request.method()==="POST" && request.url().endsWith("/api/chat")) questions.push(request.postDataJSON().messages[0].parts[0].text);});

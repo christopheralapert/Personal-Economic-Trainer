@@ -2,7 +2,7 @@ import {checkBasis} from "../basis";
 import {test,expect} from "@playwright/test";
 import path from "node:path";
 import {en,fi,et} from "../../src/i18n/dictionaries";
-const captures=path.resolve(__dirname,"../../../../.impeccable/review/money-coach");
+const captures=path.resolve(__dirname,"../../../.impeccable/review/money-coach");
 
 test("chat status and period tools apply real local filters and the goal tool opens editable setup",async({page})=>{
   await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");

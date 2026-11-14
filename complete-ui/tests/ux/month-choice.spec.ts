@@ -4,7 +4,7 @@ import path from "node:path";
 import {spendByCategory,simulateReduction,lastMonth} from "../../src/engine";
 import {extendedDemo} from "../../src/engine/datasets";
 import {money} from "../../src/lib/format";
-const output=path.resolve(__dirname,"../../../../.impeccable/review/month-choice");
+const output=path.resolve(__dirname,"../../../.impeccable/review/month-choice");
 test("offline month clarification preserves the question and explicit month overrides selection",async({page,context})=>{
  for(const colorScheme of ["light","dark"] as const){
   await context.setOffline(false);await page.setViewportSize({width:390,height:844});await page.emulateMedia({colorScheme,reducedMotion:"reduce"});await page.goto("/?dataset=extended");

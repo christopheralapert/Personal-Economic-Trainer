@@ -4,7 +4,7 @@ import {test,expect} from "@playwright/test";
 import path from "node:path";
 import source from "../../data/demo.v1.json";
 import {en,et} from "../../src/i18n/dictionaries";
-const captures=path.resolve(__dirname,"../../../../.impeccable/review/money-coach");
+const captures=path.resolve(__dirname,"../../../.impeccable/review/money-coach");
 
 test("history search intersects status and localized categories without changing expense totals",async({page})=>{
  await page.goto('/');await openRecords(page);const answer=page.locator('article').last(),search=answer.getByRole('searchbox',{name:en.searchTransactions,exact:true});await search.fill('helsinki');await expect(answer).toContainText('Matching transactions: 1');await expect(answer).toContainText('Taxi Helsinki');await expect(answer).not.toContainText('City taxi');await search.fill('groceries');await expect(answer).toContainText('Matching transactions: 2');await search.fill('%');await expect(answer).toContainText(en.emptyRecords);await answer.getByRole('button',{name:en.clearSearch,exact:true}).click();await expect(search).toHaveValue('');await openOverview(page);await expect(page.locator('[data-chart-total]')).toHaveAttribute('data-chart-total','86450');

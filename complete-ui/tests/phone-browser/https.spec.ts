@@ -5,7 +5,7 @@ import {request} from "node:https";
 import path from "node:path";
 
 test("real HTTPS serves the public PWA and RuleProvider with the exact local certificate",async({playwright,baseURL})=>{
-  const directory=path.resolve(__dirname,"../../../../.cache/money-coach-phone/127.0.0.1");
+  const directory=path.resolve(__dirname,"../../../.cache/money-coach-phone/127.0.0.1");
   const ca=await readFile(path.join(directory,"ca.pem")),leaf=new X509Certificate(await readFile(path.join(directory,"server.pem")));
   // Verify the actual hostname/chain before using a scoped browser certificate pin.
   const checked=await new Promise<number|undefined>((resolve,reject)=>{

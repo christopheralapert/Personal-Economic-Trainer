@@ -8,7 +8,7 @@ import {releaseOptions} from "../../scripts/run-demo.mjs";
 
 test("release paths reject private files, traversal and Windows alternate streams",()=>{
  for(const value of ["../outside","a/../../secret","/root","a\\b","a:b","nested/.env.local","AGENTS.md","nested/agent.md","ca.pem","x/.git/config"]) assert.throws(()=>safeRelative(value));
- assert.equal(safeRelative("apps/money-coach/.next/BUILD_ID"),"apps/money-coach/.next/BUILD_ID");
+ assert.equal(safeRelative("complete-ui/.next/BUILD_ID"),"complete-ui/.next/BUILD_ID");
 });
 test("launcher removes credentials, evaluation permission and Node preloads",()=>{
  const result=runtimeEnvironment({PATH:"tools",SystemRoot:"system",OPENAI_API_KEY:"fixture-not-a-key",MONEYLENS_OPENAI_API_KEY:"fixture",NODE_OPTIONS:"--require evil",NODE_PATH:"outside",MONEY_COACH_LOCAL_AI_EVALUATION:"true"},{host:"127.0.0.1",port:3001});
@@ -18,7 +18,7 @@ test("launcher removes credentials, evaluation permission and Node preloads",()=
 });
 async function fixture() {
  const root=await mkdtemp(path.join(tmpdir(),"money-coach-release-unit-"));
- for(const name of ["run-demo.mjs","release-lib.mjs","apps/money-coach/server.js","apps/money-coach/.next/BUILD_ID","apps/money-coach/public/sw.js"]) {await mkdir(path.dirname(path.join(root,name)),{recursive:true});await writeFile(path.join(root,name),"fixture");}
+ for(const name of ["run-demo.mjs","release-lib.mjs","complete-ui/server.js","complete-ui/.next/BUILD_ID","complete-ui/public/sw.js"]) {await mkdir(path.dirname(path.join(root,name)),{recursive:true});await writeFile(path.join(root,name),"fixture");}
  const manifest={format:"money-coach-demo.v1",revision:"a".repeat(64),platform:process.platform,arch:process.arch,nodeMajor:Number(process.versions.node.split(".")[0]),model:"disabled",...await inventory(root)};
  await writeFile(path.join(root,MANIFEST),JSON.stringify(manifest));return {root,manifest};
 }

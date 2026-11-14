@@ -1,0 +1,210 @@
+import {test,expect} from "@playwright/test";
+
+test("real two-bank publication supports reviewed saving and release after consent revocation",async ({page,context})=>{
+  // No page.route, response mocks, injected clock or model/provider request.
+  await page.goto("/banks");await page.getByRole("button",{name:"Continue as Aino"}).click();
+  const names=["S-Bank-shaped simulator","North demo bank (fictional)"];
+  for (const name of names) {
+    await page.getByRole("button",{name:`Connect ${name}`,exact:true}).click();
+    await expect(page.getByRole("button",{name:"Allow selected accounts"})).toBeDisabled();
+    await page.getByRole("checkbox").check();await page.getByRole("button",{name:"Allow selected accounts"}).click();
+    const row=page.locator(".bank-row").filter({has:page.getByRole("heading",{name,exact:true})}).filter({has:page.locator(".bank-health")});
+    await row.getByRole("button",{name:`Refresh ${name}`,exact:true}).click();
+    await expect(row.locator(".bank-health")).toHaveText("Published observation");
+    await expect(row.locator(".bank-accounts")).toContainText("Published source observed");
+  }
+  const sources=await context.request.get("/api/v1/accounts/sources");expect(sources.status()).toBe(200);
+  const accounts=await sources.json();expect(accounts).toHaveLength(2);expect(new Set(accounts.map((account:{id:string})=>account.id)).size).toBe(2);
+  expect(accounts.every((account:{source:{mode:string;granted:boolean}})=>account.source.mode==="synthetic" && account.source.granted)).toBe(true);
+  await page.getByRole("link",{name:"Your savings goals",exact:true}).click();
+  await page.getByRole("button",{name:"Add a goal",exact:true}).click();
+  await page.getByRole("textbox",{name:"Goal name",exact:true}).fill("Emergency fund");
+  await page.getByRole("textbox",{name:"Target (EUR)",exact:true}).fill("100");
+  await page.getByLabel("Deadline",{exact:true}).fill("2026-12-31");
+  await page.getByRole("combobox",{name:"Priority",exact:true}).selectOption("1");
+  const created=page.waitForResponse(response=>response.url().endsWith("/api/v1/goals") && response.request().method()==="POST");
+  await page.getByRole("button",{name:"Create goal",exact:true}).click();const creation=await created;
+  const createdReceipt=await creation.json();
+  await expect(page.locator(".goal-detail h2")).toHaveText("Emergency fund");
+  const goal=await page.evaluate(async({body,receipt})=>{
+    const session=await(await fetch("/api/v1/auth/session")).json();
+    const headers={"Content-Type":"application/json","X-CSRF-Token":session.csrf_token,"X-MoneyLens-Session-ID":session.session_id};
+    const response=await fetch("/api/v1/goals",{method:"POST",headers,body:JSON.stringify(body)});
+    const replay=await response.json();const view=await(await fetch(`/api/v1/goals/${receipt.goal.id}`)).json();
+    return {status:response.status,cache:response.headers.get("cache-control"),receipt,replay,view};
+  },{body:creation.request().postDataJSON(),receipt:createdReceipt});
+  expect(goal.status).toBe(200);expect(goal.cache).toContain("no-store");expect(goal.replay).toEqual(goal.receipt);
+  expect(goal.view.progress.recorded_reserved_minor).toBe(0);expect(goal.view.progress.reservation_gap_minor).toBe(10000);expect(goal.view.progress.confirmed_saved_minor).toBe(null);
+  expect(goal.view.progress.feasibility).toBe("not_assessed");
+  await page.getByRole("link",{name:"Your coaching notices",exact:true}).click();
+  await expect(page.getByRole("checkbox",{name:"Enable coaching notices",exact:true})).not.toBeChecked();
+  await page.getByRole("checkbox",{name:"Enable coaching notices",exact:true}).check();
+  await page.getByRole("checkbox",{name:"Higher observed spending",exact:true}).uncheck();
+  await page.getByRole("checkbox",{name:"Set quiet hours",exact:true}).check();
+  await page.getByLabel("Quiet hours start",{exact:true}).fill("22:00");await page.getByLabel("Quiet hours end",{exact:true}).fill("07:00");
+  const enabling=page.waitForResponse(response=>response.url().endsWith("/coaching/preferences") && response.request().method()==="POST");
+  await page.getByRole("button",{name:"Save preferences",exact:true}).click();const enablingResponse=await enabling;
+  const enabledReceipt=await enablingResponse.json();
+  await expect(page.getByRole("button",{name:"Refresh notices",exact:true})).toBeEnabled();
+  const refreshing=page.waitForResponse(response=>response.url().endsWith("/insights/refresh") && response.request().method()==="POST");
+  await page.getByRole("button",{name:"Refresh notices",exact:true}).click();const refreshingResponse=await refreshing;
+  const jobReceipt=await refreshingResponse.json();
+  await page.getByText("Manage coaching preferences",{exact:true}).click();
+  await page.getByRole("checkbox",{name:"Enable coaching notices",exact:true}).uncheck();
+  const disabling=page.waitForResponse(response=>response.url().endsWith("/coaching/preferences") && response.request().method()==="POST");
+  await page.getByRole("button",{name:"Save preferences",exact:true}).click();const disablingResponse=await disabling;
+  await expect(page.getByRole("button",{name:"Refresh notices",exact:true})).toBeDisabled();
+  const coaching=await page.evaluate(async({body,enabled,disabled,job})=>{
+    const session=await(await fetch("/api/v1/auth/session")).json();
+    const headers={"Content-Type":"application/json","X-CSRF-Token":session.csrf_token,"X-MoneyLens-Session-ID":session.session_id};
+    const update=async(value:object)=>{const response=await fetch("/api/v1/coaching/preferences",{method:"POST",headers,body:JSON.stringify(value)});return {status:response.status,body:await response.json()};};
+    const retry=await update(body);
+    const historical=await update(body);const current=await(await fetch("/api/v1/coaching/preferences")).json();
+    return {enabled,retry,disabled,historical,current,job};
+  },{body:enablingResponse.request().postDataJSON(),enabled:{status:enablingResponse.status(),body:enabledReceipt},
+    disabled:{status:disablingResponse.status(),body:await disablingResponse.json()},job:{status:refreshingResponse.status(),body:jobReceipt}});
+  expect(coaching.enabled.status).toBe(200);expect(coaching.retry).toEqual(coaching.enabled);
+  expect(coaching.disabled.status).toBe(200);expect(coaching.historical).toEqual(coaching.enabled);
+  expect(coaching.current.version).toBe(3);expect(coaching.current.state.generation_active).toBe(false);expect(coaching.current.state.external_delivery_available).toBe(false);
+  expect(coaching.job.status).toBe(200);
+  await expect.poll(async()=> (await(await context.request.get(`/api/v1/jobs/${coaching.job.body.id}`)).json()).state,{timeout:10000,intervals:[250,500]}).toBe("completed");
+  expect((await(await context.request.get("/api/v1/insights")).json()).rows).toEqual([]);
+  const totals=await (await context.request.get("/api/v1/analysis/spending?start=2026-10-01&end_exclusive=2026-11-01")).json();
+  expect(totals.net_minor).toBe(86450);expect(totals.scope.dataset_coverage).toBe("covered_synthetic_snapshot");
+  expect(totals.scope.whole_finances_confirmed).toBe(false);
+  const comparison=await (await context.request.get("/api/v1/analysis/spending/comparison?start=2026-10-01&end_exclusive=2026-11-01&mode=previous_month")).json();
+  expect(comparison.status).toBe("covered_comparison");expect(comparison.current.net_minor).toBe(86450);
+  expect(comparison.baseline.scope.start).toBe("2026-09-01");expect(comparison.equal_duration).toBe(false);
+  const tool=await page.evaluate(async()=>{
+    const session=await(await fetch("/api/v1/auth/session")).json();
+    const response=await fetch("/api/v1/analysis/tools/execute",{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-Token":session.csrf_token,"X-MoneyLens-Session-ID":session.session_id},
+      body:JSON.stringify({name:"spending_comparison",arguments:{start:"2026-10-01",end_exclusive:"2026-11-01",mode:"previous_month"}})});
+    return {status:response.status,cache:response.headers.get("cache-control"),body:await response.json()};
+  });
+  expect(tool.status).toBe(200);expect(tool.cache).toContain("no-store");expect(tool.body.name).toBe("spending_comparison");expect(tool.body.result).toEqual(comparison);
+  const scenario=await page.evaluate(async()=>{
+    const session=await(await fetch("/api/v1/auth/session")).json();
+    const headers={"Content-Type":"application/json","X-CSRF-Token":session.csrf_token,"X-MoneyLens-Session-ID":session.session_id};
+    const arguments_={start:"2026-10-01",end_exclusive:"2026-11-01",category:"dining",change:{kind:"percentage",reduction_basis_points:2000}};
+    const response=await fetch("/api/v1/analysis/spending/reduction",{method:"POST",headers,body:JSON.stringify(arguments_)});
+    const tool=await fetch("/api/v1/analysis/tools/execute",{method:"POST",headers,body:JSON.stringify({name:"spending_reduction",arguments:arguments_})});
+    return {status:response.status,cache:response.headers.get("cache-control"),body:await response.json(),tool:await tool.json()};
+  });
+  expect(scenario.status).toBe(200);expect(scenario.cache).toContain("no-store");expect(scenario.body.status).toBe("estimated");
+  expect(scenario.body.result_kind).toBe("hypothetical_cost_reduction");expect(scenario.body.result.amount_minor).toBe(5000);expect(scenario.body.counterfactual_net_minor).toBe(20000);
+  const {as_of:directTime,...directScenario}=scenario.body;
+  const {as_of:toolTime,...toolScenario}=scenario.tool.result;
+  expect(toolScenario).toEqual(directScenario);expect(Date.parse(toolTime)).toBeGreaterThanOrEqual(Date.parse(directTime));expect(scenario.body.persisted).toBe(false);
+  await page.getByRole("link",{name:"Household comparison"}).click();
+  await expect(page.getByRole("combobox",{name:"Household group",exact:true})).toHaveValue("");
+  await expect(page.getByLabel(/I confirm these accounts cover/)).not.toBeChecked();
+  await page.getByRole("combobox",{name:"Household group",exact:true}).selectOption("1");
+  await page.getByLabel("First month",{exact:true}).fill("2026-10");await page.getByLabel("Last month (included)",{exact:true}).fill("2026-10");
+  await page.getByRole("checkbox",{name:/Passenger transport by taxi/}).check();
+  await page.getByRole("checkbox",{name:/Food and non-alcoholic beverages/}).check();
+  await page.getByLabel(/I confirm these accounts cover/).check();await page.getByLabel(/I accept that fewer than twelve months/).check();await page.getByLabel(/I accept the 2022 price reference/).check();
+  const populationResponse=page.waitForResponse(response=>response.url().endsWith("/benchmarks/comparison"));
+  await page.getByRole("button",{name:"Compare selected categories"}).click();const response=await populationResponse;
+  const population=await response.json();expect(response.status()).toBe(200);expect(response.headers()["cache-control"]).toContain("no-store");expect(population.status).toBe("partial");
+  expect(population.rows[0].status).toBe("approximate");expect(population.rows[0].observed_equivalent_minor).toBe(totals.category_baskets.find((item:{label:string})=>item.label==="taxi").net_minor);
+  expect(population.rows[1].status).toBe("withheld");expect(population.source.reference_period).toBe("2022");
+  expect(population.known_owned_scope_complete).toBe(true);expect(population.material_bank_sources_complete).toBe(true);
+  await expect(page.getByRole("heading",{name:"Some categories need review"})).toBeFocused();
+  await expect(page.getByRole("article",{name:/Passenger transport by taxi/}).locator(".comparison-amounts")).toBeVisible();
+  await expect(page.getByRole("article",{name:/Food and non-alcoholic beverages/})).toContainText("Comparison withheld");
+  await page.getByText("Source, coverage and calculation details",{exact:true}).click();await expect(page.locator(".comparison-results")).toContainText("2 account(s)");
+  await page.getByRole("link",{name:"Your reviewed plan",exact:true}).click();
+  await expect(page.locator(".review-account")).toHaveCount(2);
+  for (const account of await page.locator(".review-account").all()) {
+    await account.getByRole("textbox").fill("0");await account.getByRole("checkbox").check();
+  }
+  for (const group of await page.locator(".protection-group").all()) for (const input of await group.getByRole("textbox").all()) await input.fill("0");
+  const first=page.locator(".review-account").first();const firstName=await first.getByRole("heading").innerText();
+  await page.locator(".protection-group").filter({has:page.getByRole("heading",{name:"Essential living costs",exact:true})}).getByRole("textbox").first().fill("150");
+  await page.locator(".protection-group").filter({has:page.getByRole("heading",{name:"Safety buffer",exact:true})}).getByRole("textbox").first().fill("100");
+  await page.getByLabel(/I reviewed all four protections/).check();await page.getByRole("button",{name:"Calculate and save reviewed plan"}).click();
+  await expect(page.getByTestId("private-spending-room")).toContainText("550,00");
+  await page.getByLabel("Keep for discretionary spending (EUR)").fill("100");await page.getByLabel("Proposed new savings (EUR)").fill("50");
+  await page.getByLabel("Account funding the reservation").selectOption({label:firstName});
+  await page.getByRole("button",{name:"Preview allocation"}).click();await page.getByRole("button",{name:"Confirm savings reservation"}).click();
+  await expect(page.getByTestId("private-spending-room")).toContainText("500,00");
+  await expect(page.locator(".reservation-list")).toContainText("Reserved");
+  await page.reload();await expect(page.locator(".reservation-list")).toContainText("Reserved");
+  await page.getByRole("link",{name:"Your savings goals",exact:true}).click();
+  await page.getByRole("button",{name:"Review Emergency fund",exact:true}).click();
+  await page.getByRole("button",{name:"Load current plan reservations",exact:true}).click();
+  await page.getByRole("combobox",{name:"Reservation to link",exact:true}).selectOption({index:1});
+  const linkResponse=page.waitForResponse(response=>response.url().endsWith("/link") && response.request().method()==="POST");
+  await page.getByRole("button",{name:"Link existing reservation",exact:true}).click();const firstLink=await linkResponse;
+  await expect(page.locator(".goal-detail .reservation-list")).toContainText("Reserved");
+  const unlinkResponse=page.waitForResponse(response=>response.url().endsWith("/unlink") && response.request().method()==="POST");
+  await page.getByRole("button",{name:"Keep money reserved; unlink",exact:true}).click();const unlinked=await unlinkResponse;
+  await expect(page.getByText("No reservation is currently linked to this goal.")).toBeVisible();
+  await page.getByRole("button",{name:"Load current plan reservations",exact:true}).click();
+  await page.getByRole("combobox",{name:"Reservation to link",exact:true}).selectOption({index:1});
+  const relinkResponse=page.waitForResponse(response=>response.url().endsWith("/link") && response.request().method()==="POST");
+  await page.getByRole("button",{name:"Link existing reservation",exact:true}).click();const relinked=await relinkResponse;
+  await expect(page.locator(".goal-detail .reservation-list")).toContainText("Reserved");
+  const linkedReads=await page.evaluate(async({id,url,body})=>{
+    const session=await(await fetch("/api/v1/auth/session")).json();
+    const headers={"Content-Type":"application/json","X-CSRF-Token":session.csrf_token,"X-MoneyLens-Session-ID":session.session_id};
+    const response=await fetch(url,{method:"POST",headers,body:JSON.stringify(body)});
+    return {retry:{status:response.status,body:await response.json()},view:await(await fetch(`/api/v1/goals/${id}`)).json(),
+      allocations:await(await fetch(`/api/v1/goals/${id}/allocations`)).json(),current:await(await fetch("/api/v1/plans/current")).json()};
+  },{id:goal.receipt.goal.id,url:new URL(firstLink.url()).pathname,body:firstLink.request().postDataJSON()});
+  const linked={...linkedReads,first:{status:firstLink.status(),body:await firstLink.json()},unlink:{status:unlinked.status()},relink:{status:relinked.status()},
+    url:new URL(firstLink.url()).pathname.replace(/\/link$/,""),body:firstLink.request().postDataJSON()};
+  expect(linked.first.status).toBe(200);expect(linked.retry).toEqual(linked.first);
+  expect(linked.unlink.status).toBe(200);expect(linked.relink.status).toBe(200);
+  expect(linked.first.body.reservation_mutated).toBe(false);expect(linked.first.body.bank_transfer_executed).toBe(false);
+  expect(linked.view.progress.recorded_reserved_minor).toBe(5000);expect(linked.view.progress.reservation_gap_minor).toBe(5000);
+  expect(linked.view.progress.confirmed_saved_minor).toBe(null);expect(linked.allocations.rows).toHaveLength(1);
+  expect(linked.current.analysis.result.amount_minor).toBe(50000);expect(linked.current.plan_version).toBe(linked.allocations.plan_version);
+  const planningInsights=await(await context.request.get("/api/v1/insights/planning-preview")).json();
+  expect(planningInsights.status).toBe("ready");expect(planningInsights.persisted).toBe(false);
+  expect(planningInsights.evidence.plan_version).toBe(linked.current.plan_version);
+
+  await page.getByRole("link",{name:"Your bank connections"}).click();
+  await page.getByRole("button",{name:`Disconnect ${names[0]}`,exact:true}).click();await page.getByRole("button",{name:"Confirm disconnect"}).click();
+  await expect(page.getByText("Disconnected",{exact:true})).toBeVisible();
+  await page.getByRole("link",{name:"Open your reviewed plan"}).click();
+  await expect(page.getByTestId("private-spending-room")).toContainText("Review needed");
+  await expect(page.getByRole("heading",{name:"Choose what to keep flexible"})).toHaveCount(0);
+  const blockedInsights=await(await context.request.get("/api/v1/insights/planning-preview")).json();
+  expect(blockedInsights.status).toBe("blocked");expect(blockedInsights.candidates).toEqual([]);expect(blockedInsights.evidence).toBe(null);
+  await page.getByRole("button",{name:/Release .* reservation/}).click();await expect(page.locator(".reservation-list")).toContainText("Released");
+  const historical=await page.evaluate(async({id,url,body})=>{
+    const session=await(await fetch("/api/v1/auth/session")).json();
+    const headers={"Content-Type":"application/json","X-CSRF-Token":session.csrf_token,"X-MoneyLens-Session-ID":session.session_id};
+    const response=await fetch(`${url}/link`,{method:"POST",headers,body:JSON.stringify(body)});
+    const query=async(name:string,arguments_:object)=>{
+      const response=await fetch("/api/v1/analysis/tools/execute",{method:"POST",headers,body:JSON.stringify({name,arguments:arguments_})});
+      return {status:response.status,body:await response.json()};
+    };
+    return {replay:await response.json(),view:await(await fetch(`/api/v1/goals/${id}`)).json(),allocations:await(await fetch(`/api/v1/goals/${id}/allocations`)).json(),
+      tool:await query("goal_details",{goal_id:id}),history:await query("goal_allocations",{goal_id:id}),list:await query("goal_list",{})};
+  },{id:goal.receipt.goal.id,url:linked.url,body:linked.body});
+  expect(historical.replay).toEqual(linked.first.body);expect(historical.allocations.rows[0].state).toBe("released");
+  expect(historical.view.progress.recorded_reserved_minor).toBe(0);expect(historical.view.progress.reservation_gap_minor).toBe(10000);
+  expect(historical.view.progress.confirmed_saved_minor).toBe(null);
+  expect(historical.tool.status).toBe(200);expect(historical.tool.body.result.progress).toEqual(historical.view.progress);
+  expect(historical.history.status).toBe(200);expect(historical.history.body.result.rows).toEqual(historical.allocations.rows);
+  expect(historical.list.status).toBe(200);expect(historical.list.body.result.rows[0].id).toBe(goal.receipt.goal.id);
+  await page.getByRole("link",{name:"Your savings goals",exact:true}).click();
+  await page.getByRole("button",{name:"Review Emergency fund",exact:true}).click();
+  await expect(page.locator(".goal-detail .reservation-list")).toContainText("Released");
+  await page.getByRole("button",{name:"Remove goal",exact:true}).click();
+  const removal=page.waitForResponse(response=>response.url().endsWith("/remove") && response.request().method()==="POST");
+  await page.getByRole("button",{name:"Confirm remove goal",exact:true}).click();const removalResponse=await removal;
+  const removed={status:removalResponse.status(),body:await removalResponse.json()};
+  expect(removed.status).toBe(200);expect(removed.body.goal.state).toBe("removed");
+  expect((await context.request.get("/api/v1/planning/context")).status()).toBe(409);
+  await page.getByRole("button",{name:"Sign out"}).click();await expect(page.getByRole("button",{name:"Continue as Mika"})).toBeVisible();
+  await page.getByRole("button",{name:"Continue as Mika"}).click();
+  await expect(page.locator(".private-session-actions")).toContainText("Synthetic Mika");
+  await expect(page.locator(".reservation-list")).toHaveCount(0);
+  expect(await (await context.request.get("/api/v1/plans/current")).json()).toBe(null);
+  expect((await context.request.get(`/api/v1/goals/${goal.receipt.goal.id}`)).status()).toBe(404);
+  const keys=await page.evaluate(async()=>{const result:string[]=[];for(const name of await caches.keys())for(const request of await(await caches.open(name)).keys())result.push(request.url);return result;});
+  expect(keys.some(url=>/\/(?:banks|plan|compare|goals|insights)(?:[/?]|$)|\/api\//.test(url))).toBe(false);
+});

@@ -1,7 +1,7 @@
 import {test,expect} from "@playwright/test";
 import path from "node:path";
 import {dictionaries} from "../../src/i18n/dictionaries";
-const output=path.resolve(__dirname,"../../../../.impeccable/review/overview-v3");
+const output=path.resolve(__dirname,"../../../.impeccable/review/overview-v3");
 test("only the five overview blocks remain in order and the category total reconciles",async({page})=>{
  for(const colorScheme of ["light","dark"] as const){
   await page.emulateMedia({colorScheme,reducedMotion:"reduce"});await page.setViewportSize({width:390,height:844});await page.goto("/?dataset=extended");

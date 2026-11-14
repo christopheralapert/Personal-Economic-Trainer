@@ -8,7 +8,7 @@ import {preparePhoneCertificate,readPhoneCertificate,appleProfile} from "../../s
 import {phoneOptions,disablePhoneModel,setupHandler} from "../../scripts/preview-phone.mjs";
 import {privateHTTPSOrigin,phoneCookieMatches} from "../../scripts/phone-ai-access.mjs";
 
-const scratchRoot=fileURLToPath(new URL("../../../../.cache/phone-checks/",import.meta.url));
+const scratchRoot=fileURLToPath(new URL("../../../.cache/phone-checks/",import.meta.url));
 let directory,material;
 before(async()=>{
   await mkdir(scratchRoot,{recursive:true});directory=await mkdtemp(path.join(scratchRoot,"case-"));

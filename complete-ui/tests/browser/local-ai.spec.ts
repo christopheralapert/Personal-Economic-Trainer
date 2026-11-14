@@ -4,10 +4,14 @@ import path from "node:path";
 import {extendedDemo} from "../../src/engine/datasets";
 import {lastMonth} from "../../src/engine";
 import {createComponentTools,propsSchemas} from "../../src/coach/catalog";
-import {money} from "../../src/lib/format";
+import {money,date} from "../../src/lib/format";
 import {checkBasis} from "../basis";
 import organizerSource from "../../data/organizer-1.v1.json";
 import {loadTransactions} from "../../src/engine";
+import {geminiCases} from "../../scripts/gemini-cases.mjs";
+import type {ToolName} from "../../src/coach/catalog";
+import {categoryLabel,translate} from "../../src/i18n/translate";
+import {weeklyRange} from "../../src/engine/planning";
 test.skip(process.env.MONEY_COACH_BROWSER_LIVE!=="true","Explicit live opt-in and a current local grant are required.");
 test("local AI evaluation uses the actual browser SDK and two bounded model responses with extended-source figures",async({page})=>{
  test.skip(process.env.MONEY_COACH_ORGANIZER_SMOKE==="true","Organizer smoke uses only one model request.");
@@ -22,21 +26,26 @@ test("local AI evaluation uses the actual browser SDK and two bounded model resp
   expect(part).toBeDefined();const tool=createComponentTools(10,extendedDemo)[entry.name];const expected=await (tool.execute as (input:unknown,options:unknown)=>Promise<unknown>)(tool.inputSchema.parse(entry.input),{toolCallId:"oracle",messages:[]});expect(propsSchemas[entry.name].parse(part.output)).toEqual(expected);
   const payload=(await requested).postDataJSON();expect(payload.dataset).toBe("extended");expect(payload.period).toEqual(lastMonth);expect(payload.scope).toEqual({excludedAccounts:[],excludedCategories:[],corrections:{}});expect(payload.messages).toEqual([{role:"user",parts:[{type:"text",text:entry.question}]}]);expect(payload.locale).toBe("en");expect(payload.savingsPercent).toBe(10);
   await checkBasis(page,page.locator("article").last());await expect(page.getByText("The online response was unavailable.",{exact:false})).toHaveCount(0);
-  await page.screenshot({path:path.resolve(__dirname,`../../../../.impeccable/review/extended-data/live-${entry.name}.png`),fullPage:true});
+  await page.screenshot({path:path.resolve(__dirname,`../../../.impeccable/review/extended-data/live-${entry.name}.png`),fullPage:true});
  }
  expect(requests).toBe(2);await expect(page.locator("article")).toHaveCount(4);
 });
 
 test("one organizer question uses the hosted adapter and deterministic source figures",async({page})=>{
  test.skip(process.env.MONEY_COACH_ORGANIZER_SMOKE!=="true","Explicit organizer smoke opt-in is required.");
- test.setTimeout(30000);const data=loadTransactions(organizerSource),period={start:"2026-08-01",end:"2026-09-01"};
+ test.setTimeout(60000);const data=loadTransactions(organizerSource),selected=process.env.MONEY_COACH_GEMINI_CASE??'taxi',cases=geminiCases[selected as keyof typeof geminiCases];expect(cases).toBeDefined();
  await page.setViewportSize({width:390,height:844});await page.goto("/?dataset=organizer1");
  await expect(page.locator('header')).toContainText('30.9.2026');
  const bank:string[]=[];let calls=0;
  page.on('request',r=>{if(/enablebanking|live-banking/.test(r.url()))bank.push(r.url());if(r.url().endsWith('/api/chat')&&r.method()==='POST')calls++;});
+ for(const [index,entry] of cases.entries()) {
  const responsePromise=page.waitForResponse(r=>r.url().endsWith('/api/chat'));
- await page.locator('#home-question').fill('How much did I spend on taxis last month?');await page.locator('#home-question').press('Enter');
+ const requestPromise=page.waitForRequest(r=>r.url().endsWith('/api/chat') && r.method()==='POST');
+ if(index===0) {await page.locator('#home-question').fill(entry.question);await page.locator('#home-question').press('Enter');}
+ else {await page.getByRole('textbox',{name:'Your question',exact:true}).fill(entry.question);await page.getByRole('button',{name:'Send question',exact:true}).click();}
  const response=await responsePromise;
+ const submitted=(await requestPromise).postDataJSON();expect(submitted.dataset).toBe('organizer1');expect(submitted.scope.excludedAccounts).toEqual([]);
+ if(index>0) expect(submitted.context).toMatchObject({tool:'showTransactions',input:{category:'taxi',period:{start:'2026-08-01',end:'2026-09-01'}}});
  if(process.env.MONEY_COACH_LOCAL_GEMINI==='true' && response.headers()['x-money-coach-usage']) {
   const usage=JSON.parse(response.headers()['x-money-coach-usage']);
   const safe:Record<string,string|number>={};
@@ -52,11 +61,19 @@ test("one organizer question uses the hosted adapter and deterministic source fi
  }
  expect(response.status()).toBe(200);expect(response.headers()['x-money-coach-source'],response.headers()['x-money-coach-evaluation']).toBe('model');
  if(process.env.MONEY_COACH_LOCAL_GEMINI==='true') expect(response.headers()['x-money-coach-provider']).toBe(process.env.MONEY_COACH_GEMINI_MOCK==='true' ? 'gemini-direct-mock' : 'gemini-direct');
- const stream=await response.text(),part=stream.split('\n').filter(line=>line.startsWith('data: {')).map(line=>JSON.parse(line.slice(6))).find(value=>value.type==='tool-output-available');
+ const stream=await response.text(),events=stream.split('\n').filter(line=>line.startsWith('data: {')).map(line=>JSON.parse(line.slice(6))),part=events.find(value=>value.type==='tool-output-available'),selectedTool=events.find(value=>value.type==='tool-input-available');
  expect(part).toBeDefined();
- const tool=createComponentTools(10,data).showTransactions,input=tool.inputSchema.parse({period,category:'taxi'});
+ const name=entry.tool as ToolName,tool=createComponentTools(10,data)[name],input=tool.inputSchema.parse(entry.input);
+ expect(selectedTool.toolName).toBe(name);expect(tool.inputSchema.parse(selectedTool.input)).toEqual(input);
  const expected=await (tool.execute as (input:unknown,options:unknown)=>Promise<unknown>)(input,{toolCallId:'oracle',messages:[]});
- expect(propsSchemas.showTransactions.parse(part.output)).toEqual(expected);
- await expect(page.locator('[data-message-role="assistant"]')).toContainText('30,97');
- expect(calls).toBe(1);expect(bank).toEqual([]);
+ expect(propsSchemas[name].parse(part.output)).toEqual(expected);
+ const answer=page.locator('[data-message-role="assistant"]').last();
+ if(name==='showTransactions') {const output=propsSchemas.showTransactions.parse(expected);if(output.netExpenses!==null) await expect(answer).toContainText(money(output.netExpenses));await expect(answer).toContainText(String(output.financialCount));if(output.rows.length) {await expect(answer).toContainText(output.rows[0].merchant);await expect(answer).toContainText(date(output.rows[0].booked_on));}}
+ if(name==='showWhatIf') await expect(answer).toContainText(money(propsSchemas.showWhatIf.parse(expected).result.monthly));
+ if(name==='showProfile') {const leading=propsSchemas.showProfile.parse(expected).result.leading;if(leading) await expect(answer).toContainText(categoryLabel(leading.key,(key,values)=>translate('en',key,values)));}
+ if(name==='showSafeToSpend') {const safe=propsSchemas.showSafeToSpend.parse(expected),result=safe.result;expect(result.amount).toBeNull();expect(result.coverage).toBe('partial');await expect(answer).toContainText('Low confidence');await expect(answer).toContainText('Sep 1–Sep 30');if(safe.purpose==='spend') {const range=weeklyRange({data});if(range.low!==null && range.high!==null) {await expect(answer).toContainText(money(range.low));await expect(answer).toContainText(money(range.high));}}else await expect(answer).toContainText('Add income or review your bills');}
+ const basisStart='period' in input ? (input.period as {start:string}).start : name==='showSafeToSpend' ? propsSchemas.showSafeToSpend.parse(expected).result.asOf.slice(0,7)+'-01' : undefined;
+ await checkBasis(page,answer,undefined,basisStart ? date(basisStart) : undefined);
+ }
+ expect(calls).toBe(cases.length);expect(bank).toEqual([]);
 });

@@ -2,7 +2,7 @@ import {openOverview} from "../view-navigation";
 import {checkBasis} from "../basis";
 import {test,expect,type Page} from "@playwright/test";
 import path from "node:path";
-const captures=path.resolve(__dirname,"../../../../.impeccable/review/money-coach");
+const captures=path.resolve(__dirname,"../../../.impeccable/review/money-coach");
 
 test("public PWA boots cold offline with session-only conversation and no cached chat requests",async({page,context})=>{
   await page.goto("/");
