@@ -379,6 +379,10 @@ export interface paths {
     /** Statement Accounts */
     get: operations["statement_accounts_v1_statements_wise_accounts_get"];
   };
+  "/v1/statements/wise/classify": {
+    /** Classify */
+    post: operations["classify_v1_statements_wise_classify_post"];
+  };
   "/v1/statements/wise/confirm": {
     /** Confirm */
     post: operations["confirm_v1_statements_wise_confirm_post"];
@@ -1509,6 +1513,26 @@ export interface components {
       economic_flow: "expense" | "refund" | "income" | "internal_transfer" | "liability_settlement" | "unknown";
       /** Expected Data Version */
       expected_data_version: number;
+      /**
+       * Remember Merchant
+       * @default false
+       */
+      remember_merchant?: boolean;
+    };
+    /** ClassifyRequest */
+    ClassifyRequest: {
+      /**
+       * Cloud Consent
+       * @default false
+       */
+      cloud_consent?: boolean;
+      /** Preview Ids */
+      preview_ids: string[];
+      /**
+       * Privacy
+       * @default true
+       */
+      privacy?: boolean;
     };
     /** CoachAnalysisIntentV1 */
     CoachAnalysisIntentV1: {
@@ -2170,6 +2194,8 @@ export interface components {
     FileSelection: {
       /** Account Id */
       account_id?: string | null;
+      /** Classification Token */
+      classification_token?: string | null;
       /** Currency */
       currency?: "EUR" | null;
       /**
@@ -2184,6 +2210,13 @@ export interface components {
        * Format: uuid
        */
       preview_id: string;
+      /**
+       * Privacy
+       * @default true
+       */
+      privacy?: boolean;
+      /** Reviews */
+      reviews?: components["schemas"]["RowReview"][];
     };
     /** FileUpload */
     FileUpload: {
@@ -5264,6 +5297,23 @@ export interface components {
       priority?: number;
       /** Target Minor */
       target_minor: number;
+    };
+    /** RowReview */
+    RowReview: {
+      /** Category */
+      category?: ("taxi" | "dining" | "groceries" | "housing" | "repairs" | "coffee" | "other" | "utilities" | "phone" | "insurance" | "transport" | "health" | "pharmacy" | "home_tech" | "lifestyle" | "entertainment" | "travel") | null;
+      /**
+       * Economic Flow
+       * @enum {string}
+       */
+      economic_flow: "expense" | "refund" | "income" | "internal_transfer" | "liability_settlement" | "unknown";
+      /** Index */
+      index: number;
+      /**
+       * Remember Merchant
+       * @default false
+       */
+      remember_merchant?: boolean;
     };
     /** SavedPlanReviewV1 */
     SavedPlanReviewV1: {
@@ -8547,6 +8597,28 @@ export interface operations {
       200: {
         content: {
           "application/json": unknown;
+        };
+      };
+    };
+  };
+  /** Classify */
+  classify_v1_statements_wise_classify_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ClassifyRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };

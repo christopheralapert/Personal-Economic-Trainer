@@ -28,6 +28,10 @@ class WiseRow:
     amount_minor: int
     currency: str
     description: str = field(repr=False)
+    economic_flow: str | None = None
+    source_category: str | None = None
+    mcc: str | None = None
+    merchant: str | None = field(default=None,repr=False)
 
 @dataclass(frozen=True, repr=False)
 class WisePreview:
@@ -76,7 +80,12 @@ def preview_wise_csv(content: bytes) -> WisePreview:
                 raise WiseStatementError('invalid_amount') from None
             if abs(minor) > 2**53-1:
                 raise WiseStatementError('amount_out_of_range')
-            rows.append(WiseRow(reference, booked_on, minor, currency, description))
+            extras=dict(zip(header,record))
+            source_kind=extras.get('Details Type','').strip().upper()
+            flow={'CARD':'expense','CARD_PAYMENT':'expense','CARD_REFUND':'refund','SALARY':'income'}.get(source_kind,'unknown') if source_kind else None
+            rows.append(WiseRow(reference, booked_on, minor, currency, description,flow,
+                extras.get('Category','').strip().lower() or None,extras.get('Merchant Category Code',extras.get('MCC','')).strip() or None,
+                extras.get('Merchant','').strip() or None))
             counts[reference] = counts.get(reference, 0) + 1
         return WisePreview(tuple(rows), sum(1 for n in counts.values() if n > 1))
     except csv.Error:

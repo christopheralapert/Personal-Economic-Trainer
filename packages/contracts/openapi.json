@@ -2915,6 +2915,11 @@
             "minimum": 1.0,
             "title": "Expected Data Version",
             "type": "integer"
+          },
+          "remember_merchant": {
+            "default": false,
+            "title": "Remember Merchant",
+            "type": "boolean"
           }
         },
         "required": [
@@ -2922,6 +2927,36 @@
           "economic_flow"
         ],
         "title": "ClassificationReviewV1",
+        "type": "object"
+      },
+      "ClassifyRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "cloud_consent": {
+            "default": false,
+            "title": "Cloud Consent",
+            "type": "boolean"
+          },
+          "preview_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Preview Ids",
+            "type": "array"
+          },
+          "privacy": {
+            "default": true,
+            "title": "Privacy",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "preview_ids"
+        ],
+        "title": "ClassifyRequest",
         "type": "object"
       },
       "CoachAnalysisIntentV1": {
@@ -4679,6 +4714,18 @@
             ],
             "title": "Account Id"
           },
+          "classification_token": {
+            "anyOf": [
+              {
+                "maxLength": 40000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Classification Token"
+          },
           "currency": {
             "anyOf": [
               {
@@ -4713,6 +4760,19 @@
             "format": "uuid",
             "title": "Preview Id",
             "type": "string"
+          },
+          "privacy": {
+            "default": true,
+            "title": "Privacy",
+            "type": "boolean"
+          },
+          "reviews": {
+            "items": {
+              "$ref": "#/components/schemas/RowReview"
+            },
+            "maxItems": 1000,
+            "title": "Reviews",
+            "type": "array"
           }
         },
         "required": [
@@ -12103,6 +12163,70 @@
           "expected_goal_version"
         ],
         "title": "ReviseGoalV1",
+        "type": "object"
+      },
+      "RowReview": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "enum": [
+                  "taxi",
+                  "dining",
+                  "groceries",
+                  "housing",
+                  "repairs",
+                  "coffee",
+                  "other",
+                  "utilities",
+                  "phone",
+                  "insurance",
+                  "transport",
+                  "health",
+                  "pharmacy",
+                  "home_tech",
+                  "lifestyle",
+                  "entertainment",
+                  "travel"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "economic_flow": {
+            "enum": [
+              "expense",
+              "refund",
+              "income",
+              "internal_transfer",
+              "liability_settlement",
+              "unknown"
+            ],
+            "title": "Economic Flow",
+            "type": "string"
+          },
+          "index": {
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Index",
+            "type": "integer"
+          },
+          "remember_merchant": {
+            "default": false,
+            "title": "Remember Merchant",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "index",
+          "economic_flow"
+        ],
+        "title": "RowReview",
         "type": "object"
       },
       "SavedPlanReviewV1": {
@@ -20626,6 +20750,42 @@
           }
         },
         "summary": "Statement Accounts"
+      }
+    },
+    "/v1/statements/wise/classify": {
+      "post": {
+        "operationId": "classify_v1_statements_wise_classify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Classify"
       }
     },
     "/v1/statements/wise/confirm": {

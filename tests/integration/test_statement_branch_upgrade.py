@@ -5,7 +5,7 @@ from alembic import command
 
 
 @pytest.mark.parametrize('prior',['0024_statement_staging','0025_statement_provenance','0025_statement_formats',
-    '0027_statement_file_provenance','0025_identity_self_signup'])
+    '0027_statement_file_provenance','0025_identity_self_signup','0028_merge_identity_statements'])
 def test_either_statement_branch_upgrades_to_one_head(migration_database,prior):
     with migration_database(prior) as database:
         with database['engine'].begin() as connection:
@@ -13,7 +13,7 @@ def test_either_statement_branch_upgrades_to_one_head(migration_database,prior):
             command.upgrade(database['config'],'head')
         with psycopg.connect(database['admin']) as connection:
             assert connection.execute('SELECT version_num FROM alembic_version').fetchall()==[
-                ('0028_merge_identity_statements',)]
+                ('0029_automatic_classification',)]
             assert connection.execute("SELECT to_regprocedure('moneylens_identity.ensure_workspace(text,text)')").fetchone()[0]
             assert connection.execute("SELECT to_regclass('moneylens.statement_accounts')").fetchone()[0]
             assert connection.execute("""SELECT count(*) FROM information_schema.columns
@@ -21,10 +21,21 @@ def test_either_statement_branch_upgrades_to_one_head(migration_database,prior):
                     (('transactions','statement_receipt_id'),('statement_import_receipts','canonical_sha256'))""").fetchone()==(2,)
 
 
-def test_populated_current_statement_schema_keeps_owned_records_on_signup_upgrade(migration_database):
+def test_populated_current_statement_schema_keeps_owned_records_on_signup_upgrade(migration_database,monkeypatch):
     from uuid import uuid4
     from identity_support import authenticated_app,login,ORIGIN
     from test_wise_flow import CSV
+    from app import statement_routes
+    from uuid import uuid5
+    # Seed using the historical publication contract, not new application SQL
+    # against an intentionally pre-classification schema.
+    def historical_publish(connection,owner,identifier,account,digest,document):
+        for index,row in enumerate(document.rows):
+            connection.execute("""INSERT INTO moneylens.transactions(tenant_id,owner_user_id,id,account_id,
+                source_id,amount_minor,currency,booked_on,status,merchant,category,basket,economic_flow,statement_receipt_id)
+                VALUES(%s,%s,%s,%s,%s,%s,'EUR',%s,'booked',%s,'unclassified','unresolved','unknown',%s)""",
+                (*owner,uuid5(identifier,str(index)),account,digest+':'+str(index),row.amount_minor,row.booked_on,row.description,identifier))
+    monkeypatch.setattr(statement_routes,'publish_rows',historical_publish)
     tenant,owner,account=(uuid4() for _ in range(3))
     with migration_database('0027_statement_file_provenance') as database:
         with psycopg.connect(database['admin'],autocommit=True) as connection:
@@ -54,4 +65,4 @@ def test_populated_current_statement_schema_keeps_owned_records_on_signup_upgrad
             assert connection.execute('SELECT tenant_id,owner_user_id,id FROM moneylens.accounts ORDER BY id').fetchall()==accounts
             assert connection.execute('SELECT tenant_id,owner_user_id,id FROM moneylens.user_state ORDER BY id').fetchall()==workspaces
             assert sum(row[2] for row in rows)==-1000
-            assert connection.execute('SELECT version_num FROM alembic_version').fetchall()==[('0028_merge_identity_statements',)]
+            assert connection.execute('SELECT version_num FROM alembic_version').fetchall()==[('0029_automatic_classification',)]

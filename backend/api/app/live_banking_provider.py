@@ -126,18 +126,8 @@ def amount_minor(data):
 
 def classify_transaction(entry):
     """Conservative transparent rules. Unknown transfers must NOT become confident advice."""
-    mcc = str(entry.get("merchant_category_code") or "")
-    if mcc == "4121":
-        return "taxi", "everyday"
-    if mcc in ("5411", "5422", "5441", "5451", "5462", "5499"):
-        return "groceries", "everyday"
-    if mcc in ("5812", "5813", "5814"):
-        return "dining", "everyday"
-    if mcc in ("4900",):
-        return "utilities", "mandatory_regular"
-    if mcc in ("5912",):
-        return "pharmacy", "mandatory_irregular"
-    return "unclassified", "unresolved"
+    from .transaction_classification import category_for_mcc
+    return category_for_mcc(entry.get('merchant_category_code'))
 
 
 def normalize_transactions(entries, account_id):

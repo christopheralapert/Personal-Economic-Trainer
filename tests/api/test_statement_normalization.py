@@ -122,12 +122,18 @@ def test_publication_sends_one_insert_for_1000_rows_and_keeps_identical_purchase
 
         def execute(self, sql, params):
             self.calls.append((sql, params))
+            return self
+
+        def fetchall(self):
+            return []
 
     document = normalize_canonical_csv((HEADER + 'same,2026-10-03,-1234,EUR,Synthetic\n' * MAX_IMPORT_ROWS).encode())
     connection = Capture()
     publish_rows(connection, (uuid4(), uuid4()), uuid4(), uuid4(), 'a'*64, document)
-    assert len(connection.calls) == 1
-    sql, params = connection.calls[0]
+    assert len(connection.calls) == 2  # One bounded owner-rule read, still one bulk insert.
+    inserts=[call for call in connection.calls if 'INSERT INTO moneylens.transactions' in call[0]]
+    assert len(inserts)==1
+    sql, params = inserts[0]
     assert 'INSERT INTO moneylens.transactions' in sql and 'jsonb_to_recordset' in sql
     rows = params[-1].obj
     assert len(rows) == MAX_IMPORT_ROWS and len({row['id'] for row in rows}) == MAX_IMPORT_ROWS

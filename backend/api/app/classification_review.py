@@ -12,11 +12,7 @@ from .contracts import Contract
 from .identity import AuthError, authorized_transaction
 from .ledger import Ledger, LedgerFilterV1, LedgerRowV1
 from .ledger_routes import router
-
-Category = Literal["taxi", "dining", "groceries", "housing", "repairs", "coffee", "other",
-    "utilities", "phone", "insurance", "transport", "health", "pharmacy", "home_tech",
-    "lifestyle", "entertainment", "travel"]
-Flow = Literal["expense", "refund", "income", "internal_transfer", "liability_settlement", "unknown"]
+from .transaction_classification import save_rule,Classification,Category,Flow
 Basket = Literal["mandatory_regular", "mandatory_irregular", "everyday", "unresolved"]
 
 
@@ -25,6 +21,7 @@ class ClassificationReviewV1(Contract):
     economic_flow: Flow
     category: Category | None = None
     basket: Basket = "unresolved"
+    remember_merchant: bool = False
 
     @model_validator(mode="after")
     def explicit_consumption(self):
@@ -71,9 +68,14 @@ def review(transaction_id: UUID, body: ClassificationReviewV1, request: Request,
                  "essential" if body.basket.startswith("mandatory_") else "flexible" if body.basket == "everyday" else "unknown",
                  "regular" if body.basket == "mandatory_regular" else "irregular" if body.basket == "mandatory_irregular" else "unknown",
                  body.economic_flow))
-            connection.execute("""UPDATE moneylens.transactions SET category=%s,basket=%s,economic_flow=%s
+            connection.execute("""UPDATE moneylens.transactions SET category=%s,basket=%s,economic_flow=%s,classification_basis='user_rule'
                 WHERE tenant_id=%s AND owner_user_id=%s AND id=%s""",
                 (category, body.basket, body.economic_flow, *owner, transaction_id))
+            if body.remember_merchant:
+                merchant=connection.execute('''SELECT merchant FROM moneylens.transactions
+                    WHERE tenant_id=%s AND owner_user_id=%s AND id=%s''',(*owner,transaction_id)).fetchone()[0]
+                try:save_rule(connection,owner,merchant,Classification(economic_flow=body.economic_flow,category=body.category,basket=body.basket,basis='user_rule'))
+                except ValueError:raise AuthError('INVALID_IMPORT_COMMAND',422) from None
             if body.economic_flow != "internal_transfer":
                 connection.execute("""UPDATE moneylens.transfer_links SET state='rejected'
                     WHERE tenant_id=%s AND owner_user_id=%s AND (debit_id=%s OR credit_id=%s)""",

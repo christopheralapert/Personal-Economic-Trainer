@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     live_banking_cipher_key: SecretStr | None = None
     psu_proxy_secret: SecretStr | None = Field(default=None,min_length=32)
     statement_imports_enabled: bool = False
+    statement_cloud_classification_enabled: bool = False
     imports_enabled: bool = False
     object_store_endpoint: str | None = None
     object_store_bucket: str | None = Field(default=None,pattern=r"^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$")

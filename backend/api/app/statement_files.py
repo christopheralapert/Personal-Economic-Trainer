@@ -16,6 +16,7 @@ from .statement_formats import parse_statement, clean
 from .statement_wise import WiseStatementError
 from .statement_wise import WiseRow
 from .statement_publication import publish_rows
+from .transaction_classification import Classification,RowReview,load_rules,local_classification,save_rule
 
 
 class FileUpload(Contract):
@@ -30,6 +31,9 @@ class FileSelection(Contract):
     new_account_label: Annotated[StrictStr,Field(min_length=1,max_length=100)] | None = None
     currency: Literal['EUR'] | None = None
     keep_separate: bool = False
+    reviews: list[RowReview] = Field(default_factory=list,max_length=1000)
+    classification_token: str | None = Field(default=None,max_length=40000)
+    privacy: bool = True
 
 
 class FileConfirm(Contract):
@@ -88,12 +92,10 @@ def preview(body,request,user,cipher,clean_expired,receipt):
         return dict(state='invalid',code='invalid_encoding',format=body.format)
     digest=hashlib.sha256(content).hexdigest()
     key=account_key(request,user,data.account_key)
-    rows=[dict(ref=r.reference,date=r.booked_on.isoformat(),amount=r.amount_minor,description=r.description) for r in data.rows]
+    rows=[dict(ref=r.reference,date=r.booked_on.isoformat(),amount=r.amount_minor,description=r.description,
+        economic_flow=r.economic_flow,source_category=r.source_category,mcc=r.mcc,merchant=r.merchant) for r in data.rows]
     source_format='canonical_csv' if data.variant=='canonical.csv.v1' else 'wise_'+body.format
     payload=dict(rows=rows,key=key,signature=fingerprint(rows),currency=data.currency,variant=data.variant,source_format=source_format)
-    encrypted=cipher(request.app.state.settings,user).encrypt(pack(payload))
-    if len(encrypted)>500000:
-        return dict(state='invalid',code='file_too_large',format=body.format)
     start,last=data.start,data.last; end=last+timedelta(days=1)
     label='Wise '+body.format.upper() if not data.account_key else 'Wise ··'+data.account_key[-4:]
     with request.app.state.pools.finance.connection() as connection:
@@ -110,6 +112,11 @@ def preview(body,request,user,cipher,clean_expired,receipt):
             if connection.execute('SELECT count(*) FROM moneylens.statement_previews WHERE tenant_id=%s AND owner_user_id=%s',owner(user)).fetchone()[0]>=10:
                 raise AuthError('IMPORT_INTAKE_THROTTLED',429)
             identifier=uuid4(); now=datetime.now(timezone.utc)
+            rules=load_rules(connection,owner(user))
+            classifications=[local_classification(r,rules) for r in data.rows]
+            payload['classifications']=[c.model_dump() for c in classifications]
+            encrypted=cipher(request.app.state.settings,user).encrypt(pack(payload))
+            if len(encrypted)>500000:return dict(state='invalid',code='file_too_large',format=body.format)
             connection.execute('''INSERT INTO moneylens.statement_previews
                 (tenant_id,owner_user_id,id,session_id,file_sha256,account_label,period_from,period_to_exclusive,encrypted_rows,created_at,expires_at,source_format)
                 VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''',
@@ -119,6 +126,8 @@ def preview(body,request,user,cipher,clean_expired,receipt):
         requires_account=key is None,currency=data.currency,requires_currency=data.currency is None,
         start=start.isoformat(),end_exclusive=end.isoformat(),last_statement_date=last.isoformat(),count=len(rows),
         repeated_reference_groups=sum(n>1 for n in counts.values()),possible_overlap=overlap,variant=data.variant,
+        classifications=[dict(index=i,merchant=r.merchant or r.description,booked_on=r.booked_on.isoformat(),amount_minor=r.amount_minor,
+            **c.model_dump(),needs_review=c.needs_review) for i,(r,c) in enumerate(zip(data.rows,classifications))],
         sample=[dict(booked_on=r.booked_on.isoformat(),amount_minor=r.amount_minor,currency='EUR') for r in data.rows[:5]])
 
 
@@ -189,8 +198,15 @@ def confirm(body,request,user,cipher,clean_expired,receipt):
                 if not same and overlap and not selection.keep_separate: raise AuthError('STATEMENT_OVERLAP',409)
                 added=0 if same else len(rows)
                 if not same:
+                    from .statement_classification import selected_classifications
+                    classifications=selected_classifications(payload,selection,request,user,cipher)
+                    for review in selection.reviews:
+                        if review.remember_merchant:
+                            try:save_rule(connection,owner(user),rows[review.index].get('merchant') or rows[review.index]['description'],classifications[review.index])
+                            except ValueError:raise AuthError('INVALID_IMPORT_COMMAND',422) from None
                     publish_rows(connection,owner(user),selection.preview_id,account,stage[1],
-                        [WiseRow(r['ref'],date.fromisoformat(r['date']),r['amount'],'EUR',r['description']) for r in rows])
+                        [WiseRow(r['ref'],date.fromisoformat(r['date']),r['amount'],'EUR',r['description'],
+                            r.get('economic_flow'),r.get('source_category'),r.get('mcc'),r.get('merchant')) for r in rows],classifications)
                     changed=True
                 connection.execute('''INSERT INTO moneylens.statement_import_receipts
                     (tenant_id,owner_user_id,id,account_id,file_sha256,period_from,period_to_exclusive,row_count,canonical_sha256,source_format)

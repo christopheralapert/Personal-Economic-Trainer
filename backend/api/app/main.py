@@ -36,6 +36,7 @@ from .goal_routes import router as goal_router
 from .insight_routes import router as insight_router
 from .coaching_routes import router as coaching_router
 from .statement_routes import router as statement_router, purge_expired_batch
+from .statement_classification import router as statement_classification_router
 from .import_routes import router as import_router
 from .import_validation_routes import router as import_validation_router
 from .import_publication_routes import router as import_publication_router
@@ -144,6 +145,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         api.include_router(insight_router)
         api.include_router(coaching_router)
         api.include_router(statement_router)
+        api.include_router(statement_classification_router)
         api.include_router(import_router)
         api.include_router(import_validation_router)
         api.include_router(import_publication_router)

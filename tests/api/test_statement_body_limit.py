@@ -27,6 +27,9 @@ def test_preview_budgets_bound_each_supported_upload_contract():
 
 
 def test_confirm_and_unrecognized_statement_commands_stay_small():
-    for path in ('/v1/statements/confirm','/v1/statements/wise/confirm','/v1/statements/unknown'):
+    for path in ('/v1/statements/confirm','/v1/statements/wise/confirm'):
+        assert response_for(path,262144)==204
+        assert response_for(path,262145)==413
+    for path in ('/v1/statements/unknown','/v1/statements/wise/classify'):
         assert response_for(path,8192)==204
         assert response_for(path,8193)==413

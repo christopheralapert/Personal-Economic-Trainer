@@ -95,3 +95,34 @@ With `MONEYLENS_TEST_DATABASE_URL` pointing to a disposable isolated administrat
 ```
 
 The private Gemini tests inject Google's native HTTP response shape, but execute actual authenticated server tools against PostgreSQL. They do not contact Google. The language matrix separately verifies search, category totals, month comparison, follow-ups, a 20% reduction, missing-data spending/saving requests, empty results, and another user's isolation. Source-equivalence tests preserve the distinction between equal amounts and unequal history coverage; newly imported unknown flows must be explicitly reviewed before becoming spending.
+
+## Automatic statement classification
+
+The multi-format preview classifies once, before publication. Flow evidence is required before a merchant category can become spending. Source categories, the shared bank MCC map, exact service names and explicitly saved private merchant rules are local. Conflicting evidence and bare multi-service names such as BOLT stay in review. Confirmation stores the selected classification; History, Overview and Coach read those saved values. Exact statement repeats preserve earlier corrections; uncertain partial overlaps still require explicit review.
+
+Cloud suggestions require `MONEYLENS_STATEMENT_CLOUD_CLASSIFICATION_ENABLED=true`, the existing private Gemini configuration, Privacy mode off, and explicit consent plus a button press in the preview. Only whole-label matches to approved public-brand aliases are sent, once per batch, with temporary matching codes. Unknown businesses, personal names and labels containing memo/account information stay local. Suggestions cannot set flow or baskets. Privacy/consent withdrawal discards late suggestions; manual edits take precedence. No cloud service is needed to preview or confirm locally.
+
+Create synthetic CSV/PDF/XLSX/XML/MT940/QIF samples and a dedicated production rehearsal (loopback PostgreSQL administrator required; never use a real-data database):
+
+```powershell
+.venv\Scripts\python.exe -m scripts.generate_classification_fixtures
+node scripts/local_classification_preview.mjs build
+# Set MONEYLENS_TEST_DATABASE_URL for your isolated PostgreSQL administrator if
+# not using this machine's existing synthetic test service on port 55440.
+node scripts/local_classification_preview.mjs start --live-classification
+```
+
+`--live-classification` reads only `GEMINI_API_KEY` from the root ignored `.env` into the classification server. Omit the flag to use native Gemini test transport with no hosted calls. This test-only launcher creates its own disposable database, verified signed test-OIDC identities and ports **33132/18052**. Private Coach interpretation is mocked; Privacy-mode Coach uses real local tools against saved PostgreSQL rows. Hosted demo chat/audio remain off in this rehearsal. Ordinary production authentication does not include this test identity chooser.
+
+Open `http://127.0.0.1:33132/api/v1/auth/login`, choose **auto-main**, then `/banks`. Import `.cache/auto-classification-fixtures/auto-taxis.csv` or `.xlsx`, choose a new account, and confirm the proposed taxi categories without editing. The two October 2026 purchases total **30.97 EUR**. **fresh-preview** is an empty private workspace. `auto-mixed.csv` includes ambiguous merchants, transfers, a refund and two public-brand aliases for optional cloud classification; coffee totals **6.00 EUR** after its two suggestions. Generated files/screenshots stay ignored.
+
+Run the mobile (390 × 844) suite against a freshly started rehearsal:
+
+```powershell
+# Optional paid synthetic classification case; otherwise it is explicitly skipped.
+$env:MONEYLENS_CLASSIFICATION_REAL = 'true'
+npx playwright test --config tests/config/playwright.auto-classification.config.ts
+Remove-Item Env:MONEYLENS_CLASSIFICATION_REAL
+```
+
+The suite consumes distinct fresh identities, so reset only this rehearsal before repeating it. It tests CSV/XLSX publication → History reload → Overview → Coach/evidence, 700-row bounded rendering, remembered corrections, exact repeats, owner isolation, zero new calls in Privacy mode and a held late suggestion. It explicitly switches test transport for mock cases; the opted-in live case verifies one genuine Gemini call separately. Unit and database checks are `tests/api/test_automatic_classification.py` and `tests/integration/test_auto_classification_flow.py`. The existing six-format browser fixture above remains the format regression.
