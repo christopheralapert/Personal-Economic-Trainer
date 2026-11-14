@@ -102,7 +102,7 @@ describe("bounded public chat ingress",()=>{
     const controller=new AbortController();
     await expect(coachFetch(url,{method:"POST",body:"native SDK body",signal:controller.signal,headers:{"content-type":"application/json"}})).rejects.toThrow("build changed");
     expect(canceled).toBe(1);
-    const [,sent]=network.mock.calls[0];expect(sent.body).toBe("native SDK body");expect(sent.signal).toBe(controller.signal);expect(sent.headers.get(REVISION_HEADER)).toBe(COACH_REVISION);
+    const [,sent]=network.mock.calls[0];expect(sent.body).toBe("native SDK body");expect(sent.signal).toBe(controller.signal);expect(sent.cache).toBe('no-store');expect(sent.headers.get(REVISION_HEADER)).toBe(COACH_REVISION);
     network.mockResolvedValueOnce(new Response("unversioned stream"));
     await expect(coachFetch(url)).rejects.toThrow("build changed");
     network.mockResolvedValueOnce(new Response("matching SDK stream",{headers:{[REVISION_HEADER]:COACH_REVISION}}));

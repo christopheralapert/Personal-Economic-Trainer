@@ -29,7 +29,7 @@ export const coachFetch:typeof fetch=async(input,init)=>{
   if(!COACH_REVISION) throw new Error("Coach build identity unavailable");
   const headers=new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
   headers.set(REVISION_HEADER,COACH_REVISION);
-  const response=await fetch(input,{...init,headers});
+  const response=await fetch(input,{...init,headers,cache:"no-store"});
   if(response.ok && response.headers.get(REVISION_HEADER)!==COACH_REVISION) {
     void response.body?.cancel().catch(()=>{});
     throw new Error("Coach build changed");

@@ -8,12 +8,12 @@ test('typed thanks is an immediate acknowledgement; arrow and Enter share the re
  await questionInput(page,'en').fill('Thanks');await questionInput(page,'en').press('Enter');await expect(page.locator('[data-message-role="user"]')).toHaveCount(2);expect(traffic.chat).toHaveLength(0);
  await submitQuestion(page,'en');expect(traffic.chat).toHaveLength(1);await expect(assistant(page)).toContainText('30,97');
 });
-test('loading is immediate, Stop cancels pending audio, completed replay makes no second request',async({page})=>{
+test('loading is immediate, Stop cancels pending audio, every Listen makes a fresh request',async({page})=>{
  await setupVoice(page,'en','available',{privacy:false,provider:'gemini'});await mockHostedVoice(page,'en');const {answer}=await submitQuestion(page,'en');
  let release!:()=>void;const gate=new Promise<void>(r=>release=r);let calls=0;
  await page.route('**/api/voice/speak',async route=>{calls++;if(calls===1)await gate;await route.fulfill({body:'synthetic WAV',headers:{'content-type':'audio/wav','x-money-coach-revision':route.request().headers()['x-money-coach-revision']}}).catch(()=>{});});
  await answer.getByRole('button',{name:'Listen to answer',exact:true}).click();await expect(answer.getByText('Preparing audio…',{exact:true})).toBeVisible();await answer.getByRole('button',{name:'Stop',exact:true}).click();release();await expect(answer.getByText('Preparing audio…',{exact:true})).toHaveCount(0);expect(await page.evaluate(()=>window.voiceTest.plays)).toBe(0);
- await answer.getByRole('button',{name:'Listen to answer',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.voiceTest.plays)).toBe(1);await answer.getByRole('button',{name:'Stop',exact:true}).click();await answer.getByRole('button',{name:'Listen to answer',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.voiceTest.plays)).toBe(2);expect(calls).toBe(2);
+ await answer.getByRole('button',{name:'Listen to answer',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.voiceTest.plays)).toBe(1);await answer.getByRole('button',{name:'Stop',exact:true}).click();await answer.getByRole('button',{name:'Listen to answer',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.voiceTest.plays)).toBe(2);expect(calls).toBe(3);
 });
 test('empty hosted transcript preserves draft and lets the next recording succeed',async({page})=>{
  await setupVoice(page,'en','available',{privacy:false,provider:'gemini'});await mockHostedVoice(page,'en');let count=0;
@@ -30,11 +30,11 @@ for(const [language,thanks] of [['en','thank you'],['fi','kiitos'],['et','tänan
  await expect(page.locator('[data-message-role="user"]').last()).toContainText('How much did I spend on taxis last month');await expect(questionInput(page,'en')).toHaveValue('');
  expect(traffic.chat.length).toBe(language==='es'||language==='ja'?0:1);expect(traffic.audio).toHaveLength(0);
 });
-test('language commands preserve conversation and English survives reload',async({page})=>{
+test('language commands preserve the current conversation but reload never restores cached answers',async({page})=>{
  await setupVoice(page,'en');await submitQuestion(page,'en');
  for(const command of ['Vasta sellele hispaania keeles','Vasta edaspidi jaapani keeles','Switch the whole app back to English']){await questionInput(page,'en').fill(command);await questionInput(page,'en').press('Enter');}
  await expect(page.locator('[data-message-role="user"]')).toHaveCount(4);await expect(page.locator('[data-message-role="assistant"]').first()).toContainText('30,97');
- await page.reload();await page.getByRole('tab',{name:'Coach',exact:true}).click();await expect(page.locator('[data-message-role="user"]')).toHaveCount(4);await expect(page.locator('[data-message-role="assistant"]').first()).toContainText('30,97');
+ await page.reload();await page.getByRole('tab',{name:'Coach',exact:true}).click();await expect(page.locator('[data-message-role="user"]')).toHaveCount(0);await expect(page.locator('[data-message-role="assistant"]')).toHaveCount(0);expect(await page.evaluate(()=>Object.keys(sessionStorage).filter(key=>key.startsWith('money-coach-thread.')))).toEqual([]);
  await page.getByRole('button',{name:'Settings',exact:true}).click();await expect(page.getByRole('radio',{name:'English',exact:true})).toBeChecked();
 });
 test('fresh dining scenario and next audio use the same percentage and baseline',async({page})=>{
@@ -53,7 +53,7 @@ test('generated ES and JA UI preserves the thread; Settings and command restore 
  await page.route('**/api/language',route=>{const {language,keys}=route.request().postDataJSON();return route.fulfill({json:{translations:Object.fromEntries(keys.map((key:string)=>[key,`${language} ${generatedCatalog[key]}`]))},headers:{'x-money-coach-revision':route.request().headers()['x-money-coach-revision']}});});
  for(const [name,code] of [['Spanish','es'],['Japanese','ja']]){await page.locator('input[autocomplete="off"]').fill(`Switch the whole app to ${name}`);await page.locator('input[autocomplete="off"]').press('Enter');await expect(page.locator(`div[lang="${code}"]`)).toBeVisible();await expect(page.locator('[data-message-role="assistant"]').first()).toContainText('30,97');}
  await page.getByRole('button',{name:'ja Settings',exact:true}).click();await page.getByRole('radio',{name:'English',exact:true}).click();await expect(page.getByRole('heading',{name:'Settings',exact:true})).toBeVisible();await page.getByRole('button',{name:'Back',exact:true}).click();
- await questionInput(page,'en').fill('Switch the whole app back to English');await questionInput(page,'en').press('Enter');await page.reload();await page.getByRole('tab',{name:'Coach',exact:true}).click();await expect(page.locator('[data-message-role="assistant"]').first()).toContainText('30,97');
+ await questionInput(page,'en').fill('Switch the whole app back to English');await questionInput(page,'en').press('Enter');await page.reload();await page.getByRole('tab',{name:'Coach',exact:true}).click();await expect(page.locator('[data-message-role="assistant"]')).toHaveCount(0);
 });
 test('dictation end and simultaneous form submission send a financial question exactly once',async({page})=>{
  const traffic=await setupVoice(page,'en');const question='How much did I spend on taxis last month?';await questionInput(page,'en').fill(question);await page.getByRole('button',{name:'Voice input',exact:true}).click();

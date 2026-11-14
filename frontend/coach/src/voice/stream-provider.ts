@@ -5,7 +5,7 @@ const usageSchema=z.object({total_input_tokens:z.number().int().nonnegative(),to
 /** Gemini Interactions step.delta audio is 24 kHz mono signed little-endian PCM. */
 export async function streamSpeech(key:string,text:string,signal:AbortSignal,onAudio:(data:string,providerMs:number)=>void,network:typeof fetch=globalThis.fetch):Promise<{usage:VoiceUsage}>{
  const start=performance.now(),bounded=AbortSignal.any([signal,AbortSignal.timeout(30000)]);
- const response=await network(VOICE_ENDPOINT,{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':key,'Api-Revision':'2026-05-20'},redirect:'error',signal:bounded,body:JSON.stringify({model:SPEECH_MODEL,input:[{type:'user_input',content:[{type:'text',text}]}],response_format:{type:'audio',mime_type:'audio/l16',sample_rate:24000},generation_config:{speech_config:[{voice:'Kore'}]},stream:true})});
+ const response=await network(VOICE_ENDPOINT,{method:'POST',cache:'no-store',headers:{'content-type':'application/json','x-goog-api-key':key,'Api-Revision':'2026-05-20'},redirect:'error',signal:bounded,body:JSON.stringify({model:SPEECH_MODEL,input:[{type:'user_input',content:[{type:'text',text}]}],response_format:{type:'audio',mime_type:'audio/l16',sample_rate:24000},generation_config:{speech_config:[{voice:'Kore'}]},stream:true})});
  if(!response.ok){void response.body?.cancel();throw new VoiceError(response.status===429?'provider_wait':'provider_rejected');}
  const reader=response.body?.getReader();if(!reader)throw new VoiceError('provider_shape');
  const decoder=new TextDecoder();let buffer='',size=0,chunks=0,usage:VoiceUsage|null=null;const outputs=new Set<number>();

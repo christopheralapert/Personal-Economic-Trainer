@@ -44,7 +44,7 @@ for(const sample of cases) test(`main demo Coach: ${sample.locale} sentence, con
  expect(stream).toContain('"start":"2026-07-01","end":"2026-08-01"');expect(stream).toContain('"category":"taxi"');
  await expect(answers(page)).toHaveCount(2);
  await expect(first.locator("[data-spoken-answer]")).toHaveText(sample.sentence);
- await page.reload();await expect(answers(page)).toHaveCount(2);
+ await page.reload();await expect(answers(page)).toHaveCount(0);await ask(sample.question);await expect(answers(page)).toHaveCount(1);
  await expect(answers(page).first().locator("[data-spoken-answer]")).toHaveText(sample.sentence);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });

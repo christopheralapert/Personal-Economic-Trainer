@@ -6,7 +6,6 @@ import {DatasetPicker} from "./dataset-picker";
 import {PersonalizedLearn} from "./personalized-learn";
 import {MyDataPanel} from "./my-data-panel";
 import {ConversationEntry} from "./conversation-entry";
-import {decodeThread,encodeThread,threadKey} from "@/lib/session-thread";
 import {QuestionGrid} from "./question-grid";
 import {usePlanning} from "@/lib/planning-context";
 import {useCallback,useEffect,useMemo,useRef,useState} from "react";
@@ -67,18 +66,15 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
   const transport=useMemo(()=>new DefaultChatTransport<CoachMessage>({api:"/api/chat",fetch:coachFetch,prepareSendMessagesRequest:prepareCoachRequest}),[]);
   const chat=useChat<CoachMessage>({id:`money-coach:conversation:${signature}`,transport,onError:()=>{void localAnswer();}});
   const setMessages=chat.setMessages;
-  const [restoredLocale,setRestoredLocale]=useState<string|null>(null);
   const lastScroll=useRef("");
   const messageViews=useRef(new Map<string,ReturnType<typeof createViewStore>>());
   useEffect(()=>{
     if(!sourceReady)return;
     latest.current++;pending.current=null;sending.current=false;setLocalBusy(false);
     setChatViews(messageViews.current.get(signature)??createViewStore());
-    try {setMessages(decodeThread(sessionStorage.getItem(threadKey('en')),'en',signature));}catch{setMessages([]);}
-    setRestoredLocale(signature);
+    setMessages([]);
   },[sourceReady,signature,setMessages]);
   useEffect(()=>{messageViews.current.set(signature,chatViews);},[signature,chatViews]);
-  useEffect(()=>{if(!sourceReady || restoredLocale!==signature || chat.status!=="ready") return;try {const encoded=encodeThread(chat.messages,'en',signature);if(encoded!==null) sessionStorage.setItem(threadKey('en'),encoded);}catch{}},[sourceReady,chat.messages,chat.status,signature,restoredLocale]);
   const busy=localBusy || chat.status==="submitted" || chat.status==="streaming";
   useKeyboardViewport((tab==="coach" && !settings && !goal && !controlsOpen));
   async function localAnswer() {
@@ -89,7 +85,7 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
       const answer:CoachMessage=['en','fi','et'].includes(current.language)?{...await new RuleProvider().answer(question,current.language as Locale,current.savings,{context:current.context,period:current.period,data:current.data}),metadata:{answerMode:"rule",language:current.language}}:{id:crypto.randomUUID(),role:'assistant',parts:[{type:'text',text:localLanguageUnavailable(current.locale)}],metadata:{answerMode:'rule',language:current.locale}};
       if(current.generation!==latest.current) return;
       const messages:CoachMessage[]=[...current.messages,{id:crypto.randomUUID(),role:"user",parts:[{type:"text",text:current.question}]},answer];
-      chat.setMessages(messages);try{const encoded=encodeThread(messages,'en',current.signature);if(encoded!==null)sessionStorage.setItem(threadKey('en'),encoded);}catch{}
+      chat.setMessages(messages);
       setFallback(true);
     } catch {if(current.generation===latest.current) setRequestFailed(true);}
     finally {if(current.generation===latest.current){sending.current=false;setLocalBusy(false);}}
@@ -124,7 +120,7 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
     finally {if(generation===latest.current && pending.current){pending.current=null;sending.current=false;}}
   }
   function stop() {latest.current++;pending.current=null;sending.current=false;window.dispatchEvent(new Event('money-coach-stop-translation'));void chat.stop();setLocalBusy(false);}
-  function clear() {try{sessionStorage.removeItem(threadKey('en'));}catch{}stop();setConversationLocale(locale);setChatViews(createViewStore());chat.setMessages([]);chat.clearError();setFallback(false);setRequestFailed(false);}
+  function clear() {stop();setConversationLocale(locale);setChatViews(createViewStore());chat.setMessages([]);chat.clearError();setFallback(false);setRequestFailed(false);}
   useEffect(()=>{
     if(!sourceReady)return;
     const url=new URL(window.location.href),question=url.searchParams.get("question");

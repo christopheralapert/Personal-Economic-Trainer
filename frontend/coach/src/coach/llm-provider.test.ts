@@ -27,6 +27,17 @@ function facts(message:Awaited<ReturnType<RuleProvider["answer"]>>) {
 }
 
 describe("real SDK adapter over an entirely local fake OpenAI transport",()=>{
+  it('makes a fresh call and generates chart guidance while keeping facts and selectors server-owned',async()=>{
+    const fake=simulatedOpenAI('showTransactions',{period:lastMonth,category:'taxi',nextStep:'Review your recent rides before choosing a transport habit to change.'});
+    const provider=new LLMProvider(fake.model);
+    for(let index=0;index<2;index++){
+      const result=await provider.answerWithOutcome(dictionaries.en.qTaxi,'en',10);
+      expect(result.source).toBe('model');expect(result.message.metadata).toEqual({generatedGuidance:true});expect(result.message.parts.at(-1)).toMatchObject({text:'Review your recent rides before choosing a transport habit to change.'});
+      const tool=result.message.parts.find(part=>part.type==='tool-showTransactions');expect(tool).toMatchObject({input:{period:lastMonth,category:'taxi'}});expect(JSON.stringify(tool)).not.toContain('nextStep');
+    }
+    expect(fake.requests).toHaveLength(2);
+    for(const nextStep of ['Invented spending 999999 EUR','<script>bad</script>'])expect((await new LLMProvider(simulatedOpenAI('showTransactions',{period:lastMonth,category:'taxi',nextStep}).model).answerWithOutcome(dictionaries.en.qTaxi,'en',10)).source).toBe('rule');
+  });
   it("renders synthetic peer numbers from the server tool without sending persona context or rows",async()=>{
     const data=await loadDataset("organizer1"),period={start:"2026-08-01",end:"2026-09-01"};
     const fake=simulatedOpenAI("peerComparison",{period,metric:"dining"});

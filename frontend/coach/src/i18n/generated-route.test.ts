@@ -4,9 +4,9 @@ import {COACH_REVISION,REVISION_HEADER} from '@/coach/transport';
 import {checkedTranslations,validLanguage,generatedCatalog} from './generated-catalog';
 const origin='http://127.0.0.1:33134',env={VERDA_INFERENCE_KEY:'synthetic-test-key',MONEY_COACH_GENERATED_LANGUAGES_ENABLED:'true',MONEY_COACH_PUBLIC_AI_ORIGINS:origin};
 const request=(privacy='off',body:unknown={language:'es',keys:['coach','learn']})=>new Request(origin+'/api/language',{method:'POST',headers:{origin,host:new URL(origin).host,'content-type':'application/json','X-Money-Coach-Privacy':privacy,[REVISION_HEADER]:COACH_REVISION},body:JSON.stringify(body)});
-it('sends only server-owned UI copy and caches validated translations',async()=>{
+it('sends only server-owned UI copy and generates fresh translations for identical requests',async()=>{
  const network=vi.fn<typeof fetch>(async()=>Response.json({choices:[{message:{tool_calls:[{function:{name:'translate_ui',arguments:JSON.stringify({label_0:'Asesor',label_1:'Aprender'})}}]}}]}));
- const route=createTranslationRoute({env,network});expect((await route(request())).status).toBe(200);expect((await route(request())).status).toBe(200);expect(network).toHaveBeenCalledTimes(1);
+ const route=createTranslationRoute({env,network});for(let i=0;i<2;i++){const response=await route(request());expect(response.status).toBe(200);expect(response.headers.get('cache-control')).toBe('private, no-store');expect((await response.json()).cached).toBe(false);}expect(network).toHaveBeenCalledTimes(2);expect(network.mock.calls.every(([,init])=>init?.cache==='no-store')).toBe(true);
  const body=JSON.parse(network.mock.calls[0][1]!.body as string),payload=JSON.parse(body.messages[1].content);expect(payload).toEqual({language:'es',source:{label_0:'Coach',label_1:'Learn'}});expect(JSON.stringify(body)).not.toMatch(/accountId|merchant|transactions|3097/);
 });
 it('privacy, unknown keys and invalid translations fail closed',async()=>{

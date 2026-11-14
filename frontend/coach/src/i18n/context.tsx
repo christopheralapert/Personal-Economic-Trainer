@@ -5,11 +5,13 @@ import {translate} from "./translate";
 import {conversationLanguage,type ConversationLanguage} from '@/coach/conversation-language';
 import {loadGeneratedLanguage} from './generated-client';
 import {learningCopy} from './learning';
+import {clearGeneratedResults} from '@/lib/clear-generated-results';
 export {translate,categoryKey,categoryLabel,basketLabel} from "./translate";
 export {type Key,type Locale} from "./dictionaries";
 type State={locale:Locale;uiLanguage:string;setAppLanguage:(language:string)=>Promise<boolean>;languageStatus:string;learning:typeof learningCopy.en;setLocale:(locale:Locale)=>void;conversationLocale:ConversationLanguage;setConversationLocale:(value:ConversationLanguage)=>void;savings:number;setSavings:(n:number)=>void;privacy:boolean;setPrivacy:(value:boolean)=>void;voiceProvider:"browser"|"gemini";setVoiceProvider:(value:"browser"|"gemini")=>void;t:(key:Key,values?:Record<string,string|number>)=>string};
 const Context=createContext<State|null>(null);
 export function Preferences({children}:{children:ReactNode}) {
+  useEffect(()=>{try{clearGeneratedResults(localStorage);clearGeneratedResults(sessionStorage);}catch{}},[]);
   const [locale,changeLocale]=useState<Locale>("en"),[savings,changeSavings]=useState(10),[privacy,changePrivacy]=useState(true);
   const [voiceProvider,changeVoiceProvider]=useState<"browser"|"gemini">("browser");
   const [generated,setGenerated]=useState<{language:string;copy:Record<string,string>}|null>(null),[languageStatus,setLanguageStatus]=useState(''),translationRequest=useRef<AbortController|null>(null);

@@ -32,7 +32,7 @@ export function createPublicCoachExecutor({env=process.env,network=globalThis.fe
   try {
    const result=await withVoiceReservation(file,null,"coach",async()=>{
     const model=createOpenAI({apiKey:key,baseURL:"https://generativelanguage.googleapis.com/v1beta/openai",fetch:transport.fetch}).chat(GEMINI_MODEL);
-    const outcome=await new LLMProvider(model,{nonStreaming:true,maxOutputTokens:GEMINI_MAX_OUTPUT_TOKENS}).answerWithOutcome(question,locale,savingsPercent,execution);
+    const outcome=await new LLMProvider(model,{nonStreaming:true,maxOutputTokens:GEMINI_MAX_OUTPUT_TOKENS,requireNextStep:true}).answerWithOutcome(question,locale,savingsPercent,execution);
     await transport.settle(outcome.usage,outcome.reason);throwIfCancelled(request.signal);
     const receipt=outcome.usage,usage=receipt && receipt.inputTokens!==null && receipt.outputTokens!==null && receipt.totalTokens!==null && receipt.totalTokens>0 ? {total_input_tokens:receipt.inputTokens,total_output_tokens:receipt.outputTokens,total_tokens:receipt.totalTokens} : null;
     return {outcome,usage};

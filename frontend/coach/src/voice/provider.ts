@@ -12,7 +12,7 @@ export type VoiceUsage=z.infer<typeof resultSchema>["usage"];
 export function createVoiceProvider(key:string,network:typeof fetch=globalThis.fetch){
  async function call(body:unknown,signal:AbortSignal){
   const timer=AbortSignal.timeout(30000);
-  let response:Response;try {response=await network(VOICE_ENDPOINT,{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":key,"Api-Revision":"2026-05-20"},body:JSON.stringify(body),redirect:"error",signal:AbortSignal.any([signal,timer])});}
+  let response:Response;try {response=await network(VOICE_ENDPOINT,{method:"POST",cache:"no-store",headers:{"content-type":"application/json","x-goog-api-key":key,"Api-Revision":"2026-05-20"},body:JSON.stringify(body),redirect:"error",signal:AbortSignal.any([signal,timer])});}
   catch {throw new VoiceError(signal.aborted ? "cancelled" : timer.aborted ? "timeout" : "provider_unavailable",signal.aborted ? 499 : 502);}
   if(!response.ok){void response.body?.cancel().catch(()=>{});const wait=response.headers.get("retry-after");throw new VoiceError(response.status===429 ? "provider_wait" : "provider_rejected",response.status===429 ? 429 : 502,wait && /^\d{1,5}$/.test(wait) ? wait : undefined);}
   // Bound before JSON parsing; provider errors/body content never enter logs.

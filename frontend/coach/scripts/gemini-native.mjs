@@ -19,7 +19,7 @@ export function createGeminiNativeTransport(network=globalThis.fetch) {
       return {name:item.function.name,description:item.function.description,parametersJsonSchema:item.function.parameters};
     });
     const request={systemInstruction:{parts:system},contents,tools:[{functionDeclarations:declarations}],toolConfig:{functionCallingConfig:{mode:"ANY"}},generationConfig:{maxOutputTokens:body.max_tokens,thinkingConfig:{thinkingLevel:"MINIMAL"}}};
-    const response=await network("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":authorization.slice(7)},body:JSON.stringify(request),signal:init.signal,redirect:"error"});
+    const response=await network("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",{method:"POST",cache:"no-store",headers:{"content-type":"application/json","x-goog-api-key":authorization.slice(7)},body:JSON.stringify(request),signal:init.signal,redirect:"error"});
     if(!response.ok) return response;
     let data;try {data=await response.json();} catch {throw failed("native_response_invalid");}
     if(data?.usageMetadata && typeof data.usageMetadata==="object") {

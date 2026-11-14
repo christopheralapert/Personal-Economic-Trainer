@@ -11,5 +11,6 @@ export async function mockGeminiFetch(url,init) {
   const choices=geminiCases[process.env.MONEY_COACH_GEMINI_CASE??"taxi"]??[];
   const selected=choices.find(item=>item.question===question);
   if(!selected) throw new Error("Unknown mock question");
-  return Response.json({candidates:[{content:{role:"model",parts:[{functionCall:{name:selected.tool,args:selected.input}}]},finishReason:"STOP",index:0}],usageMetadata:{promptTokenCount:100,candidatesTokenCount:15,thoughtsTokenCount:10,totalTokenCount:125}});
+  const declaration=body.tools[0].functionDeclarations.find(item=>item.name===selected.tool),input={...selected.input,...(declaration?.parametersJsonSchema.required?.includes('nextStep')?{nextStep:'Review the matching records before choosing a habit to change.'}:{})};
+  return Response.json({candidates:[{content:{role:"model",parts:[{functionCall:{name:selected.tool,args:input}}]},finishReason:"STOP",index:0}],usageMetadata:{promptTokenCount:100,candidatesTokenCount:15,thoughtsTokenCount:10,totalTokenCount:125}});
 }
