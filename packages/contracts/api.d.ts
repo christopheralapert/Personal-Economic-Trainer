@@ -3783,6 +3783,16 @@ export interface components {
        */
       account_ids?: string[] | null;
       /**
+       * Amount Max Minor
+       * @default null
+       */
+      amount_max_minor?: number | null;
+      /**
+       * Amount Min Minor
+       * @default null
+       */
+      amount_min_minor?: number | null;
+      /**
        * Category
        * @default null
        */
@@ -3944,6 +3954,10 @@ export interface components {
     LedgerSearchArgumentsV1: {
       /** Account Ids */
       account_ids?: string[] | null;
+      /** Amount Max Minor */
+      amount_max_minor?: number | null;
+      /** Amount Min Minor */
+      amount_min_minor?: number | null;
       /** Category */
       category?: string | null;
       /**
@@ -6221,6 +6235,8 @@ export interface operations {
         status?: "booked" | "pending" | "reversed";
         spending_only?: boolean;
         needs_review?: boolean;
+        amount_min_minor?: number | null;
+        amount_max_minor?: number | null;
       };
       header?: {
         /** @description Optional expected session ID; a cookie/profile switch rejects the request instead of returning another session's data. */
@@ -6259,6 +6275,8 @@ export interface operations {
         status?: "booked" | "pending" | "reversed";
         spending_only?: boolean;
         needs_review?: boolean;
+        amount_min_minor?: number | null;
+        amount_max_minor?: number | null;
       };
       header?: {
         /** @description Optional expected session ID; a cookie/profile switch rejects the request instead of returning another session's data. */
@@ -7577,6 +7595,8 @@ export interface operations {
         status?: "booked" | "pending" | "reversed";
         spending_only?: boolean;
         needs_review?: boolean;
+        amount_min_minor?: number | null;
+        amount_max_minor?: number | null;
       };
       header?: {
         /** @description Optional expected session ID; a cookie/profile switch rejects the request instead of returning another session's data. */
@@ -8021,6 +8041,8 @@ export interface operations {
         status?: "booked" | "pending" | "reversed";
         spending_only?: boolean;
         needs_review?: boolean;
+        amount_min_minor?: number | null;
+        amount_max_minor?: number | null;
       };
       header?: {
         /** @description Optional expected session ID; a cookie/profile switch rejects the request instead of returning another session's data. */
@@ -8058,6 +8080,8 @@ export interface operations {
         status?: "booked" | "pending" | "reversed";
         spending_only?: boolean;
         needs_review?: boolean;
+        amount_min_minor?: number | null;
+        amount_max_minor?: number | null;
       };
       header?: {
         /** @description Optional expected session ID; a cookie/profile switch rejects the request instead of returning another session's data. */

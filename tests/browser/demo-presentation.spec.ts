@@ -83,7 +83,7 @@ for(const [path,label] of [["/","Try with sample data"],["/access","Try with sam
 
 test("legacy demo-bank entry opens the import-first landing without a bank picker",async({page,demoTraffic})=>{
  await page.goto('/demo/banks');await expect(page).toHaveURL(/\/demo$/);
- await expect(page.getByRole('link',{name:'Import bank statement',exact:true})).toHaveAttribute('href','/import');
+  await expect(page.getByRole('link',{name:'Import bank statement',exact:true})).toHaveCount(0);
  await expect(page.getByRole('link',{name:'Try file import',exact:true})).toHaveAttribute('href','/demo/import');
  await expect(page.getByRole('heading',{name:'Choose your bank',exact:true})).toHaveCount(0);expect(demoTraffic.privatePaths).toEqual([]);
 });

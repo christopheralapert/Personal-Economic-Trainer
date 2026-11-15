@@ -48,7 +48,9 @@ export function sourceInventory(data:Dataset=demo) {
   }
   return {count:rows.length,accounts:data.accounts.filter(account=>account.included).length,first,last,statuses,asOf:sourceDate(data.as_of),timezone:"Europe/Helsinki" as const};
 }
-export const transactionFiltersSchema=z.object({basket:basketSchema.optional(),category:z.string().min(1).max(80).optional(),merchant:z.string().min(1).max(120).optional()}).strict();
+export const transactionFiltersSchema=z.object({basket:basketSchema.optional(),category:z.string().min(1).max(80).optional(),merchant:z.string().min(1).max(120).optional(),
+  amount_min_minor:z.number().int().safe().nonnegative().optional(),amount_max_minor:z.number().int().safe().nonnegative().optional(),
+}).strict().refine(value=>(value.amount_min_minor??0)<=(value.amount_max_minor??Number.MAX_SAFE_INTEGER),{message:"Invalid magnitude range"});
 export type TransactionFilters=z.infer<typeof transactionFiltersSchema>;
 export const transactionStatusFilterSchema=z.enum(["all","booked","reserved","reversed"]);
 export type TransactionStatusFilter=z.infer<typeof transactionStatusFilterSchema>;
@@ -59,7 +61,9 @@ export function transactionHistory(period:Period,status:TransactionStatusFilter=
   return periodTransactions(data,period.start,period.end,(row,merchantName)=>(status==="all" || row.status===(status==="reserved" ? "pending" : status))
     && (filters.basket===undefined || row.basket===filters.basket)
     && (filters.category===undefined || row.category===filters.category)
-    && (merchant===undefined || merchantName.includes(merchant)));
+    && (merchant===undefined || merchantName.includes(merchant))
+    && (filters.amount_min_minor===undefined || Math.abs(row.amount_minor)>=filters.amount_min_minor)
+    && (filters.amount_max_minor===undefined || Math.abs(row.amount_minor)<=filters.amount_max_minor));
 }
 export function records(period:Period,data:Dataset=demo,filters:TransactionFilters={}):Transaction[] {
   return transactionHistory(period,"booked",data,filters);

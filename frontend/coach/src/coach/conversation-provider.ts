@@ -6,6 +6,7 @@ import {hasOnlyGroundedNumbers} from './answer-grounding';
 import {spokenAnswer} from './spoken-answer';
 import {resolveQuestion} from './resolve-question';
 import {requestForIntent} from './intent';
+import {amountSelection} from './amount-search';
 import {RuleProvider} from './rule-provider';
 import {throwIfCancelled,type CoachExecution} from './execution';
 import {sourceDate} from '@/engine/source-date';
@@ -27,6 +28,17 @@ const plain=(text:string)=>!/[<>]|https?:\/\//iu.test(text) && !/[\u0000-\u0008\
 const readable=(text:string)=>text.replace(/\*\*([^*\n]+)\*\*/gu,'$1').replace(/__([^_\n]+)__/gu,'$1');
 const unverifiedMoney=(text:string)=>/[€$£]|\b(?:EUR|USD|GBP)\b/iu.test(text)||/(?:(?:you (?:spent|earned|have)|your (?:balance|income|spending|expenses)|kulutasid|sinu (?:saldo|tulu|kulud)|käytit|saldosi|menosi)[^.!?\n]*\p{N})/iu.test(text);
 class ConversationError extends Error{constructor(readonly diagnostic:string){super('Coach conversation unavailable');}}
+/** Diagnose connection failures without serializing messages, URLs or payloads. */
+function transportDiagnostic(error:unknown):string{
+ let cause:unknown=error;
+ for(let depth=0;depth<6 && cause!==null && typeof cause==='object';depth++){
+  const detail=cause as {code?:unknown;cause?:unknown};
+  if(detail.code==='EACCES'||detail.code==='EPERM')return 'provider_network_access_denied';
+  if(['ENOTFOUND','EAI_AGAIN','ECONNREFUSED','ECONNRESET','ETIMEDOUT','ENETUNREACH'].includes(String(detail.code)))return 'provider_network_unavailable';
+  cause=detail.cause;
+ }
+ return 'conversation_invalid';
+}
 
 /** Only aggregate facts leave the server. Ledger rows, identities and balances never do. */
 export function conversationFacts(name:ToolName,input:Record<string,unknown>,output:unknown,locale:ConversationLanguage){
@@ -49,7 +61,7 @@ export class ConversationProvider{
   let inputTokens=0,outputTokens=0,calls=0,modelMs=0,appMs=0;
   const usage=()=>inputTokens+outputTokens>0?{total_input_tokens:inputTokens,total_output_tokens:outputTokens,total_tokens:inputTokens+outputTokens}:null;
   const fallback=async(diagnostic:string)=>({message:await new RuleProvider().answer(question,locale,savingsPercent,execution),source:'rule' as const,diagnostic,usage:usage(),timing:{modelMs,appMs,calls}});
-  if(amountFilter.test(question))return {...await fallback('unsupported_amount_filter'),message:{id:crypto.randomUUID(),role:'assistant',parts:[{type:'text',text:{en:'Amount-filtered transaction searches are not supported yet. Ask for all taxi transactions in the period instead.',fi:'Summarajattua tapahtumahakua ei vielä tueta. Voit pyytää ajanjakson kaikki taksitapahtumat.',et:'Summapiiranguga tehinguotsing ei ole veel toetatud. Küsi selle asemel perioodi kõiki taksotehinguid.'}[locale]}]} as CoachMessage};
+  if((amountSelection(question).present || amountFilter.test(question)) && !(intent.status==='ready' && intent.tool==='showTransactions' && (intent.scope.amount_min_minor!==undefined || intent.scope.amount_max_minor!==undefined)))return fallback('unsupported_amount_filter');
   if(intent.status==='unsupported' && intent.reason==='INVALID_QUESTION')return fallback('invalid_question');
   const controller=new AbortController(),cancel=()=>controller.abort();execution.signal?.addEventListener('abort',cancel,{once:true});
   const timer=setTimeout(cancel,20000);
@@ -112,7 +124,7 @@ export class ConversationProvider{
    throwIfCancelled(execution.signal);
    const answer=answerFromTool(name,input,output,locale);answer.parts=[{type:'text',text},...answer.parts.filter(part=>part.type!=='text')];answer.metadata={generatedConversation:true};
    return {message:answer,source:'model' as const,diagnostic:'model_conversation_tool',usage:usage(),timing:{modelMs,appMs,calls}};
-  }catch(error){throwIfCancelled(execution.signal);return fallback(controller.signal.aborted?'conversation_timeout':error instanceof ConversationError?error.diagnostic:'conversation_invalid');}
+  }catch(error){throwIfCancelled(execution.signal);return fallback(controller.signal.aborted?'conversation_timeout':error instanceof ConversationError?error.diagnostic:transportDiagnostic(error));}
   finally{clearTimeout(timer);execution.signal?.removeEventListener('abort',cancel);}
  }
 }

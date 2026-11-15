@@ -34,9 +34,18 @@ class LedgerSearchArgumentsV1(AnalysisWindowV1):
     spending_only: StrictBool = False
     cursor: str | None = Field(default=None,max_length=4096)
     limit: Annotated[StrictInt,Field(ge=1,le=100)] = 50
+    amount_min_minor: Annotated[StrictInt,Field(ge=0,le=2**53-1)] | None = None
+    amount_max_minor: Annotated[StrictInt,Field(ge=0,le=2**53-1)] | None = None
+
+    @model_validator(mode="after")
+    def valid_amount_range(self):
+        if self.amount_min_minor is not None and self.amount_max_minor is not None and self.amount_min_minor>self.amount_max_minor:
+            raise ValueError("Minimum magnitude exceeds maximum")
+        return self
 
     def filters(self):
-        return super().filters().model_copy(update={"status":self.status,"spending_only":self.spending_only})
+        return super().filters().model_copy(update={"status":self.status,"spending_only":self.spending_only,
+            "amount_min_minor":self.amount_min_minor,"amount_max_minor":self.amount_max_minor})
 
 
 class SpendingArgumentsV1(AnalysisWindowV1):

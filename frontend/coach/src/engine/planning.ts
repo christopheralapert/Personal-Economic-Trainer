@@ -2,11 +2,11 @@ import {demo,monthPeriod,records,spendByBasket,safeToSpend,basisPointAmount,exac
 import {sourceDate} from "./source-date";
 export function recurringIncome(data:Dataset=demo,today=sourceDate(data.as_of)) {
  const groups=new Map<string,ReturnType<typeof records>>();
- for(const row of records({start:monthPeriod(today,-5).start,end:today},data)) if(row.economic_flow==="income" && row.amount_minor>0) {const key=row.merchant.trim().toLocaleLowerCase();groups.set(key,[...(groups.get(key)??[]),row]);}
+ for(const row of records({start:monthPeriod(today,-5).start,end:today},data)) if(row.economic_flow==="income" && row.amount_minor>0) {const key=`${row.account_id}/${row.merchant.trim().toLocaleLowerCase()}`;groups.set(key,[...(groups.get(key)??[]),row]);}
  const candidates=[];
  for(const rows of groups.values()) {
   rows.sort((a,b)=>a.booked_on.localeCompare(b.booked_on));const recent=rows.slice(-3);
-  if(recent.length<3) continue;
+  if(recent.length<3 || recent[2].booked_on<monthPeriod(today,-1).start) continue;
   const amounts=recent.map(r=>r.amount_minor).sort((a,b)=>a-b),median=amounts[1];
   if(recent.some(r=>Math.abs(r.amount_minor-median)>median*.2)) continue;
   if(recent.slice(1).some((r,i)=>{const days=(Date.parse(r.booked_on)-Date.parse(recent[i].booked_on))/86400000;return days<25 || days>35;})) continue;
@@ -23,10 +23,13 @@ export function weeklyRange({data=demo,today=sourceDate(data.as_of),income=null,
  // Estimates reduce existing headroom through a target reserve, never increase its balance.
  const target=estimate===null ? 0 : basisPointAmount(estimate,savingsPercent*100);
  const available=review.illustrativeHeadroom===null ? null : Math.max(0,review.illustrativeHeadroom-Math.max(0,target-(review.savings??0)));
- const confidence=estimate!==null && billsConfirmed && classificationsReviewed ? "medium" as const : "low" as const;
- const cap=available===null ? null : Math.floor(available*(confidence==="low" ? .25 : .5));
- const high=typical===null || cap===null || today!==sourceDate(data.as_of) ? null : Math.min(cap,typical);
- return {low:high===null ? null : Math.floor(high*.6),high,cap,confidence,estimate,incomeSource:income!==null ? "user" as const : estimate!==null ? "inferred" as const : null,typical,review};
+ // A checkbox cannot establish complete financial coverage. The demo stays
+ // low-confidence; the authenticated dated planner owns reviewed allowances.
+ const confidence="low" as const;
+ const cap=available===null ? null : Math.floor(available*.25);
+ const fresh=!review.reasons.some(reason=>reason==="date_mismatch" || reason==="balances_outdated");
+ const high=typical===null || cap===null || !fresh ? null : Math.min(cap,typical);
+ return {low:high===null ? null : Math.floor(high*.6),high,cap,confidence,estimate,incomeSource:income!==null ? "user" as const : estimate!==null ? "inferred" as const : null,typical,review,billsConfirmed,classificationsReviewed,observedMonths:observed.length};
 }
 export function defaultPeriod(data:Dataset=demo):Period {
  const today=sourceDate(data.as_of),month=monthPeriod(today),end=new Date(today+"T12:00:00Z");end.setUTCDate(end.getUTCDate()+1);

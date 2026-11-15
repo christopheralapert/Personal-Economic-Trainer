@@ -44,9 +44,18 @@ describe('fresh conversational Gemini with server-owned evidence',()=>{
   const network=vi.fn<typeof fetch>(async()=>response([{functionCall:{name:'showTransactions',args:{period:august,category:'taxi'}}},{functionCall:{name:'reply',args:{text:'extra'}}}]));
   expect((await new ConversationProvider('fake',network).answer('Taxi costs?','en',10,{data})).diagnostic).toBe('tool_validation');expect(network).toHaveBeenCalledTimes(1);
  });
- it('rejects amount-filtered searches before any provider request in EN FI ET',async()=>{
+ it('rejects unsupported-currency amount searches before any provider request in EN FI ET',async()=>{
   const network=vi.fn<typeof fetch>();
-  for(const [locale,question] of [['en','Show last month taxi rides over €20'],['fi','Näytä viime kuun yli 20 € taksimatkat'],['et','Näita eelmise kuu üle 20 € taksosõite']] as const){const result=await new ConversationProvider('fake',network).answer(question,locale,10);expect(result).toMatchObject({source:'rule',diagnostic:'unsupported_amount_filter',usage:null});expect(result.message.parts.every(part=>part.type==='text')).toBe(true);}expect(network).not.toHaveBeenCalled();
+  for(const [locale,question] of [['en','Show last month taxi rides over USD 20'],['fi','Näytä viime kuun yli USD 20 taksimatkat'],['et','Näita eelmise kuu üle USD 20 taksosõite']] as const){const result=await new ConversationProvider('fake',network).answer(question,locale,10);expect(result).toMatchObject({source:'rule',diagnostic:'unsupported_amount_filter',usage:null});expect(result.message.parts.every(part=>part.type==='text')).toBe(true);}expect(network).not.toHaveBeenCalled();
+ });
+ it('keeps an exact amount predicate through model selection, computation and grounded reply',async()=>{
+  const data=await loadDataset('organizer1'),network=fake('showTransactions',{period:august,category:'taxi',amount_min_minor:2001});
+  const answer=await new ConversationProvider('fake-secret',network).answer("Show last month's taxi rides over EUR 20.",'en',10,{data});
+  expect(answer).toMatchObject({source:'model',timing:{calls:2}});
+  expect(answer.message.parts.find(part=>part.type==='tool-showTransactions')).toMatchObject({input:{amount_min_minor:2001},output:{netExpenses:3097,total:1,filters:{amount_min_minor:2001}}});
+  const discarded=await new ConversationProvider('fake',fake()).answer("Show last month's taxi rides over EUR 20.",'en',10,{data});
+  expect(discarded).toMatchObject({source:'rule',diagnostic:'tool_validation'});
+  expect(discarded.message.parts.find(part=>part.type==='tool-showTransactions')).toMatchObject({input:{amount_min_minor:2001},output:{netExpenses:3097,total:1}});
  });
  it('does not disclose provider errors and keeps fallback source honest after a failed explanation',async()=>{
   const network=vi.fn<typeof fetch>(async()=>Response.json({error:{status:'RESOURCE_EXHAUSTED',message:'secret provider internals'}},{status:429}));
@@ -59,6 +68,14 @@ describe('fresh conversational Gemini with server-owned evidence',()=>{
   const late=new AbortController();const held=fake('reply',{text:'Hello there.'});held.mockImplementationOnce(async()=>{late.abort();return response([{functionCall:{name:'reply',args:{text:'Late reply'}}}]);});await expect(new ConversationProvider('fake',held).answer('Hi','en',10,{signal:late.signal})).rejects.toBeInstanceOf(CoachCancelledError);
   vi.useFakeTimers();const stalled=vi.fn<typeof fetch>(async(_url,init)=>new Promise<Response>((_resolve,reject)=>{init?.signal?.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true});}));
   const pending=new ConversationProvider('fake',stalled).answer('Hello','en',10);await vi.advanceTimersByTimeAsync(20000);expect(await pending).toMatchObject({source:'rule',diagnostic:'conversation_timeout'});expect(vi.getTimerCount()).toBe(0);
+ });
+ it('distinguishes blocked egress from invalid model output without leaking connection details',async()=>{
+  for(const [code,diagnostic] of [['EACCES','provider_network_access_denied'],['EPERM','provider_network_access_denied'],['ENOTFOUND','provider_network_unavailable']] as const){
+   const network=vi.fn<typeof fetch>(async()=>{throw new TypeError('private URL or key must not be returned',{cause:Object.assign(new Error('private request'),{code})});});
+   const result=await new ConversationProvider('secret-key',network).answer('What is an impulse purchase?','en',10);
+   expect(result).toMatchObject({source:'rule',diagnostic,timing:{calls:1}});
+   expect(JSON.stringify(result)).not.toMatch(/private URL|private request|secret-key/);
+  }
  });
  it('sanitizes dialogue and sends text-only bounded history, not client tool output',async()=>{
   expect(cleanConversationText('Contact alice@example.test on FI21 1234 5600 0007 85')).not.toContain('alice@example');

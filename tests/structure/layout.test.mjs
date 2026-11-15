@@ -14,6 +14,7 @@ test("frontend workspaces and lockfile point at existing applications",async()=>
   const manifest=await json("package.json"),lock=await json("package-lock.json");
   assert.deepEqual(manifest.workspaces,["frontend/web","frontend/coach"]);
   assert.deepEqual(lock.packages[""].workspaces,manifest.workspaces);
+  assert.deepEqual(lock.packages[""].devDependencies,manifest.devDependencies);
   for(const workspace of manifest.workspaces) {
     const app=await json(`${workspace}/package.json`);
     assert.equal(lock.packages[workspace].name,app.name);
@@ -44,7 +45,7 @@ test("backend migration and fixture paths retain repository-root boundaries",asy
     assert.equal(resolved,path.join(root,relative));
     assert.ok((await stat(resolved)).isDirectory());
   }
-  for(const relative of ["backend/workers/run.py","backend/api/requirements.txt","backend/db/migrations/sql/0001_owned_core.sql","fixtures/synthetic/demo.v1.json","frontend/prototype/index.html"]) {
+  for(const relative of ["backend/workers/run.py","backend/api/requirements.txt","backend/db/migrations/sql/0001_owned_core.sql","fixtures/synthetic/demo.v1.json"]) {
     assert.ok((await stat(path.join(root,relative))).isFile(),relative);
   }
   const config=await read("backend/api/pyproject.toml");

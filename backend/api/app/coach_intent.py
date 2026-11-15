@@ -15,6 +15,7 @@ from .contracts import Contract,Currency
 from .spending_habits import SpendingHabitsArgumentsV1
 from .spending_comparison import comparison_window
 from .identity import AuthError
+from .amount_search import amount_selection
 
 
 class CoachHistoryMessageV1(Contract):
@@ -145,7 +146,7 @@ def safe_history_text(text):
 
 
 ALIASES={**dict.fromkeys(("dining out","dining","ravintolat","ravintoloihin","ravintolakuluja","ulkona syöminen","restoranid","restoranidele","restoranikulusid","väljas söömine"),"dining"),
-    **dict.fromkeys(("taxis","taxi","taksot","takseihin","taksimatkat","takso","taksole","taksodele","taksod","taksosõidud"),"taxi"),
+    **dict.fromkeys(("taxis","taxi","taksot","takseihin","taksimatkat","takso","taksole","taksodele","taksod","taksosõidud","taksosõite"),"taxi"),
     **dict.fromkeys(("groceries","ruokaostokset","ruokaostoksiin","toidukaubad","toidukaupadele"),"groceries"),
     **dict.fromkeys(("coffee","kahvi","kahviin","kahvikuluja","kohv","kohvile","kohvikulusid"),"coffee")}
 PERIOD=re.compile(r"(?:^|\s)(last month|this month|last week|this week|from \d{4}-\d{2}-\d{2} (?:until|through|to) \d{4}-\d{2}-\d{2}|on \d{4}-\d{2}-\d{2})$",re.I)
@@ -165,10 +166,14 @@ class QuestionContext(Contract):
     merchant: str | None = Field(default=None,min_length=1,max_length=200)
     reduction_basis_points: StrictInt | None = Field(default=None,ge=0,le=10000)
     comparison_mode: Literal["previous_period","previous_month"] | None = None
+    amount_min_minor: StrictInt | None = Field(default=None,ge=0,le=2**53-1)
+    amount_max_minor: StrictInt | None = Field(default=None,ge=0,le=2**53-1)
 
     @model_validator(mode="after")
     def valid_selectors(self):
         if not 1<=(self.end_exclusive-self.start).days<=366: raise ValueError("Invalid context window")
+        if (self.amount_min_minor is not None or self.amount_max_minor is not None) and self.tool!='ledger_transactions':raise ValueError("Amounts require transaction search")
+        if (self.amount_min_minor or 0)>(self.amount_max_minor if self.amount_max_minor is not None else 2**53-1):raise ValueError("Invalid amount range")
         for text in (self.category,self.merchant):
             if text is not None and (not text.strip() or question_has_identifiers(text) or any(ord(c)<32 or 127<=ord(c)<=159 for c in text)):
                 raise ValueError("Invalid context filter")
@@ -210,6 +215,7 @@ def normalize_local_question(text,now):
     for pattern,replacement in prefixes: text=re.sub(pattern,replacement,text,flags=re.I)
     text=re.sub(r"^näytä last month kulutus$","Show spending last month",text,flags=re.I)
     text=re.sub(r" (?:edelliseen kuukauteen|eelmise kuuga)$"," with the previous month",text,flags=re.I)
+    text=re.sub(r" (?:edelliseen (?:ajan)?jaksoon|eelmise perioodiga)$"," with the previous period",text,flags=re.I)
     match=re.fullmatch(r"(?:mitä jos vähennän|mis (?:siis, )?kui vähendan) (.+?) ([0-9]{1,3}(?:[.,][0-9]{1,2})?)%(?: võrra)? (.+)",text,re.I)
     if match: text=f"Reduce {match[1]} by {match[2].replace(',','.')}% {match[3]}"
     text=re.sub(r"^What if I (?:cut|reduced)\s+","Reduce ",text,flags=re.I)
@@ -240,6 +246,8 @@ def followup_question(text,body,now):
     selected=""
     if context.category: selected+=' category '+json.dumps(context.category,ensure_ascii=False)
     if context.merchant: selected+=' at '+json.dumps(context.merchant,ensure_ascii=False)
+    for value,operator in ((context.amount_min_minor,'at least'),(context.amount_max_minor,'at most')):
+        if value is not None:selected+=f' {operator} EUR {value//100}.{value%100:02d}'
     prefix={"spending_totals":"Show spending","ledger_transactions":"Show transactions","habits":"Describe spending habits",
         "spending_comparison":"Compare spending","spending_reduction":"Reduce"}[context.tool]
     if context.tool=="spending_reduction":
@@ -321,18 +329,15 @@ def reduction(text,currency):
 
 
 def unsupported_amount_filter(question):
-    # The current closed ledger-search schema cannot represent amount predicates.
-    # Do not let a model silently drop one. Quoted merchant literals are data.
-    text=re.sub(r'"(?:\\.|[^"\\])*"','""',question)
-    operator=re.search(r'(?:\b(?:over|under|above|below|more than|less than|at least|at most|between|yli|alle|vähintään|enintään|üle|alla|vähemalt|över)\s*(?:(?:EUR|€)\s*)?\d|[<>]=?\s*(?:(?:EUR|€)\s*)?\d)',text,re.I)
-    return bool(operator and (re.search(r'\b(?:show|list|find|transactions?|näytä|näita|tapahtum\w*|tehing\w*)\b',text,re.I) or re.search(r'€|\b(?:EUR|euros?|euro\w*)\b',text,re.I)))
+    selected=amount_selection(question)
+    return selected.present and not selected.valid
 
 
 def unsupported_amount_message(locale):
     return {
-        'en':'Amount filters are not supported yet, so no search was run. Should I show the selected category and period without an amount limit?',
-        'fi':'Summarajauksia ei vielä tueta, joten hakua ei tehty. Näytänkö valitun kululuokan ja ajanjakson ilman summarajaa?',
-        'et':'Summapiiranguga otsingut veel ei toetata, seega otsingut ei tehtud. Kas näitan valitud kategooriat ja perioodi ilma summapiiranguta?',
+        'en':'That amount filter is ambiguous or unsupported, so no search was run. Could you use one exact EUR minimum or maximum, or both?',
+        'fi':'Summarajaus on epäselvä tai sitä ei tueta, joten hakua ei tehty. Annatko tarkan vähimmäis- tai enimmäissumman euroina tai molemmat?',
+        'et':'Summapiirang on ebaselge või seda ei toetata, seega otsingut ei tehtud. Kas annad täpse EUR alam- või ülempiiri või mõlemad?',
         'sv':'Beloppsfilter stöds ännu inte, så ingen sökning gjordes. Ska jag visa vald kategori och period utan beloppsgräns?',
     }[locale]
 
@@ -348,6 +353,13 @@ def interpret_question(body,*,now):
     if question_has_identifiers(text): return result("IDENTIFIER_NOT_ALLOWED")
     if unsupported_amount_filter(text):
         answer=result("FILTER_REQUIRED");answer.message=unsupported_amount_message(body.card_locale);return answer
+    amount=amount_selection(text)
+    if amount.present:
+        if body.currency!='EUR':return result("FILTER_REQUIRED")
+        base=interpret_question(body.model_copy(update={"question":amount.text}),now=now)
+        if base.intent is None or base.intent.kind!='analysis' or base.intent.tool.name!='ledger_transactions':return result("FILTER_REQUIRED")
+        base.intent.tool.arguments=base.intent.tool.arguments.model_copy(update=amount.bounds)
+        return base
     try: text=followup_question(text,body,now) or normalize_local_question(text,now)
     except Clarification as error: return result(str(error))
     if re.fullmatch(r"(?:(?:what is safe for me to|how much (?:can|could) i safely) (?:spend|save)|(?:paljonko|kuinka paljon) voin (?:turvallisesti )?(?:käyttää|kuluttaa|säästää)|kui palju (?:võin|saan) (?:turvaliselt )?(?:kulutada|säästa))(?: (?:this|last) (?:week|month))?",text,re.I):
@@ -373,11 +385,16 @@ def interpret_question(body,*,now):
     try:
         tail=comparison[1] if comparison else text[(transaction_search or spending or habits or scenario).end():]
         tail=normalize_local_question(tail,now)
+        # A reconstructed follow-up may carry retained amount selectors.
+        retained=amount_selection(tail)
+        if retained.present:
+            if not retained.valid or not transaction_search:raise Clarification("FILTER_REQUIRED")
+            tail=retained.text
         scope,start,end=observation_period(tail,now)
         args={"start":start,"end_exclusive":end,"currency":body.currency,"account_ids":body.account_ids,
             "expected_data_version":body.expected_data_version}
         if transaction_search:
-            tool=LedgerSearchToolV1(name="ledger_transactions",arguments={**args,**filters(scope,bare_category=True),"status":"booked","spending_only":False,"limit":50})
+            tool=LedgerSearchToolV1(name="ledger_transactions",arguments={**args,**filters(scope,bare_category=True),**retained.bounds,"status":"booked","spending_only":False,"limit":50})
         elif scenario:
             separators=list(re.finditer(r"\s+by\s+",scope,re.I))
             if not separators: raise Clarification("CHANGE_REQUIRED")

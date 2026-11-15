@@ -77,6 +77,11 @@ def mock_gemini(request,counts):
         elif question in QUESTIONS:
             values=dict(intent='spending',start='2026-10-01',end_exclusive='2026-11-01',
                 category='taxi',merchant=None,reduction_basis_points=None,comparison_mode=None)
+        elif question.startswith('show transactions') and any(word in question for word in ('taxi','taksimatkat','taksosõite')):
+            # Synthetic search fixture only. Runtime filters/authority and stored-row
+            # computation are independently checked by the actual Coach and ledger.
+            values=dict(intent='transactions',start='2026-10-01',end_exclusive='2026-11-01',
+                category='taxi',merchant=None,reduction_basis_points=None,comparison_mode=None)
         elif any(word in question for word in ('spend','spent','transactions','kulutasin','käytin')):
             values=dict(intent='clarification',start=None,end_exclusive=None,category=None,merchant=None,
                 reduction_basis_points=None,comparison_mode=None)

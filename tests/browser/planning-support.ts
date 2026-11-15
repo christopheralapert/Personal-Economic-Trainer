@@ -4,7 +4,9 @@ import fixture from "../../fixtures/synthetic/planning-ui.v1.json";
 export async function mockPlanning(page: Page, options: {initial?: "saved" | "reserved"; failAcceptOnce?: boolean; stale?: boolean; failContext?: boolean; failReview?: boolean; foreignCurrency?: boolean} = {}) {
   await page.clock.install({time: new Date(fixture.clock)});
   let state: "none" | "saved" | "reserved" | "released" = options.initial ?? "none";
-  let authenticated = false;
+  // This suite starts at the verified-session boundary. Signed OIDC itself is
+  // exercised by the separate database-backed signup/import harness.
+  let authenticated = true;
   let failed = false;
   const creates: Record<string,unknown>[] = [];
   const accepts: Record<string,unknown>[] = [];
@@ -71,5 +73,4 @@ export async function mockPlanning(page: Page, options: {initial?: "saved" | "re
 
 export async function signInPlanning(page: Page) {
   await page.goto("/plan");
-  await page.getByRole("button", {name:"Continue as Aino"}).click();
 }

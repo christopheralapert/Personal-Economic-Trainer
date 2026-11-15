@@ -3,6 +3,7 @@ import {dictionaries,type Key} from "@/i18n/dictionaries";
 import {isCalendarMonth,monthPeriod,periodSchema,snapshot,type Period,type TransactionFilters} from "@/engine";
 import {basketSelector} from "./basket-language";
 import {categoryAliases,localizedMonths,normalizeQueryPrefix,conceptRequests} from "./query-language";
+import {amountSelection} from "./amount-search";
 
 type Scope=TransactionFilters;
 export type FinancialIntent=
@@ -84,6 +85,13 @@ export function interpretQuestion(question:string,selected?:Period,referenceDate
   const snapshot=referenceDate,lastMonth=monthPeriod(snapshot,-1);
   const reject=(reason:string,clarify=true):FinancialIntent=>({status:clarify ? "clarification_required" : "unsupported",reason});
   if(!question.trim() || question.length>2000 || /[\u0000-\u001f\u007f-\u009f]/u.test(question)) return reject("INVALID_QUESTION",false);
+  const amount=amountSelection(question);
+  if(amount.present){
+    if(!amount.valid)return reject("UNSUPPORTED_AMOUNT_FILTER");
+    const base=interpretQuestion(amount.text,selected,referenceDate);
+    return base.status==='ready' && base.tool==='showTransactions'
+      ? {...base,scope:{...base.scope,...amount.bounds}} : reject("UNSUPPORTED_AMOUNT_FILTER");
+  }
   const conceptKey=clean(question).toLowerCase();
   const concept=Object.hasOwn(conceptRequests,conceptKey) ? conceptRequests[conceptKey] : undefined;
   if(concept) return {status:"ready",tool:"showConcept",concept};

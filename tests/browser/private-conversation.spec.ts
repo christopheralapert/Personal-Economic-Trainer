@@ -20,7 +20,7 @@ test('signed private import, generated dialogue, grounded taxi answer and Privac
  await page.goto('/coach');const privacy=page.getByRole('checkbox',{name:'Privacy mode',exact:true});await privacy.uncheck();
  const input=page.locator('#coach-question');
  async function ask(question:string){await input.fill(question);const start=performance.now(),pending=page.waitForResponse(response=>response.url().endsWith('/coach/query'));await page.getByRole('button',{name:'Read my records',exact:true}).click();const response=await pending,body=await response.json();expect(response.status()).toBe(200);return {body,visibleMs:Math.round(performance.now()-start)};}
- const general=await ask('What is an impulse purchase?');expect(general.body).toMatchObject({source:'model',provider:'gemini-direct',interpretation:{status:'answered',reason:'GENERAL_CONVERSATION'}});
+ const general=await ask('What is an impulse purchase?');expect(general.body.source,general.body.model_diagnostic??'Private model must not silently fall back').toBe('model');expect(general.body).toMatchObject({source:'model',provider:'gemini-direct',interpretation:{status:'answered',reason:'GENERAL_CONVERSATION'}});
  await expect(page.locator('[data-coach-answer]').last()).toContainText(/impulse|unplanned/iu);
  // The fixture runner has a synthetic clock and explicit model rate limit.
  await page.waitForTimeout(5100);

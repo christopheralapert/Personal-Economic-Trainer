@@ -16,6 +16,11 @@ export class RuleProvider implements ChatProvider {
     const t=(key:Parameters<typeof translate>[1])=>translate(locale,key);
     const message=(text:string):CoachMessage=>({id:crypto.randomUUID(),role:"assistant",parts:[{type:"text",text}]});
     const intent=resolveQuestion(question,execution.context,execution.period,execution.data ? sourceDate(execution.data.as_of) : undefined);
+    if(intent.status!=='ready' && intent.reason==='UNSUPPORTED_AMOUNT_FILTER')return message({
+      en:'That amount filter is ambiguous or unsupported. Please give an exact EUR minimum or maximum, or both; no search was run.',
+      fi:'Summarajaus on epäselvä tai sitä ei tueta. Anna tarkka vähimmäis- tai enimmäissumma euroina tai molemmat; hakua ei tehty.',
+      et:'Summapiirang on ebaselge või seda ei toetata. Anna täpne EUR alam- või ülempiir või mõlemad; otsingut ei tehtud.',
+    }[locale]);
     if(intent.status!=="ready") return message(t(intent.reason.startsWith("FOLLOW_UP_") ? "followupHelp" : intent.reason==="MONTH_REQUIRED" ? "monthRequired" : intent.reason==="AMBIGUOUS_CATEGORY" ? "categoryRequired" : intent.status==="clarification_required" ? "ambiguous" : "unknown"));
     const {name,input}=requestForIntent(intent),tool=createComponentTools(savingsPercent,execution.data)[name];
     const parsed=(tool.inputSchema as z.ZodType<Record<string,unknown>>).safeParse(input);

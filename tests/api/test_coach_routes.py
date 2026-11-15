@@ -209,7 +209,7 @@ def test_next_turn_rate_limit_applies_after_both_model_calls(route):
     assert len(captured)==2 and len(audited)==1
 
 
-@pytest.mark.parametrize("question",["Show transactions over EUR 20 last month", "Show last month's taxi rides under EUR 20"])
+@pytest.mark.parametrize("question",["Show transactions over USD 20 last month", "Show last month's taxi rides under EUR -20"])
 def test_unsupported_amount_predicates_skip_admission_model_and_tool(route,question,monkeypatch):
     client,_,_,captured,executed,audited=route
     def forbidden(): raise AssertionError("No rate admission for unsupported predicates")

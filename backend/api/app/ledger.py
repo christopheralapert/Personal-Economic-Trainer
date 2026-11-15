@@ -3,7 +3,7 @@ from datetime import date
 from typing import Literal
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field,model_validator
 from psycopg.rows import dict_row
 
 from .contracts import Contract, Currency, Minor, NonnegativeMinor
@@ -29,6 +29,14 @@ class LedgerFilterV1(Contract):
     status: Literal["booked","pending","reversed"] = "booked"
     spending_only: bool = False
     needs_review: bool = False
+    amount_min_minor: NonnegativeMinor | None = None
+    amount_max_minor: NonnegativeMinor | None = None
+
+    @model_validator(mode="after")
+    def amount_range(self):
+        if self.amount_min_minor is not None and self.amount_max_minor is not None and self.amount_min_minor>self.amount_max_minor:
+            raise ValueError("Minimum magnitude exceeds maximum")
+        return self
 
 
 class LedgerRowV1(Contract):
@@ -167,6 +175,11 @@ class Ledger:
         if f.merchant is not None:
             clauses.append("merchant ILIKE %s ESCAPE '!'")
             params.append("%"+f.merchant.replace("!","!!").replace("%","!%").replace("_","!_")+"%")
+        # numeric ABS avoids signed bigint overflow; predicates remain bound parameters.
+        if f.amount_min_minor is not None:
+            clauses.append("abs(amount_minor::numeric)>=%s");params.append(f.amount_min_minor)
+        if f.amount_max_minor is not None:
+            clauses.append("abs(amount_minor::numeric)<=%s");params.append(f.amount_max_minor)
         if (f.spending_only if consumption is None else consumption):
             clauses.append(CONSUMPTION)
         return " AND ".join(clauses),params
@@ -195,7 +208,7 @@ class Ledger:
     def inventory(self):
         """Owned metadata across retained booked history; no flow is silently excluded."""
         from datetime import timedelta
-        if self.filters.category or self.filters.merchant or self.filters.spending_only or self.filters.status!="booked":
+        if self.filters.category or self.filters.merchant or self.filters.spending_only or self.filters.status!="booked" or self.filters.amount_min_minor is not None or self.filters.amount_max_minor is not None:
             raise AuthError("INVALID_INVENTORY_SCOPE",422)
         row=self.connection.execute(f"""SELECT count(*),min(booked_on),max(booked_on),
             count(*) FILTER (WHERE booked_on>=%s AND booked_on<%s),

@@ -2,10 +2,12 @@ import type { NextConfig } from "next";
 import path from "node:path";
 import {execFileSync} from "node:child_process";
 import {readFileSync} from "node:fs";
+import {createRequire} from "node:module";
+const {webSourceRevision}=createRequire(path.join(__dirname,"next.config.ts"))(path.join(__dirname,"../../scripts/web_revision.mjs")) as {webSourceRevision:()=>string};
 let revision="unversioned";
 try {revision=execFileSync("git",["rev-parse","--short","HEAD"],{cwd:path.join(__dirname,"../.."),windowsHide:true,stdio:["ignore","pipe","ignore"]}).toString().trim();} catch { /* Container builds may omit Git metadata. */ }
 const worker=readFileSync(path.join(__dirname,"public/sw.js"),"utf8");
-const buildIdentity=`${revision}-${worker.match(/moneylens-public-([a-f0-9]+)/)?.[1]??"development"}`;
+const buildIdentity=`${revision}-${worker.match(/moneylens-public-([a-f0-9]+)/)?.[1]??"development"}-${webSourceRevision().slice(0,12)}`;
 
 const config: NextConfig = {
   distDir: process.env.MONEYLENS_NEXT_DIST || ".next",

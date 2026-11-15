@@ -6,6 +6,8 @@ import {createVoiceRoutes,MAX_VOICE_BYTES} from "./routes";
 import {COACH_REVISION,REVISION_HEADER} from "@/coach/transport";
 import {SPEECH_MODEL,TRANSCRIBE_MODEL,VOICE_ENDPOINT} from "./provider";
 import {translate} from "@/i18n/translate";
+import {createPublicCoachExecutor} from "@/coach/public-executor";
+import {mockGeminiFetch} from "../../scripts/gemini-mock.mjs";
 
 const origin="http://127.0.0.1:33110",signal=new AbortController().signal;
 const usage={total_input_tokens:25,total_output_tokens:10,total_tokens:35};
@@ -13,7 +15,7 @@ function wav(){const b=Buffer.alloc(46);b.write("RIFF");b.writeUInt32LE(38,4);b.
 function reply(type:"text"|"audio") {return Response.json({status:"completed",steps:[{type:"model_output",content:[type==="text" ? {type:"text",text:"Paljonko käytin takseihin viime kuussa?"} : {type:"audio",mime_type:"audio/wav",data:wav().toString("base64")}]}],usage});}
 function request(body:BodyInit,type="application/json",extra:Record<string,string>={}){return new Request(origin+"/api/voice/speak",{method:"POST",headers:{origin,host:"127.0.0.1:33110","Content-Type":type,[REVISION_HEADER]:COACH_REVISION,"X-Money-Coach-Privacy":"off","X-Money-Coach-Language":"fi",...extra},body,signal});}
 const speech={dataset:"organizer1",locale:"fi",savingsPercent:10,tool:"showTransactions",input:{period:{start:"2026-08-01",end:"2026-09-01"},category:"taxi"}};
-async function fixture(run:(env:Record<string,string>,file:string)=>Promise<void>){const directory=await mkdtemp(path.join(os.tmpdir(),"money-coach-voice-")),file=path.join(directory,"ledger.json");try{await run({GEMINI_API_KEY:"fake-voice-key",MONEY_COACH_GEMINI_VOICE_ENABLED:"true",MONEY_COACH_VOICE_LEDGER_PATH:file,MONEY_COACH_VOICE_MAX_REQUESTS:"4"},file);}finally{if(path.dirname(directory)!==os.tmpdir() || !path.basename(directory).startsWith("money-coach-voice-"))throw new Error("Unsafe cleanup");await rm(directory,{recursive:true,force:true});}}
+async function fixture(run:(env:Record<string,string>,file:string)=>Promise<void>){const directory=await mkdtemp(path.join(os.tmpdir(),"money-coach-voice-")),file=path.join(directory,"ledger.json");try{await run({GEMINI_API_KEY:"fake-voice-key",MONEY_COACH_GEMINI_VOICE_ENABLED:"true",MONEY_COACH_VOICE_LEDGER_PATH:file,MONEY_COACH_VOICE_MAX_REQUESTS:"4",MONEY_COACH_PUBLIC_AI_BUDGET_PATH:path.join(directory,"public-budget.json"),MONEY_COACH_PUBLIC_AI_MAX_REQUESTS:"20"},file);}finally{if(path.dirname(directory)!==os.tmpdir() || !path.basename(directory).startsWith("money-coach-voice-"))throw new Error("Unsafe cleanup");await rm(directory,{recursive:true,force:true});}}
 describe("optional Gemini voice boundaries",()=>{
  for(const locale of ['en','fi','et'] as const)it(`sends the exact chart total and top individual categories in ${locale}`,async()=>fixture(async(env)=>{
   const network=vi.fn<typeof fetch>(async()=>reply('audio')),routes=createVoiceRoutes({env,network});
@@ -39,12 +41,13 @@ describe("optional Gemini voice boundaries",()=>{
   expect((await routes.speak(request(JSON.stringify(speech),"application/json",{"X-Money-Coach-Privacy":"on"}))).status).toBe(403);
   expect(network).not.toHaveBeenCalled();
  }));
- it("unmetered mode preserves prior usage but removes the old request ceiling",async()=>fixture(async(env,file)=>{
+ it("refuses unmetered policy without transport or modifying prior usage",async()=>fixture(async(env,file)=>{
   env.MONEY_COACH_VOICE_REQUEST_POLICY="unmetered";env.MONEY_COACH_VOICE_MAX_REQUESTS="2";
   await writeFile(file,JSON.stringify({version:1,attempts:[{operation:"speak",at:new Date().toISOString(),status:"complete",usage},{operation:"transcribe",at:new Date().toISOString(),status:"failed"}]}));
   const network=vi.fn<typeof fetch>(async()=>reply("audio")),routes=createVoiceRoutes({env,network});
-  for(let i=0;i<3;i++)expect((await routes.speak(request(JSON.stringify(speech)))).status).toBe(200);
-  expect(network).toHaveBeenCalledTimes(3);expect(JSON.parse(await readFile(file,"utf8"))).toMatchObject({version:2,attempts:5,completed:4,failed:1,totalTokens:140});
+  expect((await routes.speak(request(JSON.stringify(speech)))).status).toBe(503);
+  expect(await (await routes.capabilities()).json()).toMatchObject({enabled:false});
+  expect(network).not.toHaveBeenCalled();expect(JSON.parse(await readFile(file,"utf8"))).toMatchObject({version:1,attempts:expect.any(Array)});
  }));
  it("never calls Google for privacy, missing opt-in, wrong origin or build",async()=>fixture(async(env)=>{
   const network=vi.fn<typeof fetch>();const routes=createVoiceRoutes({env,network});
@@ -76,6 +79,36 @@ describe("optional Gemini voice boundaries",()=>{
  it("serializes competing calls and rejects malformed provider output without fallback",async()=>fixture(async(env)=>{
   let release!:()=>void;const gate=new Promise<void>(resolve=>{release=resolve;}),network=vi.fn<typeof fetch>(async()=>{await gate;return Response.json({status:"completed",steps:[],usage});});
   const routes=createVoiceRoutes({env,network}),first=routes.speak(request(JSON.stringify(speech)));await vi.waitFor(()=>expect(network).toHaveBeenCalledTimes(1));
-  expect(await (await routes.speak(request(JSON.stringify(speech)))).json()).toEqual({error:"voice_busy"});release();expect(await (await first).json()).toEqual({error:"audio_missing"});expect(network).toHaveBeenCalledTimes(1);
+  expect(await (await routes.speak(request(JSON.stringify(speech)))).json()).toEqual({error:"public_ai_busy"});release();expect(await (await first).json()).toEqual({error:"audio_missing"});expect(network).toHaveBeenCalledTimes(1);
+ }));
+ it("shares the lifetime allowance between public text, transcription and speech",async()=>fixture(async(env,file)=>{
+  Object.assign(env,{MONEY_COACH_PUBLIC_AI_MAX_REQUESTS:"2",MONEY_COACH_PUBLIC_GEMINI_ENABLED:"true",MONEY_COACH_PUBLIC_AI_ORIGINS:origin,MONEY_COACH_MODEL_USAGE_PATH:path.join(path.dirname(file),"text-usage.json")});
+  const textNetwork=vi.fn<typeof fetch>(mockGeminiFetch),voiceNetwork=vi.fn<typeof fetch>(async()=>reply("text")),execute=createPublicCoachExecutor({env,network:textNetwork}),routes=createVoiceRoutes({env,network:voiceNetwork});
+  expect((await execute(request("{}"),"How much did I spend on taxis last month?","en",10,undefined,undefined,undefined,"organizer1",false)).source).toBe("model");
+  expect((await routes.transcribe(request("synthetic-audio","audio/webm"))).status).toBe(200);
+  const blocked=await createVoiceRoutes({env,network:voiceNetwork}).speak(request(JSON.stringify(speech)));expect(blocked.status).toBe(429);expect(await blocked.json()).toEqual({error:"public_ai_request_limit"});
+  expect(textNetwork).toHaveBeenCalledTimes(2);expect(voiceNetwork).toHaveBeenCalledTimes(1);
+  const before=await readFile(env.MONEY_COACH_PUBLIC_AI_BUDGET_PATH,"utf8");expect(JSON.parse(before)).toMatchObject({requests:2});
+  expect((await execute(request("{}"),"How much did I spend on taxis last month?","en",10,undefined,undefined,undefined,"organizer1",true)).diagnostic).toBe("privacy_rule");
+  expect((await routes.transcribe(request("synthetic-audio","audio/webm",{"X-Money-Coach-Privacy":"on"}))).status).toBe(403);
+  expect(await readFile(env.MONEY_COACH_PUBLIC_AI_BUDGET_PATH,"utf8")).toBe(before);
+ }));
+ it("charges streaming speech before transport and rejects exhausted streaming requests",async()=>fixture(async(env)=>{
+  Object.assign(env,{MONEY_COACH_PUBLIC_AI_MAX_REQUESTS:"1",MONEY_COACH_PUBLIC_AI_BUDGET_MICRO_EUR:"100",MONEY_COACH_PUBLIC_AI_RESERVATION_MICRO_EUR:"100"});
+  const events=[{event_type:"step.start",index:0,step:{type:"model_output"}},{event_type:"step.delta",index:0,delta:{type:"audio",mime_type:"audio/l16",data:Buffer.alloc(48).toString("base64")}},{event_type:"interaction.completed",interaction:{status:"completed",usage}}];
+  const network=vi.fn<typeof fetch>(async(_url,init)=>{
+   expect(JSON.parse(await readFile(env.MONEY_COACH_PUBLIC_AI_BUDGET_PATH,"utf8"))).toMatchObject({requests:1,reservedMicroEUR:100});
+   expect(init?.cache).toBe("no-store");return new Response(events.map(event=>`data: ${JSON.stringify(event)}\n\n`).join(""));
+  }),routes=createVoiceRoutes({env,network}),streamRequest=()=>request(JSON.stringify(speech),"application/json",{accept:"application/x-money-coach-pcm"});
+  const first=await routes.speak(streamRequest());expect(await first.text()).toContain('"type":"done"');
+  const blocked=await createVoiceRoutes({env,network}).speak(streamRequest());expect(await blocked.text()).toContain('"error":"public_ai_request_limit"');expect(network).toHaveBeenCalledTimes(1);
+ }));
+ it("disables capabilities and both endpoints for malformed or missing shared grants",async()=>fixture(async(env)=>{
+  const network=vi.fn<typeof fetch>();
+  for(const invalid of [{MONEY_COACH_PUBLIC_AI_MAX_REQUESTS:undefined},{MONEY_COACH_PUBLIC_AI_MAX_REQUESTS:"Infinity"},{MONEY_COACH_PUBLIC_AI_BUDGET_PATH:"relative.json"},{MONEY_COACH_VOICE_MAX_REQUESTS:"1e1"},{MONEY_COACH_VOICE_REQUEST_POLICY:"unknown"}]){
+   const routes=createVoiceRoutes({env:{...env,...invalid},network});expect(await (await routes.capabilities()).json()).toMatchObject({enabled:false});
+   expect((await routes.speak(request(JSON.stringify(speech)))).status).toBe(503);expect((await routes.transcribe(request("synthetic-audio","audio/webm"))).status).toBe(503);
+  }
+  expect(network).not.toHaveBeenCalled();
  }));
 });

@@ -5,16 +5,16 @@ const live=process.env.MONEYLENS_SIGNUP_LIVE_GEMINI==="true";
 test.skip(!fixtures,"Requires generated synthetic fixtures and a fresh isolated signup server; never run against a real identity provider.");
 const file=(page:Page,name:string)=>page.locator(`[data-statement-file="${name}"]`);
 async function signIn(page:Page,subject:string){
- await page.goto("/banks");await page.getByRole("link",{name:"Connect your bank",exact:true}).click();
+ await page.goto("/import");
  await expect(page.getByRole("heading",{name:"Isolated synthetic identity",exact:true})).toBeVisible();
- await page.getByRole("link",{name:subject,exact:true}).click();await expect(page.getByRole("link",{name:"Learn",exact:true})).toBeVisible();
+ await page.getByRole("link",{name:subject,exact:true}).click();await expect(page).toHaveURL(/\/import$/);await expect(page.getByRole("link",{name:"Learn",exact:true})).toBeVisible();
  const session=await page.evaluate(async()=>{const r=await fetch("/api/v1/auth/session");if(!r.ok)throw Error("Session unavailable");return r.json();});
  expect(session.synthetic).toBe(false);return session;
 }
 async function rows(page:Page,account=""){
  return page.evaluate(async account=>{const q=new URLSearchParams({start:"2026-10-01",end_exclusive:"2026-11-01"});if(account)q.set("account_id",account);const r=await fetch("/api/v1/ledger/transactions?"+q);if(!r.ok)throw Error("Owned ledger unavailable");return(await r.json()).rows;},account);
 }
-async function choose(page:Page,names:string[]){await page.goto("/banks");const chooser=page.waitForEvent("filechooser");await page.getByLabel("Choose statements",{exact:true}).click();await(await chooser).setFiles(names.map(name=>path.join(fixtures!,name)));await page.getByRole("button",{name:"Preview statements",exact:true}).click();for(const name of names)await expect(file(page,name).getByText(/Statement period:/)).toBeVisible();}
+async function choose(page:Page,names:string[]){await page.goto("/import");const chooser=page.waitForEvent("filechooser");await page.getByLabel("Choose statements",{exact:true}).click();await(await chooser).setFiles(names.map(name=>path.join(fixtures!,name)));await page.getByRole("button",{name:"Preview statements",exact:true}).click();for(const name of names)await expect(file(page,name).getByText(/Statement period:/)).toBeVisible();}
 async function newAccount(page:Page,name:string,label:string){await file(page,name).getByLabel("Account",{exact:true}).selectOption("new");await file(page,name).getByLabel("New account name",{exact:true}).fill(label);}
 async function confirm(page:Page){const pending=page.waitForResponse(r=>r.url().endsWith("/statements/wise/confirm")&&r.request().method()==="POST");await page.getByRole("button",{name:"Confirm imports",exact:true}).click();const response=await pending;expect(response.status()).toBe(200);return response.json();}
 async function reviewTaxis(page:Page,count:number){

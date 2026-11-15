@@ -8,7 +8,6 @@ A mobile-first finance coach with transaction exploration, three spending basket
 frontend/
   web/          Main Next.js application and account screens
   coach/        Standalone coach, shared UI, and demo datasets
-  prototype/    Vite dashboard prototype
 backend/
   api/          Python API and dependency definitions
   workers/      Scoped background job runner
@@ -46,15 +45,27 @@ npm run dev
 
 Open http://127.0.0.1:3000/demo for the synthetic demo. It works without a bank connection, database, or AI key. The account screens outside the demo require a configured API and sign-in provider.
 
-For the standalone coach, run `npm run dev:coach` and open http://127.0.0.1:3001. Installation and offline behavior are available in production builds served over localhost or HTTPS. `npm run dev:complete` remains an alias.
+### Challenge review
 
-The Vite prototype is separate: use `npm run dev:prototype`, `npm run build:prototype`, or `npm run preview`. Its source, public assets, and build output live under `frontend/prototype`.
+Start at `/demo`: **Try file import** opens the synthetic upload box; **Use sample file** previews the bundled `auto-taxis.csv` without a download or sign-in. Confirm it, then choose **View transactions** or **Ask Coach**. October 2026 taxis total **€30.97 across two transactions**. Personal statements belong in the separate authenticated `/import` workspace, not the public sample session.
+
+**Try with sample data** opens `/demo?dataset=organizer1`. Its August 2026 taxi total is **€30.97**; the September dining baseline is **€797.88**, so a 20% historical reduction is **€159.58**. These are different datasets/periods despite the matching taxi amount. Overview, Coach, What if and Learn share the selected synthetic records; answers expose transaction evidence.
+
+For current verification, exact supported exports, local preview, known limitations and blocked live-provider checks, see [challenge readiness](tests/challenge-readiness-review.md). The public HTTPS presentation is not automatically updated by local work.
+
+Transaction search supports exact EUR minimum/maximum amounts combined with category, quoted merchant, period and selected accounts. For example, “Show last month's taxi rides over EUR 20.” uses a strict greater-than boundary of 2,001 cents, never floating-point rounding. Ambiguous ranges and unsupported currencies still ask for clarification. See [release checks](deploy/production-readiness.md) for safe configuration diagnostics, Auth0 setup, real-device/user trials and the backup/restore checklist; these are not a production certification.
+
+For the standalone coach, run `npm run dev:coach` and open http://127.0.0.1:3001. Installation and offline behavior are available in production builds served over localhost or HTTPS. `npm run dev:complete` remains an alias.
 
 ### Speech and privacy
 
 The coach supports editable microphone drafts and read-aloud responses in English, Finnish, and Estonian. Privacy mode defaults on; subsequent visits restore your saved choice. While enabled, it permits only browser-confirmed on-device speech support; when that is unavailable, the app keeps text input available instead of silently using a remote service. Microphone recording and playback require an explicit user action.
 
-Optional hosted chat and voice routes remain disabled in `.env.example`. They require separate server opt-ins, a server-only key, and absolute private usage-ledger paths; adding a key alone enables nothing. Hosted chat also requires an exact allowed browser origin. Users must turn Privacy mode off before hosted processing is allowed. Voice requests are bounded by default; the opt-in public chat path records usage but has no monetary cap, so enabling it can incur ongoing provider charges. No live-provider availability or billing behavior is established by the mocked tests.
+Optional hosted chat and voice routes remain disabled in `.env.example`. They require separate server opt-ins, a server-only key, absolute private usage-ledger paths and a shared finite allowance; adding a key alone enables nothing. Hosted chat also requires an exact allowed browser origin. Users must turn Privacy mode off before hosted processing is allowed. Gemini writes ordinary conversational replies; personal facts and charts come from validated server tools. Privacy stays local, and unavailable providers are labelled as a local fallback rather than a model success.
+
+Set `MONEY_COACH_PUBLIC_AI_BUDGET_PATH` to an absolute ignored private file, `MONEY_COACH_PUBLIC_AI_MAX_REQUESTS` to a finite lifetime operation count, and optionally `MONEY_COACH_PUBLIC_AI_REQUESTS_PER_MINUTE` (default 6). Text, dictation and read-aloud share a single durable admission lock; one financial text operation can make two model calls. Optional `MONEY_COACH_PUBLIC_AI_BUDGET_MICRO_EUR` and `MONEY_COACH_PUBLIC_AI_RESERVATION_MICRO_EUR` bound operator-declared reservations, **not guaranteed provider charges or price quotes**. A provider-side billing limit is still needed for an actual monetary guarantee. Failed/cancelled attempts consume their reservation; restarting does not reset it. Privacy and rejected inputs make no hosted call. The local preview helper requires explicit Gemini opt-ins and leaves experimental generated UI translations disabled.
+
+Model, audio and generated-translation results are not cached or replayed. Saved transactions, user-confirmed classifications, preferences and the public static PWA shell are separate application data—not cached AI replies. Mocked tests do not establish live-provider availability, billing or physical microphone/speaker behavior.
 
 Usage reservations are fail-closed. A forced process termination can leave a ledger lock requiring operator review; do not automatically delete locks or reset usage ledgers to bypass request limits.
 

@@ -14,9 +14,9 @@ from test_ledger import put
 from test_private_records_model import private_model
 
 CASES=[
-    ('et','Näita eelmise kuu üle 20 € taksosõite','Kui palju kulutasin taksodele eelmisel kuul?','Summapiiranguga otsingut veel ei toetata'),
-    ('en',"Show last month's taxi rides over EUR 20.",'How much did I spend on taxis last month?','Amount filters are not supported'),
-    ('fi','Näytä viime kuun yli 20 euron taksimatkat.','Paljonko käytin takseihin viime kuussa?','Summarajauksia ei vielä tueta'),
+    ('et','Näita eelmise kuu üle USD 20 taksosõite','Kui palju kulutasin taksodele eelmisel kuul?','Summapiirang on ebaselge'),
+    ('en',"Show last month's taxi rides over USD 20.",'How much did I spend on taxis last month?','That amount filter is ambiguous'),
+    ('fi','Näytä viime kuun yli USD 20 taksimatkat.','Paljonko käytin takseihin viime kuussa?','Summarajaus on epäselvä'),
 ]
 
 

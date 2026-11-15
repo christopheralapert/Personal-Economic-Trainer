@@ -19,7 +19,7 @@ let directory:string;
 beforeEach(async()=>{
  directory=await mkdtemp(path.join(os.tmpdir(),"public-chat-"));
  vi.resetModules();
- for(const [key,value] of Object.entries({MONEY_COACH_PUBLIC_GEMINI_ENABLED:"true",GEMINI_API_KEY:"test-transport-key",MONEY_COACH_PUBLIC_AI_ORIGINS:origin,MONEY_COACH_MODEL_USAGE_PATH:path.join(directory,"usage.json")}))vi.stubEnv(key,value);
+ for(const [key,value] of Object.entries({MONEY_COACH_PUBLIC_GEMINI_ENABLED:"true",GEMINI_API_KEY:"test-transport-key",MONEY_COACH_PUBLIC_AI_ORIGINS:origin,MONEY_COACH_MODEL_USAGE_PATH:path.join(directory,"usage.json"),MONEY_COACH_PUBLIC_AI_BUDGET_PATH:path.join(directory,"budget.json"),MONEY_COACH_PUBLIC_AI_MAX_REQUESTS:"20"}))vi.stubEnv(key,value);
 });
 afterEach(async()=>{vi.unstubAllGlobals();vi.unstubAllEnvs();await rm(directory,{recursive:true,force:true});});
 function payload(question:string,locale="en",extra:Record<string,unknown>={}){

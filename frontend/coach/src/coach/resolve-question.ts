@@ -10,6 +10,8 @@ function intentFromContext(context:QuestionContext):FinancialIntent {
   if(input.basket!==undefined) scope.basket=input.basket as TransactionFilters["basket"];
   if(typeof input.category==="string") scope.category=input.category;
   if(typeof input.merchant==="string") scope.merchant=input.merchant;
+  if(typeof input.amount_min_minor==="number")scope.amount_min_minor=input.amount_min_minor;
+  if(typeof input.amount_max_minor==="number")scope.amount_max_minor=input.amount_max_minor;
   if(tool==="showTransactions") return {status:"ready",tool,period,scope};
   if(tool==="showFilter") return {status:"ready",tool,period,scope,value:input.value as TransactionStatusFilter};
   if(tool==="showWhatIf") return {status:"ready",tool,period,category:input.category as string,pct:input.pct as number};

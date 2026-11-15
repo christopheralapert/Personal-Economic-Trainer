@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter,Depends,Query,Request
 
 from .auth_routes import principal
+from .identity import AuthError
 from .identity import authorized_transaction
 from .ledger import Ledger,LedgerFilterV1,LedgerPageV1,LedgerInventoryV1,SpendingTotalsV1
 from .scoped_keys import CursorCodec
@@ -18,9 +19,14 @@ def ledger_filters(start:date,end_exclusive:date,
     account_id:Annotated[list[UUID] | None,Query(max_length=50)]=None,
     category:Annotated[str | None,Query(max_length=100)]=None,
     merchant:Annotated[str | None,Query(max_length=200)]=None,
-    status:Literal["booked","pending","reversed"]="booked",spending_only:bool=False,needs_review:bool=False):
+    status:Literal["booked","pending","reversed"]="booked",spending_only:bool=False,needs_review:bool=False,
+    amount_min_minor:Annotated[int | None,Query(ge=0,le=2**53-1)]=None,
+    amount_max_minor:Annotated[int | None,Query(ge=0,le=2**53-1)]=None):
+    if amount_min_minor is not None and amount_max_minor is not None and amount_min_minor>amount_max_minor:
+        raise AuthError("INVALID_AMOUNT_RANGE",422)
     return LedgerFilterV1(start=start,end_exclusive=end_exclusive,currency=currency,account_ids=account_id,
-        category=category,merchant=merchant,status=status,spending_only=spending_only,needs_review=needs_review)
+        category=category,merchant=merchant,status=status,spending_only=spending_only,needs_review=needs_review,
+        amount_min_minor=amount_min_minor,amount_max_minor=amount_max_minor)
 
 
 @router.get("/v1/ledger/transactions",response_model=LedgerPageV1)

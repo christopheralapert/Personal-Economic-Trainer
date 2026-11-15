@@ -40,3 +40,15 @@ it("explains missing balances without publishing a partial total or a spending a
   expect(html).toContain("A usable balance is missing");expect(html).toContain("Transaction history is incomplete.");
   expect(html).toContain("Source snapshot: 4.11.2026");expect(html).not.toContain("300,00");
 });
+
+it("explains the next planning step instead of promising a saving allowance",()=>{
+ const result=safeToSpend("2026-11-04",demo);
+ const html=renderToStaticMarkup(createElement(Preferences,null,createElement(SafeToSpendCard,{result,purpose:"save"})));
+ expect(html).toContain("An extra saving amount is not available from this snapshot.");
+ expect(html).toContain("Low confidence");expect(html).toContain("How is this calculated?");
+ expect(html).not.toContain("Medium confidence");
+ const calculation=renderToStaticMarkup(createElement(Preferences,null,createElement(SafeToSpendCard,{result,calculationOnly:true})));
+ expect(calculation).toContain("Check your planning inputs");
+ expect(calculation).toContain("These are snapshot illustrations, not a verified current allowance.");
+ expect(calculation).toContain("Confirm regular bills");
+});

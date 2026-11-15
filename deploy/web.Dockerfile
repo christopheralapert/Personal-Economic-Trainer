@@ -13,6 +13,7 @@ COPY frontend/coach/scripts frontend/coach/scripts
 COPY frontend/coach/postcss.config.mjs frontend/coach/postcss.config.mjs
 COPY packages/contracts/api.d.ts packages/contracts/api.d.ts
 COPY scripts/generate_pwa.mjs scripts/generate_pwa.mjs
+COPY scripts/web_revision.mjs scripts/web_revision.mjs
 RUN npm run build:web
 
 FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df AS web

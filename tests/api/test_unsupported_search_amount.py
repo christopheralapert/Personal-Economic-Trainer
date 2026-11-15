@@ -7,8 +7,8 @@ from app.coach_model import interpret_with_model
 from app.model_adapter import TurnBudget
 from app.settings import Settings
 
-QUESTIONS=[('en',"Show last month's taxi transactions over EUR 20."),('fi','Näytä viime kuun yli 20 euron taksimatkat.'),('et','Näita eelmise kuu üle 20 euro taksosõite.'),
-    ('et','Näita eelmise kuu üle 20 € taksosõite'),('en',"Show last month's taxi rides over €20"),('fi','Näytä viime kuun yli 20 € taksimatkat')]
+QUESTIONS=[('en',"Show last month's taxi transactions over USD 20."),('fi','Näytä viime kuun yli USD 20 taksimatkat.'),('et','Näita eelmise kuu üle USD 20 taksosõite.'),
+    ('et','Näita eelmise kuu üle EUR -20 taksosõite'),('en',"Show last month's taxi rides over EUR 40 under EUR 20"),('fi','Näytä viime kuun yli EUR -20 taksimatkat')]
 
 
 @pytest.mark.parametrize('locale,question',QUESTIONS)

@@ -8403,6 +8403,34 @@
             "default": null,
             "title": "Account Ids"
           },
+          "amount_max_minor": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Amount Max Minor"
+          },
+          "amount_min_minor": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Amount Min Minor"
+          },
           "category": {
             "anyOf": [
               {
@@ -8759,6 +8787,32 @@
               }
             ],
             "title": "Account Ids"
+          },
+          "amount_max_minor": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Max Minor"
+          },
+          "amount_min_minor": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Min Minor"
           },
           "category": {
             "anyOf": [
@@ -14540,6 +14594,42 @@
             }
           },
           {
+            "in": "query",
+            "name": "amount_min_minor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Amount Min Minor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "amount_max_minor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Amount Max Minor"
+            }
+          },
+          {
             "description": "Optional expected session ID; a cookie/profile switch rejects the request instead of returning another session's data.",
             "in": "header",
             "name": "X-MoneyLens-Session-ID",
@@ -14769,6 +14859,42 @@
               "default": false,
               "title": "Needs Review",
               "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "amount_min_minor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Amount Min Minor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "amount_max_minor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Amount Max Minor"
             }
           },
           {
@@ -18004,6 +18130,42 @@
             }
           },
           {
+            "in": "query",
+            "name": "amount_min_minor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Amount Min Minor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "amount_max_minor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Amount Max Minor"
+            }
+          },
+          {
             "description": "Optional expected session ID; a cookie/profile switch rejects the request instead of returning another session's data.",
             "in": "header",
             "name": "X-MoneyLens-Session-ID",
@@ -19171,6 +19333,42 @@
             }
           },
           {
+            "in": "query",
+            "name": "amount_min_minor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Amount Min Minor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "amount_max_minor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Amount Max Minor"
+            }
+          },
+          {
             "description": "Optional expected session ID; a cookie/profile switch rejects the request instead of returning another session's data.",
             "in": "header",
             "name": "X-MoneyLens-Session-ID",
@@ -19380,6 +19578,42 @@
               "default": false,
               "title": "Needs Review",
               "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "amount_min_minor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Amount Min Minor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "amount_max_minor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Amount Max Minor"
             }
           },
           {

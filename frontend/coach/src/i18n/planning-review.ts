@@ -1,0 +1,36 @@
+export const planningReviewEn={
+ planningReviewTitle:"Check your planning inputs",
+ planningReviewScope:"Restore the full account and category selection before reviewing reserves.",
+ planningReviewHistory:"Complete history and upcoming commitments are not verified in this demo.",
+ planningReviewBalance:"Current own-money balances are missing or out of date. An income estimate cannot replace them.",
+ planningReviewIncome:"Add an income estimate to review a savings target. It never increases your available balance.",
+ planningReviewBills:"Review the bills and protected amounts below before confirming them.",
+ planningReviewCategories:"Review the uncertain transactions before using category totals for a plan.",
+ planningReviewNoAllowance:"An extra saving amount is not available from this snapshot.",
+ planningReviewRecordedMonths:"Recorded spending from {count} of the last 3 complete months is available; missing months are not zero spending.",
+ planningReviewSnapshotOnly:"These are snapshot illustrations, not a verified current allowance.",
+};
+export const planningReviewFi:Record<keyof typeof planningReviewEn,string>={
+ planningReviewTitle:"Tarkista suunnitelman tiedot",
+ planningReviewScope:"Palauta kaikki tilit ja luokat ennen varausten tarkistamista.",
+ planningReviewHistory:"Koko historiaa ja tulevia maksuja ei ole vahvistettu tässä demossa.",
+ planningReviewBalance:"Oman rahan ajantasaisia saldoja puuttuu tai ne ovat vanhentuneet. Tuloarvio ei korvaa niitä.",
+ planningReviewIncome:"Lisää tuloarvio säästötavoitteen tarkistamista varten. Se ei kasvata käytettävissä olevaa saldoa.",
+ planningReviewBills:"Tarkista alla olevat laskut ja suojatut summat ennen vahvistamista.",
+ planningReviewCategories:"Tarkista epäselvät tapahtumat ennen luokkien summien käyttämistä suunnitelmassa.",
+ planningReviewNoAllowance:"Tästä tilannekuvasta ei voi määrittää ylimääräistä säästövaraa.",
+ planningReviewRecordedMonths:"Kirjattuja menoja on {count} kuukaudelta viimeisestä 3 täydestä kuukaudesta. Puuttuvat kuukaudet eivät tarkoita nollamenoja.",
+ planningReviewSnapshotOnly:"Nämä ovat tilannekuvaan perustuvia esimerkkejä, eivät vahvistettu ajantasainen käyttövara.",
+};
+export const planningReviewEt:Record<keyof typeof planningReviewEn,string>={
+ planningReviewTitle:"Kontrolli planeerimise lähteandmeid",
+ planningReviewScope:"Enne reservide kontrollimist taasta kõigi kontode ja kategooriate valik.",
+ planningReviewHistory:"Kogu ajalugu ja tulevased kohustused ei ole selles demos kinnitatud.",
+ planningReviewBalance:"Värsked oma raha saldod puuduvad või on aegunud. Sissetulekuhinnang ei asenda neid.",
+ planningReviewIncome:"Säästueesmärgi kontrollimiseks lisa sissetulekuhinnang. See ei suurenda kasutatavat saldot.",
+ planningReviewBills:"Enne kinnitamist kontrolli allolevaid arveid ja kaitstud summasid.",
+ planningReviewCategories:"Enne kategooriasummadega planeerimist vaata ebaselged tehingud üle.",
+ planningReviewNoAllowance:"Sellest hetkeseisust ei saa määrata täiendavat säästmisruumi.",
+ planningReviewRecordedMonths:"Kirjendatud kulusid on viimase 3 täiskuu hulgast {count} kuu kohta. Puuduv kuu ei tähenda nullkulu.",
+ planningReviewSnapshotOnly:"Need on hetkeseisu näited, mitte kinnitatud ajakohane kulutamisruum.",
+};

@@ -1,0 +1,25 @@
+{
+  "supported": [
+    {"question":"Show last month's taxi rides over EUR 20.","bounds":{"amount_min_minor":2001}},
+    {"question":"Näytä viime kuun yli 20 euron taksimatkat.","bounds":{"amount_min_minor":2001}},
+    {"question":"Näita eelmise kuu üle 20 € taksosõite","bounds":{"amount_min_minor":2001}},
+    {"question":"Show transactions taxi under EUR 30.97 last month","bounds":{"amount_max_minor":3096}},
+    {"question":"Show transactions taxi at least EUR 30.97 last month","bounds":{"amount_min_minor":3097}},
+    {"question":"Näytä tapahtumat taksimatkat vähintään 20,01 euroa viime kuussa","bounds":{"amount_min_minor":2001}},
+    {"question":"Show transactions taxi >= EUR 20.00 <= EUR 30.97 last month","bounds":{"amount_min_minor":2000,"amount_max_minor":3097}},
+    {"question":"Show transactions taxi over EUR 20 and under EUR 31 last month","bounds":{"amount_min_minor":2001,"amount_max_minor":3099}},
+    {"question":"Show transactions taxi at \"Over 20 Cafe\" over €20 last month","bounds":{"amount_min_minor":2001}},
+    {"question":"Show transactions taxi at \"City  Taxi\" at most EUR 30.97 last month","bounds":{"amount_max_minor":3097}}
+  ],
+  "unsupported": [
+    "Show transactions taxi over USD 20 last month",
+    "Show transactions taxi over EUR -20 last month",
+    "Show transactions taxi over -EUR 20 last month",
+    "Show transactions taxi over €−20 last month",
+    "Show transactions taxi over EUR 40 under EUR 20 last month",
+    "Show transactions taxi over EUR 20 or under EUR 10 last month",
+    "Show transactions taxi over EUR 20 over EUR 30 last month",
+    "Show transactions taxi between 10 and 20 EUR last month",
+    "Show transactions taxi over EUR 90071992547409.91 last month"
+  ]
+}

@@ -1,5 +1,5 @@
 import {describe,it,expect,vi} from "vitest";
-import {mkdtemp,readFile,rm,access} from "node:fs/promises";
+import {mkdtemp,readFile,rm,access,writeFile} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {createPublicCoachExecutor} from "./public-executor";
@@ -10,7 +10,7 @@ const origin="http://127.0.0.1:33110",question="How much did I spend on taxis la
 const request=(site=origin)=>new Request(origin+"/api/chat",{method:"POST",headers:{host:"127.0.0.1:33110",origin:site}});
 async function fixture(run:(env:Record<string,string>,file:string)=>Promise<void>){
  const directory=await mkdtemp(path.join(os.tmpdir(),"public-coach-")),file=path.join(directory,"usage.json");
- try{await run({MONEY_COACH_PUBLIC_GEMINI_ENABLED:"true",GEMINI_API_KEY:"fake-public-key",MONEY_COACH_PUBLIC_AI_ORIGINS:origin,MONEY_COACH_MODEL_USAGE_PATH:file},file);}finally{await rm(directory,{recursive:true,force:true});}
+ try{await run({MONEY_COACH_PUBLIC_GEMINI_ENABLED:"true",GEMINI_API_KEY:"fake-public-key",MONEY_COACH_PUBLIC_AI_ORIGINS:origin,MONEY_COACH_MODEL_USAGE_PATH:file,MONEY_COACH_PUBLIC_AI_BUDGET_PATH:path.join(directory,"public-budget.json"),MONEY_COACH_PUBLIC_AI_MAX_REQUESTS:"20"},file);}finally{await rm(directory,{recursive:true,force:true});}
 }
 describe("explicitly enabled public synthetic Gemini",()=>{
  it("requires explicit privacy opt-out even when the operator has enabled the provider",async()=>fixture(async(env,file)=>{
@@ -23,7 +23,7 @@ describe("explicitly enabled public synthetic Gemini",()=>{
   expect(response.status).toBe(200);expect(response.headers.get("X-Money-Coach-Evaluation")).toBe("privacy_rule");
   await response.text();expect(network).not.toHaveBeenCalled();await expect(access(file)).rejects.toThrow();
  }));
- it("uses validated model tools repeatedly without an OpenAI grant or request-count quota",async()=>fixture(async(env,file)=>{
+ it("uses fresh validated model tools repeatedly within an explicit public allowance",async()=>fixture(async(env,file)=>{
   const network=vi.fn<typeof fetch>(mockGeminiFetch),execute=createPublicCoachExecutor({env,network});
   for(let i=0;i<3;i++){
    const result=await execute(request(),question,"fi",10,undefined,undefined,undefined,"organizer1",false);
@@ -33,6 +33,7 @@ describe("explicitly enabled public synthetic Gemini",()=>{
   expect(network).toHaveBeenCalledTimes(6);
   for(const [index,[,init]] of network.mock.calls.entries()){
    const body=JSON.parse(String(init?.body)),prompt=JSON.parse(body.contents.at(-1).parts[0].text);
+   expect(init?.cache).toBe("no-store");expect(body.cachedContent).toBeUndefined();
    expect(JSON.stringify(body)).not.toMatch(/MRC-|[0-9a-f]{8}-[0-9a-f-]{27,}|"(?:rows|transactions|account_id|amount_minor|balances|booked_on)"\s*:/iu);
    if(index%2===0){
     expect(body.toolConfig.functionCallingConfig.mode).toBe('ANY');expect(prompt.verifiedFacts).toBeUndefined();
@@ -44,6 +45,7 @@ describe("explicitly enabled public synthetic Gemini",()=>{
    }
   }
   const ledger=await readFile(file,"utf8");expect(JSON.parse(ledger)).toMatchObject({version:2,attempts:3,completed:3,inputTokens:600,outputTokens:150,totalTokens:750});expect(ledger).not.toMatch(/fake-public-key|How much|MRC-TRN/);
+  expect(JSON.parse(await readFile(env.MONEY_COACH_PUBLIC_AI_BUDGET_PATH,"utf8"))).toMatchObject({requests:3});
  }));
  it("blocks all external calls in Privacy mode, without explicit enablement or for another origin",async()=>fixture(async(env,file)=>{
   const network=vi.fn<typeof fetch>(),execute=createPublicCoachExecutor({env,network});
@@ -61,5 +63,40 @@ describe("explicitly enabled public synthetic Gemini",()=>{
   const network=vi.fn<typeof fetch>(async(url,init)=>{const body=await(await mockGeminiFetch(url,init)).json();body.candidates[0].content.parts[0].functionCall.args.category="dining";return Response.json(body);});
   const result=await createPublicCoachExecutor({env,network})(request(),question,"en",10,undefined,undefined,undefined,"organizer1",false);
   expect(result.source).toBe("rule");expect(result.diagnostic).toBe("tool_validation");expect(network).toHaveBeenCalledTimes(1);
+ }));
+ it("fails closed without a valid public allowance before any provider or usage write",async()=>fixture(async(env,file)=>{
+  const network=vi.fn<typeof fetch>();
+  for(const invalid of [{MONEY_COACH_PUBLIC_AI_MAX_REQUESTS:undefined},{MONEY_COACH_PUBLIC_AI_MAX_REQUESTS:"unlimited"},{MONEY_COACH_PUBLIC_AI_BUDGET_PATH:"relative.json"},{MONEY_COACH_PUBLIC_AI_BUDGET_MICRO_EUR:"100"}]){
+   const execute=createPublicCoachExecutor({env:{...env,...invalid},network});
+   expect((await execute(request(),question,"en",10,undefined,undefined,undefined,"organizer1",false)).diagnostic).toBe("public_ai_configuration");
+  }
+  expect(network).not.toHaveBeenCalled();await expect(access(file)).rejects.toThrow();
+ }));
+ it("enforces the lifetime cap across executor recreation and retains failed requests",async()=>fixture(async(env)=>{
+  env.MONEY_COACH_PUBLIC_AI_MAX_REQUESTS="1";
+  const network=vi.fn<typeof fetch>(async()=>Response.json({error:{status:"RESOURCE_EXHAUSTED",message:"private-provider-text"}},{status:429}));
+  const first=await createPublicCoachExecutor({env,network})(request(),question,"en",10,undefined,undefined,undefined,"organizer1",false);
+  expect(first.diagnostic).toBe("provider_http:429:RESOURCE_EXHAUSTED");
+  const second=await createPublicCoachExecutor({env,network})(request(),question,"en",10,undefined,undefined,undefined,"organizer1",false);
+  expect(second).toMatchObject({source:"rule",diagnostic:"public_ai_request_limit"});expect(network).toHaveBeenCalledTimes(1);
+ }));
+ it("publishes safe money, rate, busy and ledger diagnostics with no blocked transport",async()=>fixture(async(env)=>{
+  const network=vi.fn<typeof fetch>(mockGeminiFetch),invoke=(settings=env)=>createPublicCoachExecutor({env:settings,network})(request(),question,"en",10,undefined,undefined,undefined,"organizer1",false);
+  env.MONEY_COACH_PUBLIC_AI_BUDGET_MICRO_EUR="100";env.MONEY_COACH_PUBLIC_AI_RESERVATION_MICRO_EUR="100";
+  expect((await invoke()).source).toBe("model");expect((await invoke()).diagnostic).toBe("public_ai_budget_limit");
+  delete env.MONEY_COACH_PUBLIC_AI_BUDGET_MICRO_EUR;delete env.MONEY_COACH_PUBLIC_AI_RESERVATION_MICRO_EUR;
+  expect((await invoke({...env,MONEY_COACH_PUBLIC_AI_REQUESTS_PER_MINUTE:"1"})).diagnostic).toBe("public_ai_rate_limit");
+  await writeFile(env.MONEY_COACH_PUBLIC_AI_BUDGET_PATH+".lock","");expect((await invoke()).diagnostic).toBe("public_ai_busy");await rm(env.MONEY_COACH_PUBLIC_AI_BUDGET_PATH+".lock");
+  await writeFile(env.MONEY_COACH_PUBLIC_AI_BUDGET_PATH,"{}");expect((await invoke()).diagnostic).toBe("public_ai_ledger");expect(network).toHaveBeenCalledTimes(2);
+ }));
+ it("serializes fresh text requests and preserves cancellation without a financial fallback",async()=>fixture(async(env)=>{
+  let release!:()=>void;const gate=new Promise<void>(resolve=>{release=resolve;}),network=vi.fn<typeof fetch>(async(url,init)=>{await gate;return mockGeminiFetch(url,init);}),execute=createPublicCoachExecutor({env,network});
+  const first=execute(request(),question,"en",10,undefined,undefined,undefined,"organizer1",false);
+  await vi.waitFor(()=>expect(network).toHaveBeenCalledTimes(1));
+  try{expect((await execute(request(),question,"en",10,undefined,undefined,undefined,"organizer1",false)).diagnostic).toBe("public_ai_busy");}finally{release();}
+  expect((await first).source).toBe("model");expect(network).toHaveBeenCalledTimes(2);
+  const controller=new AbortController();controller.abort();
+  await expect(execute(new Request(request(),{signal:controller.signal}),question,"en",10,undefined,undefined,undefined,"organizer1",false)).rejects.toMatchObject({name:"CoachCancelledError"});
+  expect(network).toHaveBeenCalledTimes(2);
  }));
 });

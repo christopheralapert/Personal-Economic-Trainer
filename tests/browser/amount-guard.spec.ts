@@ -6,12 +6,12 @@ import {en,fi,et} from "../../frontend/coach/src/i18n/dictionaries";
 const api=process.env.MONEYLENS_GUARD_API!;
 const control={headers:{"X-MoneyLens-Rehearsal":"synthetic-amount-guard"}};
 const cases=[
- {locale:"et",limited:"Näita eelmise kuu üle 20 € taksosõite",normal:"Kui palju kulutasin taksodele eelmisel kuul?",message:"Summapiiranguga otsingut veel ei toetata"},
- {locale:"en",limited:"Show last month's taxi rides over EUR 20.",normal:"How much did I spend on taxis last month?",message:"Amount filters are not supported"},
- {locale:"fi",limited:"Näytä viime kuun yli 20 euron taksimatkat.",normal:"Paljonko käytin takseihin viime kuussa?",message:"Summarajauksia ei vielä tueta"},
+ {locale:"et",limited:"Näita eelmise kuu üle USD 20 taksosõite",normal:"Kui palju kulutasin taksodele eelmisel kuul?",message:"Summapiirang on ebaselge"},
+ {locale:"en",limited:"Show last month's taxi rides over USD 20.",normal:"How much did I spend on taxis last month?",message:"That amount filter is ambiguous"},
+ {locale:"fi",limited:"Näytä viime kuun yli USD 20 taksimatkat.",normal:"Paljonko käytin takseihin viime kuussa?",message:"Summarajaus on epäselvä"},
 ] as const;
 
-test("ET/EN/FI unsupported limits stay local; native Gemini test transport and local taxi evidence still work",async({page,request})=>{
+test("ET/EN/FI unsupported currencies stay local; native Gemini test transport and local taxi evidence still work",async({page,request})=>{
  await signin(page,"model-review");
  const accounts=await page.evaluate(async()=>await(await fetch("/api/v1/accounts")).json());
  const account=accounts.find((r:{name:string})=>r.name==="Synthetic taxi A account").id,saved=await ledger(page,account);
@@ -37,7 +37,7 @@ test("ET/EN/FI unsupported limits stay local; native Gemini test transport and l
   await limited();
   await page.waitForTimeout(5350); // Preserve the existing per-user model admission interval.
   const before=await(await request.get(api+"/rehearsal/counts",control)).json();const body=await submit(sample.normal);
-  expect(body.source).toBe("model");expect(body.provider).toBe("gemini-direct");expect(body.model_usage.calls).toBe(1);
+  expect(body.source).toBe("model");expect(body.provider).toBe("gemini-direct");expect(body.model_usage.calls).toBe(2);
   const result=body.card.answer.artifact.result;
   expect(result.net_minor).toBe(3097);expect(result.scope.account_ids.length===1&&result.scope.account_ids[0]===account).toBe(true);
   expect(result.scope.start).toBe("2026-10-01");expect(result.scope.end_exclusive).toBe("2026-11-01");
@@ -50,7 +50,7 @@ test("ET/EN/FI unsupported limits stay local; native Gemini test transport and l
   const detail=page.getByRole("dialog",{name:c.details,exact:true});await expect(detail).toContainText("Synthetic taxi");
   await detail.getByRole("button",{name:copy.done,exact:true}).click();
   await page.getByRole("dialog",{name:c.records,exact:true}).getByRole("button",{name:copy.done,exact:true}).click();
-  const after=await(await request.get(api+"/rehearsal/counts",control)).json();expect(after.gemini-before.gemini).toBe(1);expect(after.verda).toBe(0);
+  const after=await(await request.get(api+"/rehearsal/counts",control)).json();expect(after.gemini-before.gemini).toBe(2);expect(after.verda).toBe(0);
   await limited(); // Immediate post-model request must not get a model cooldown rejection.
   await page.getByRole("checkbox",{name:c.privacy,exact:true}).check();const local=await submit(sample.normal);
   expect(local.source).toBe("rule");expect(local.provider).toBeNull();expect(local.card.answer.artifact.result.net_minor).toBe(3097);

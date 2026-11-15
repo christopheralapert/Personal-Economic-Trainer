@@ -9,6 +9,7 @@ import {loadDataset,datasetKeySchema} from "@/engine/datasets";
 import {dataScopeSchema,scopedDataset} from "@/engine/data-scope";
 import {createVoiceProvider,VoiceError,SPEECH_MODEL,TRANSCRIBE_MODEL} from "./provider";
 import {withVoiceReservation} from "./budget";
+import {publicAIPolicy,withPublicAIReservation} from "./public-budget";
 import {streamSpeech} from './stream-provider';
 
 export const MAX_VOICE_BYTES=524288,MAX_RECORDING_MS=20000;
@@ -25,8 +26,8 @@ async function audioBytes(request:Request){
  const result=new Uint8Array(size);let offset=0;for(const chunk of chunks){result.set(chunk,offset);offset+=chunk.length;}return result;
 }
 export function createVoiceRoutes({env=process.env,network=globalThis.fetch}:{env?:Record<string,string|undefined>;network?:typeof fetch}={}) {
- const file=env.MONEY_COACH_VOICE_LEDGER_PATH,maximum=env.MONEY_COACH_VOICE_REQUEST_POLICY==="unmetered" ? null : Number(env.MONEY_COACH_VOICE_MAX_REQUESTS??"20");
- const enabled=()=>env.MONEY_COACH_GEMINI_VOICE_ENABLED==="true" && Boolean(env.GEMINI_API_KEY) && Boolean(file && path.isAbsolute(file)) && (maximum===null || Number.isInteger(maximum) && maximum>=1 && maximum<=100);
+ const file=env.MONEY_COACH_VOICE_LEDGER_PATH,rawMaximum=env.MONEY_COACH_VOICE_MAX_REQUESTS??"20",maximum=Number(rawMaximum);
+ const enabled=()=>{try{publicAIPolicy(env);return env.MONEY_COACH_GEMINI_VOICE_ENABLED==="true" && Boolean(env.GEMINI_API_KEY) && Boolean(file && path.isAbsolute(file)) && (env.MONEY_COACH_VOICE_REQUEST_POLICY===undefined || env.MONEY_COACH_VOICE_REQUEST_POLICY==="bounded") && /^[1-9]\d*$/.test(rawMaximum) && Number.isInteger(maximum) && maximum<=100;}catch{return false;}};
  const headers=()=>({"Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff",[REVISION_HEADER]:COACH_REVISION});
  function guard(request:Request){
   if(request.headers.get("X-Money-Coach-Privacy")!=="off")throw new VoiceError("privacy_required",403);
@@ -43,7 +44,7 @@ export function createVoiceRoutes({env=process.env,network=globalThis.fetch}:{en
    if(!["audio/webm","audio/ogg","audio/mp4","audio/wav"].includes(mime))throw new VoiceError("audio_type",415);
    const audio=await audioBytes(request);if(request.signal.aborted)throw new VoiceError("cancelled",499);
    const provider=createVoiceProvider(env.GEMINI_API_KEY!,network);
-   const result=await withVoiceReservation(file!,maximum,"transcribe",()=>provider.transcribe(audio,mime==="audio/mp4" ? "audio/m4a" : mime,locale,request.signal));
+   const result=await withPublicAIReservation(publicAIPolicy(env),()=>withVoiceReservation(file!,maximum,"transcribe",()=>provider.transcribe(audio,mime==="audio/mp4" ? "audio/m4a" : mime,locale,request.signal)),request.signal);
    return Response.json({text:result.text,provider:"gemini"},{headers:headers()});
   }catch(error){return failed(error);}},
   speak:async(request:Request)=>{try{
@@ -56,11 +57,11 @@ export function createVoiceRoutes({env=process.env,network=globalThis.fetch}:{en
    if(request.signal.aborted)throw new VoiceError("cancelled",499);
    if(request.headers.get('accept')==='application/x-money-coach-pcm'){
     const controller=new AbortController(),signal=AbortSignal.any([request.signal,controller.signal]),encoder=new TextEncoder();
-    const stream=new ReadableStream<Uint8Array>({async start(writer){const send=(value:unknown)=>{if(!signal.aborted)writer.enqueue(encoder.encode(JSON.stringify(value)+'\n'));};try{await withVoiceReservation(file!,maximum,'speak',()=>streamSpeech(env.GEMINI_API_KEY!,text,signal,(data,providerMs)=>send({type:'audio',data,providerMs}),network));send({type:'done'});}catch(error){send({type:'error',error:error instanceof VoiceError?error.code:'voice_unavailable'});}finally{try{writer.close();}catch{}}},cancel(){controller.abort();}});
+    const stream=new ReadableStream<Uint8Array>({async start(writer){const send=(value:unknown)=>{if(!signal.aborted)writer.enqueue(encoder.encode(JSON.stringify(value)+'\n'));};try{await withPublicAIReservation(publicAIPolicy(env),()=>withVoiceReservation(file!,maximum,'speak',()=>streamSpeech(env.GEMINI_API_KEY!,text,signal,(data,providerMs)=>send({type:'audio',data,providerMs}),network)),signal);send({type:'done'});}catch(error){send({type:'error',error:error instanceof VoiceError?error.code:'voice_unavailable'});}finally{try{writer.close();}catch{}}},cancel(){controller.abort();}});
     return new Response(stream,{headers:{...headers(),'Content-Type':'application/x-money-coach-pcm','X-Money-Coach-Voice-Provider':'gemini','X-Accel-Buffering':'no'}});
    }
    const prepared=performance.now();let providerMs=0;
-   const provider=createVoiceProvider(env.GEMINI_API_KEY!,network),result=await withVoiceReservation(file!,maximum,"speak",async()=>{const start=performance.now();const value=await provider.speak(text,request.signal);providerMs=performance.now()-start;return value;});
+   const provider=createVoiceProvider(env.GEMINI_API_KEY!,network),result=await withPublicAIReservation(publicAIPolicy(env),()=>withVoiceReservation(file!,maximum,"speak",async()=>{const start=performance.now();const value=await provider.speak(text,request.signal);providerMs=performance.now()-start;return value;}),request.signal);
    return new Response(new Uint8Array(result.audio),{headers:{...headers(),"Content-Type":"audio/wav","X-Money-Coach-Voice-Provider":"gemini","Server-Timing":`prepare;dur=${(prepared-started).toFixed(1)}, provider;dur=${providerMs.toFixed(1)}, total;dur=${(performance.now()-started).toFixed(1)}`}});
   }catch(error){return failed(error);}},
  };

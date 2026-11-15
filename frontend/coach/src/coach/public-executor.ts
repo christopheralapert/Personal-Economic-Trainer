@@ -3,6 +3,8 @@ import path from "node:path";
 import {loadDataset} from "@/engine/datasets";
 import {scopedDataset} from "@/engine/data-scope";
 import {withVoiceReservation} from "@/voice/budget";
+import {publicAIPolicy,withPublicAIReservation} from "@/voice/public-budget";
+import {VoiceError} from "@/voice/provider";
 import {RuleProvider} from "./rule-provider";
 import {ConversationProvider} from './conversation-provider';
 import {throwIfCancelled,CoachCancelledError} from "./execution";
@@ -22,10 +24,11 @@ export function createPublicCoachExecutor({env=process.env,network=globalThis.fe
    if(!allowed.includes(origin) || url.host!==request.headers.get("host"))return fallback("public_origin");
   }catch{return fallback("public_origin");}
   try {
-   const outcome=await withVoiceReservation(file,null,'coach',()=>new ConversationProvider(key,network).answer(question,locale,savingsPercent,execution,conversation));
+   const policy=publicAIPolicy(env);
+   const outcome=await withPublicAIReservation(policy,()=>withVoiceReservation(file,null,'coach',()=>new ConversationProvider(key,network).answer(question,locale,savingsPercent,execution,conversation)),request.signal);
    throwIfCancelled(request.signal);
    return {message:outcome.message,source:outcome.source,diagnostic:outcome.diagnostic,provider:outcome.source==='model'?'gemini-direct':undefined,usageDiagnostic:outcome.timing};
-  }catch(error){if(error instanceof CoachCancelledError)throw error;return fallback("public_execution_failed");}
+  }catch(error){throwIfCancelled(request.signal);if(error instanceof CoachCancelledError)throw error;return fallback(error instanceof VoiceError && error.code.startsWith("public_ai_")?error.code:error instanceof VoiceError && ["voice_busy","voice_ledger","voice_limit"].includes(error.code)?`public_ai_${error.code.slice(6)}`:"public_execution_failed");}
  };
  return execute;
 }

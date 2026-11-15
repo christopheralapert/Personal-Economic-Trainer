@@ -62,7 +62,8 @@ export function CoachQuery({request,initialQuestion=""}:{request:PrivateRequest;
     const selectors=previousIntent?.kind==="habits"?previousIntent.arguments:selected&&"start" in selected.arguments?selected.arguments:null;
     const reduction=selected?.name==="spending_reduction"&&selected.arguments.change.kind==="percentage"?selected.arguments.change.reduction_basis_points:null;
     const comparison=selected?.name==="spending_comparison"&&(selected.arguments.mode==="previous_month"||selected.arguments.mode==="previous_period")?selected.arguments.mode:null;
-    const context=previousScope ? JSON.stringify({start:previousScope.start,end_exclusive:previousScope.end_exclusive,...(selected?{tool:selected.name}:previousIntent?.kind==="habits"?{tool:"habits"}:{}),...(selectors&&"category" in selectors?{category:selectors.category}:{}),...(selectors&&"merchant" in selectors?{merchant:selectors.merchant}:{}),...(reduction!==null?{reduction_basis_points:reduction}:{}),...(comparison?{comparison_mode:comparison}:{})}) : undefined;
+    const amountSelectors=selected?.name==='ledger_transactions'?{amount_min_minor:selected.arguments.amount_min_minor,amount_max_minor:selected.arguments.amount_max_minor}:{};
+    const context=previousScope ? JSON.stringify({start:previousScope.start,end_exclusive:previousScope.end_exclusive,...(selected?{tool:selected.name}:previousIntent?.kind==="habits"?{tool:"habits"}:{}),...(selectors&&"category" in selectors?{category:selectors.category}:{}),...(selectors&&"merchant" in selectors?{merchant:selectors.merchant}:{}),...amountSelectors,...(reduction!==null?{reduction_basis_points:reduction}:{}),...(comparison?{comparison_mode:comparison}:{})}) : undefined;
     activeTurn.current=id;setTurns(items=>[...items,{id,question:text}]);setQuestion("");setBusy(true);setError("");setSearchRows([]);setSearchCursor(null);
     try {
       const history=privacy?[]:turns.flatMap(turn=>[{role:'user' as const,text:turn.question},...(turn.answer?.answer_text?[{role:'assistant' as const,text:turn.answer.answer_text}]:[])]).slice(-8).map(turn=>({...turn,text:turn.text.slice(0,2000)}));
@@ -86,6 +87,8 @@ export function CoachQuery({request,initialQuestion=""}:{request:PrivateRequest;
     try {
       const a=intent.arguments,q=new URLSearchParams({start:a.start,end_exclusive:a.end_exclusive,currency:a.currency??answer.transactions.scope.currency,status:"booked",spending_only:"false",limit:"50",cursor:searchCursor,expected_data_version:String(answer.transactions.scope.data_version)});
       if(a.category)q.set("category",a.category);if(a.merchant)q.set("merchant",a.merchant);
+      if(a.amount_min_minor!=null)q.set('amount_min_minor',String(a.amount_min_minor));
+      if(a.amount_max_minor!=null)q.set('amount_max_minor',String(a.amount_max_minor));
       for(const id of answer.transactions.scope.account_ids)q.append("account_id",id);
       const next=await request<Schema["LedgerPageV1"]>(`ledger/transactions?${q}`);
       if(generation===latest.current){setSearchRows(rows=>[...rows,...next.rows]);setSearchCursor(next.next_cursor);}

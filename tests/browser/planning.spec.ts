@@ -33,8 +33,9 @@ test("reviewed planning UI creates a plan and reserves/releases one shared surpl
   await expect(page.getByTestId("private-spending-room")).toContainText("200,00");
   await expect(page.locator(".reservation-list")).toContainText("Released");
   expect(calls.accepts).toHaveLength(1); expect(calls.releases).toHaveLength(1);
+  await page.getByRole("link",{name:"Settings",exact:true}).click();
   await page.getByRole("button",{name:"Sign out",exact:true}).click();
-  await expect(page.getByRole("button",{name:"Continue as Aino"})).toBeVisible();
+  await expect(page.getByRole("link",{name:"Try file import",exact:true})).toBeVisible();
   await expect(page.getByTestId("private-spending-room")).toHaveCount(0);
   expect(await page.evaluate(() => ({local:localStorage.length,session:sessionStorage.length}))).toEqual({local:0,session:0});
 });
@@ -62,7 +63,7 @@ test("offline and background transitions clear drafts and never replay writes", 
   await page.getByLabel("Proposed new savings (EUR)").fill("73.50");
   await context.setOffline(true);
   await expect(page.getByTestId("private-spending-room")).toHaveCount(0);
-  await expect(page.getByRole("main")).toContainText("You're offline");
+  await expect(page.getByRole("main")).toContainText("You are offline");
   await context.setOffline(false);
   await expect(page.getByTestId("private-spending-room")).toContainText("200,00");
   await expect(page.getByLabel("Proposed new savings (EUR)")).toHaveValue("");
