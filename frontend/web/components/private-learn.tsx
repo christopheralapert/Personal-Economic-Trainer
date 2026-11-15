@@ -1,4 +1,5 @@
 "use client";
+import {copyLocale} from "@/i18n/dictionaries";
 import {useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
 import {ChevronLeft,ChevronRight} from "lucide-react";
@@ -26,7 +27,7 @@ const topics=[
 ] as const;
 type Totals=components["schemas"]["SpendingTotalsV1"];
 export function PrivateLearn({request}:{request:PrivateRequest}){
- const {locale,t}=useCopy(),c=flowCopy[locale],r=reviewCopy[locale],o=overviewCopy[locale],router=useRouter();
+ const {locale,t}=useCopy(),c=flowCopy[copyLocale(locale)],r=reviewCopy[copyLocale(locale)],o=overviewCopy[copyLocale(locale)],router=useRouter();
  const {data,error:accountError,loading:accountsLoading,load}=useDashboard(request);
  const [period,setPeriod]=useState(lastMonth),[account,setAccount]=useState(""),[totals,setTotals]=useState<Totals|null>(null),[error,setError]=useState(false),[loading,setLoading]=useState(true),[retry,setRetry]=useState(0),[read,setRead]=useState<string[]>([]);
  const accounts=(data?.accounts??[]).filter(a=>a.included&&a.currency==="EUR"),validAccount=!account||accounts.some(a=>a.id===account);

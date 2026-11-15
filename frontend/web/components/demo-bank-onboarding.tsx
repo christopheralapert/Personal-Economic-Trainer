@@ -1,4 +1,5 @@
 "use client";
+import {copyLocale} from "@/i18n/dictionaries";
 import {useEffect,useRef,useState} from "react";
 import {ChartNoAxesColumn,MessageCircle,SlidersHorizontal,BookOpen} from "lucide-react";
 import {Button} from "@/components/ui/button";
@@ -14,7 +15,7 @@ type Result={state:"consent"|"connected"|"cancelled"|"imported";name:string;toke
 // private ledger. It rehearses the registered Python SyntheticBank adapters.
 async function demo<T>(path:string,body?:unknown,signal?:AbortSignal):Promise<T>{const controller=new AbortController(),cancel=()=>controller.abort(),timer=setTimeout(cancel,10000);signal?.addEventListener("abort",cancel,{once:true});if(signal?.aborted)cancel();try{const response=await fetch(`/api/demo/${path}`,{method:body?"POST":"GET",cache:"no-store",signal:controller.signal,headers:{"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});if(!response.ok)throw new Error("DEMO_UNAVAILABLE");return await response.json() as T;}finally{clearTimeout(timer);signal?.removeEventListener("abort",cancel);}}
 export function DemoBankOnboarding(){
- const {locale,t}=useCopy(),c=firstBankCopy[locale];
+ const {locale,t}=useCopy(),c=firstBankCopy[copyLocale(locale)];
  const [banks,setBanks]=useState<Bank[]>([]),[bank,setBank]=useState<Bank|null>(null),[country,setCountry]=useState("EE"),[filter,setFilter]=useState("");
  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(false),[result,setResult]=useState<Result|null>(null),[showRows,setShowRows]=useState(false),[revision,setRevision]=useState(0);
  const lock=useRef(false),epoch=useRef(0);

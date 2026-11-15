@@ -1,4 +1,5 @@
 "use client";
+import {copyLocale} from "@/i18n/dictionaries";
 import {useCallback,useEffect,useState} from 'react';
 import {useCopy} from '@/i18n/context';
 import {Button} from '@/components/ui/button';
@@ -12,7 +13,7 @@ import {MoneyCoach} from '@/components/money-coach';
 import {TransactionList} from '@/components/gen/transaction-list';
 import {loadTransactions,type Dataset} from '@/engine';
 export function DemoStatementPractice(){
- const {locale}=useCopy(),c=demoEntryCopy[locale];
+ const {locale}=useCopy(),c=demoEntryCopy[copyLocale(locale)];
  const [csrf,setCsrf]=useState(''),[error,setError]=useState(false),[view,setView]=useState('import'),[data,setData]=useState<Dataset|null>(null);
  useEffect(()=>{const next=new URLSearchParams(location.search).get('view');if(next==='coach'||next==='transactions')setView(next);},[]);
  const start=useCallback(async()=>{setError(false);try{const response=await fetch('/api/demo-statements/session',{method:'POST',cache:'no-store'});if(!response.ok)throw Error();setCsrf((await response.json()).csrf_token);}catch{setError(true);}},[]);

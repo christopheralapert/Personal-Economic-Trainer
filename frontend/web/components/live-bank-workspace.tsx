@@ -1,4 +1,5 @@
 "use client";
+import {copyLocale} from "@/i18n/dictionaries";
 
 import {useCallback, useEffect, useRef, useState,type ReactNode} from "react";
 import {aborted,PrivateApiError,type PrivateRequest} from "./private-session";
@@ -32,7 +33,7 @@ const statusKey={connected:"statusConnected",attention:"statusAttention",expired
 const statusTone:Record<Status,string>={connected:"bg-brand-tint text-active-ink",attention:"bg-basket-surprises/15 text-ink",expired:"bg-basket-surprises/15 text-ink",paused:"bg-tile-grey text-ink-2",updating:"bg-tile-grey text-ink-2",never:"bg-tile-grey text-ink-2"};
 
 export function LiveBankWorkspace({request,changed,children}:{request:PrivateRequest;changed:()=>void;children?:ReactNode}) {
-  const {locale,t}=useCopy(),copy=firstBankCopy[locale];
+  const {locale,t}=useCopy(),copy=firstBankCopy[copyLocale(locale)];
   const [adding,setAdding]=useState(false);
   const [flow,setFlow]=useState(false),[choice,setChoice]=useState<Institution|null>(null);
   const [returnId,setReturnId]=useState<string|null>(null),[imported,setImported]=useState<LiveRefresh|null>(null);

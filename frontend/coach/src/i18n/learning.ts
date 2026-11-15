@@ -28,5 +28,8 @@ const et:Copy={
  savingConcept:{body:"Säästueesmärk on plaan, mitte juba säästetud raha. Lisasäästmisruum sõltub kasutatavast saldost, tulevastest arvetest, vajalikest reservidest ja kaasatud kontodest.",step:"Enne raha kõrvale panemist vaata üle puuduvad andmed. Küsi treenerilt, mida on vaja. Hinnang ei anna luba kulutada ega säästa."},
  habit:{body:"20% vähendamise stsenaarium võrdleb muutust kirjendatud kuludega. See ei muuda tehinguid, liiguta raha ega luba, et vahe on säästmiseks vaba.",step:"Proovi ühes paindlikus kategoorias väiksemat summat. Võrdle tulemust oma prioriteetidega ja vali korratav harjumus."},
 };
-export const learningCopy={en,fi,et};
+import learningDe from "./generated/learning-de.json";
+import learningSv from "./generated/learning-sv.json";
+/** German and Swedish are machine-translated (Gemini) from English. */
+export const learningCopy={en,fi,et,de:{...en,...learningDe} as typeof en,sv:{...en,...learningSv} as typeof en};
 export type LearnConcept="regular"|"irregular"|"everyday"|"fund"|"savingConcept"|"habit";

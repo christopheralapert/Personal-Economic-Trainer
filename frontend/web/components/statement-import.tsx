@@ -1,4 +1,5 @@
 "use client";
+import {copyLocale} from "@/i18n/dictionaries";
 import {useEffect,useRef,useState} from "react";
 import {useCopy} from "@/i18n/context";
 import {Button} from "@/components/ui/button";
@@ -25,11 +26,11 @@ const reasons={
  fi:{unreadable_pdf:'PDF on vioittunut tai lukukelvoton. Vie sen sijaan Wise EUR CSV.',qif_date_order_required:'Valitse QIF-päivämäärämuoto ja esikatsele uudelleen.',unsupported_currency:'Tiliote ei ole euroissa. Vie EUR-tilin tiliote.',period:'Jos vienti ei sisällä ajanjaksoa, alla olevat päivämäärät perustuvat tapahtumiin.'}
 };
 export function StatementImport({request,changed,demo=false}:{request:PrivateRequest;changed:()=>void;demo?:boolean}){
- const {locale,privacy,setPrivacy}=useCopy(),classification=classificationCopy[locale],c={...copy[locale],...{
+ const {locale,privacy,setPrivacy}=useCopy(),classification=classificationCopy[copyLocale(locale)],c={...copy[copyLocale(locale)],...{
   en:{ask:'Ask Coach',draft:'Show transactions from {start} until {end}',canonical:'Canonical EUR-cents CSV is also accepted: reference,booked_on,amount_minor,currency,description (ISO dates, up to 64 KiB).'},
   fi:{ask:'Kysy valmentajalta',draft:'Näytä tapahtumat alkaen {start} asti {end}',canonical:'Myös EUR-senttien CSV hyväksytään: reference,booked_on,amount_minor,currency,description (ISO-päivät, enintään 64 KiB).'},
   et:{ask:'Küsi Coachilt',draft:'Näita tehinguid alates {start} kuni {end}',canonical:'Toetatud on ka EUR-sentide CSV: reference,booked_on,amount_minor,currency,description (ISO-kuupäevad, kuni 64 KiB).'}
- }[locale]},input=useRef<HTMLInputElement>(null),next=useRef(0),publishedFocus=useRef<HTMLDivElement>(null);
+ }[copyLocale(locale)]},input=useRef<HTMLInputElement>(null),next=useRef(0),publishedFocus=useRef<HTMLDivElement>(null);
  const [items,setItems]=useState<Item[]>([]),[accounts,setAccounts]=useState<StatementAccount[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState("");
  const busyNow=useRef(false);
  const [cloudConsent,setCloudConsent]=useState(false),[cloudBusy,setCloudBusy]=useState(false),[cloudStatus,setCloudStatus]=useState('');
@@ -38,7 +39,7 @@ export function StatementImport({request,changed,demo=false}:{request:PrivateReq
  useEffect(()=>()=>{cloudGeneration.current++;},[]);
  useEffect(()=>{let active=true;void request<StatementAccount[]>("statements/wise/accounts").then(v=>{if(active)setAccounts(v);}).catch(()=>{});return()=>{active=false;};},[request]);
  const update=(id:number,value:Partial<Item>)=>setItems(list=>list.map(x=>x.id===id?{...x,...value}:x));
- function reason(code:string,format?:Format){if(code==='synthetic_sample_required')return demoEntryCopy[locale].sampleOnly;const known=reasons[locale];if(code==='unreadable_pdf'||code==='qif_date_order_required'||code==='unsupported_currency')return known[code];if(code==='file_too_large')return c.large;if(format==='pdf')return code==='no_text_use_csv'?c.scan:code==='encrypted_pdf'?c.encrypted:c.pdf;return c.error;}
+ function reason(code:string,format?:Format){if(code==='synthetic_sample_required')return demoEntryCopy[copyLocale(locale)].sampleOnly;const known=reasons[copyLocale(locale)];if(code==='unreadable_pdf'||code==='qif_date_order_required'||code==='unsupported_currency')return known[code];if(code==='file_too_large')return c.large;if(format==='pdf')return code==='no_text_use_csv'?c.scan:code==='encrypted_pdf'?c.encrypted:c.pdf;return c.error;}
  function addFiles(files:File[]){
   if(files.length+items.length>10){setError(c.limit);return [];}
   const selected:Item[]=files.map(file=>{const ext=file.name.split('.').at(-1)?.toLowerCase(),format=ext==='sta'?'mt940':ext;return {id:++next.current,name:file.name,file,format:format&&['csv','pdf','xlsx','xml','mt940','qif'].includes(format)?format as Format:undefined,choice:'',newName:'Wise EUR',currency:'',order:'',separate:false};});
@@ -69,8 +70,8 @@ export function StatementImport({request,changed,demo=false}:{request:PrivateReq
   const result=await request<{files:Published[]}>('statements/wise/confirm',{previews:pending.map(x=>({preview_id:x.result.id,account_id:!['auto','new'].includes(x.choice)?x.choice:null,new_account_label:x.choice==='new'?x.newName.trim():null,currency:x.currency||null,keep_separate:x.separate,reviews:x.reviews??[],classification_token:privacy||!cloudConsent?null:x.classificationToken??null,privacy}))});
   for(let i=0;i<pending.length;i++)update(pending[i].id,{result:result.files[i]});changed();requestAnimationFrame(()=>publishedFocus.current?.focus());setAccounts(await request<StatementAccount[]>('statements/wise/accounts'));
  }catch(e){setError(e instanceof PrivateApiError&&e.code==='STATEMENT_OVERLAP'?c.overlap:c.failed);}finally{busyNow.current=false;setBusy(false);}}
- function coachLink(result:Published){return demo?'/demo/import?'+new URLSearchParams({view:'coach',tab:'coach',question:demoEntryCopy[locale].question}):'/coach?'+new URLSearchParams({account_id:result.account_id,start:result.start,end:result.end_exclusive,question:c.draft.replace('{start}',result.start).replace('{end}',result.end_exclusive)});}
- return <section className="space-y-4 border-t border-line py-4" aria-busy={busy}><h2 className="text-lg font-semibold">{c.title}</h2>{!demo&&<><p className="text-sm text-ink-2">{c.note}</p><p className="wrap-anywhere text-caption text-ink-2">{c.canonical}</p><p className="text-caption text-ink-2">{reasons[locale].period}</p>
+ function coachLink(result:Published){return demo?'/demo/import?'+new URLSearchParams({view:'coach',tab:'coach',question:demoEntryCopy[copyLocale(locale)].question}):'/coach?'+new URLSearchParams({account_id:result.account_id,start:result.start,end:result.end_exclusive,question:c.draft.replace('{start}',result.start).replace('{end}',result.end_exclusive)});}
+ return <section className="space-y-4 border-t border-line py-4" aria-busy={busy}><h2 className="text-lg font-semibold">{c.title}</h2>{!demo&&<><p className="text-sm text-ink-2">{c.note}</p><p className="wrap-anywhere text-caption text-ink-2">{c.canonical}</p><p className="text-caption text-ink-2">{reasons[copyLocale(locale)].period}</p>
   <label className="flex min-h-12 items-center gap-3 text-sm"><input type="checkbox" checked={privacy} onChange={event=>setPrivacy(event.target.checked)}/>{classification.privacy}</label>
   <label className="flex min-h-12 items-center gap-3 text-sm"><input type="checkbox" disabled={privacy||busy} checked={cloudConsent&&!privacy} onChange={event=>setCloudConsent(event.target.checked)}/>{classification.cloud}</label></>}
   <p className="text-sm text-ink-2">{demo||privacy?classification.local:classification.disclosure}</p>

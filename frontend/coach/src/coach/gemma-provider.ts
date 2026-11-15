@@ -34,7 +34,7 @@ export function gemmaConfig(env:Record<string,string|undefined>):GemmaConfig|nul
   const url=new URL(raw);
   if(url.protocol!=='http:' || !['127.0.0.1','localhost','[::1]'].includes(url.hostname) || url.username || url.password || url.search || url.hash || !['','/'].includes(url.pathname))return null;
   const timeout=Number(env.MONEY_COACH_LOCAL_GEMMA_TIMEOUT_MS??'30000');
-  const replyLanguages=(env.MONEY_COACH_LOCAL_GEMMA_REPLY_LANGUAGES??'en').split(',').map(value=>value.trim()).filter(value=>['en','fi','et'].includes(value));
+  const replyLanguages=(env.MONEY_COACH_LOCAL_GEMMA_REPLY_LANGUAGES??'en').split(',').map(value=>value.trim()).filter(value=>['en','fi','et','de','sv'].includes(value));
   return {url:url.origin,model,timeoutMs:Number.isInteger(timeout) && timeout>=1000 && timeout<=120000 ? timeout : 30000,replyLanguages};
  }catch{return null;}
 }
@@ -43,7 +43,7 @@ const kinds=['category_spend','transactions','where_money_went','baskets','spend
 const concepts=['none','fund','cashflow','habit','basketConcept','safeConcept','savingConcept'] as const;
 /** English phrases the deterministic parser accepts; checked against the alias table at use. */
 const categoryPhrase:Record<string,string>={taxi:'taxis',dining:'dining out',home_tech:'home and technology',investment:'investments'};
-const languageName:Record<string,string>={en:'English',fi:'Finnish',et:'Estonian',es:'Spanish',ja:'Japanese'};
+const languageName:Record<string,string>={en:'English',fi:'Finnish',et:'Estonian',de:'German',sv:'Swedish',es:'Spanish',ja:'Japanese'};
 const monthName=(start:string,language='en')=>new Intl.DateTimeFormat(language,{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(start+'T12:00:00Z'));
 
 const periodWords=/\b(?:last|this|previous) (?:month|week)\b|viime|tässä kuussa|tällä viikolla|eelmisel|sel kuul|sel nädalal/iu;
@@ -155,7 +155,7 @@ export class LocalGemmaProvider{
    `Categories: ${categories.join(', ')}. taxi = taxis or cabs; dining = restaurants, cafes or eating out; home_tech = home goods and electronics.`,
    `Today is ${reference}. last_month is ${monthName(last.start)}. For an explicitly named month use period named_month and month YYYY-MM; otherwise month none.`,
    `For kind reply, write at most three short sentences in ${languageName[language]??'English'} without any amounts or numbers; otherwise reply is an empty string.`,
-   'The user may write in English, Finnish or Estonian. Never invent information.',
+   'The user may write in English, Finnish, Estonian, German or Swedish. Never invent information.',
    'Examples:',
    `"how much went on cabs in july?" -> {"kind":"category_spend","category":"taxi","period":"named_month","month":"${reference.slice(0,4)}-07",...}`,
    '"If I ate out 20% less, what would I save?" -> {"kind":"what_if","category":"dining","percent":20,...}',

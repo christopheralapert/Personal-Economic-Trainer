@@ -1,4 +1,5 @@
 "use client";
+import {copyLocale} from "@/i18n/dictionaries";
 import {useCopy} from '@/i18n/context';
 import {Button} from '@/components/ui/button';
 import {ArrowRight,FileUp,MessageCircle,Layers,SlidersHorizontal,ShieldCheck} from 'lucide-react';
@@ -6,7 +7,7 @@ import {demoEntryCopy} from '../i18n/demo-entry';
 /** The challenge's four example questions, each opening the sample data with the question ready. */
 const questions=["qTaxi","qProfile","qSafe","qWhatif"] as const;
 export function DemoEntry({embedded=false}:{embedded?:boolean}){
- const {locale,t}=useCopy(),c=demoEntryCopy[locale];
+ const {locale,t}=useCopy(),c=demoEntryCopy[copyLocale(locale)];
  const ask=(question:string)=>`/demo?${new URLSearchParams({dataset:'organizer1',tab:'coach',question})}`;
  const features=[[Layers,"landingBaskets","landingBasketsNote"],[SlidersHorizontal,"landingWhatIf","landingWhatIfNote"],[ShieldCheck,"landingPrivate","landingPrivateNote"]] as const;
  const content=<section className="space-y-8 py-6">

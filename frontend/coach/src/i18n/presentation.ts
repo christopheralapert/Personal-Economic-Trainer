@@ -1,7 +1,7 @@
 // Reviewed EN/FI/ET copy for the presentation-readiness pass: spending styles,
 // history-based safe-to-spend reserves, local Gemma labels and landing guidance.
 export const presentationEn={
- modeGemma:"Answered privately by Gemma, no cloud AI",
+ modeGemma:"Answered privately by Gemma, no cloud AI",german:"Deutsch",swedish:"Svenska",
  styleEverydayLed:"Everyday spender",styleFixedLed:"Fixed-cost spender",styleSurpriseHeavy:"Surprise-hit spender",styleBalanced:"Balanced spender",
  styleEverydayLedNote:"{share} of your spending was everyday purchases: the basket that slips through your fingers, and the easiest one to change.",
  styleFixedLedNote:"{share} went to regular must-pay bills. Most of your money is committed before the month starts, so savings on fixed costs matter most.",
@@ -24,7 +24,7 @@ export const presentationEn={
  qPayday:"How much can I spend per day until payday?",qPaydayLate:"What if my salary is a week late?",qPaydayPurchase:"Can I afford a 200 € purchase?",
 };
 export const presentationFi:typeof presentationEn={
- modeGemma:"Vastaus yksityisesti Gemmalla, ei pilvitekoälyä",
+ modeGemma:"Vastaus yksityisesti Gemmalla, ei pilvitekoälyä",german:"Deutsch",swedish:"Svenska",
  styleEverydayLed:"Arkikuluttaja",styleFixedLed:"Kiinteiden kulujen kuluttaja",styleSurpriseHeavy:"Yllätyskulujen kuormittama",styleBalanced:"Tasapainoinen kuluttaja",
  styleEverydayLedNote:"{share} kulutuksestasi oli arjen ostoksia: kori, josta raha valuu huomaamatta ja jota on helpoin muuttaa.",
  styleFixedLedNote:"{share} meni säännöllisiin pakollisiin laskuihin. Suurin osa rahasta on sidottu jo ennen kuun alkua, joten säästöt kiinteissä kuluissa ratkaisevat eniten.",
@@ -47,7 +47,7 @@ export const presentationFi:typeof presentationEn={
  qPayday:"Paljonko voin käyttää päivässä palkkapäivään asti?",qPaydayLate:"Entä jos palkka myöhästyy viikon?",qPaydayPurchase:"Onko minulla varaa 200 euron ostokseen?",
 };
 export const presentationEt:typeof presentationEn={
- modeGemma:"Vastas privaatselt Gemma, pilve-AI-d ei kasutatud",
+ modeGemma:"Vastas privaatselt Gemma, pilve-AI-d ei kasutatud",german:"Deutsch",swedish:"Svenska",
  styleEverydayLed:"Igapäevakulutaja",styleFixedLed:"Püsikulude kulutaja",styleSurpriseHeavy:"Ootamatute kulude koormatud kulutaja",styleBalanced:"Tasakaalukas kulutaja",
  styleEverydayLedNote:"{share} sinu kulutustest olid igapäevased ostud: korv, kust raha märkamatult kaob ja mida on kõige lihtsam muuta.",
  styleFixedLedNote:"{share} läks korrapärastele kohustuslikele arvetele. Suurem osa rahast on seotud juba enne kuu algust, seega loevad kõige rohkem säästud püsikuludes.",

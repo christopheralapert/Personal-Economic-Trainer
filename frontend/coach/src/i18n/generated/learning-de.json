@@ -1,0 +1,31 @@
+{
+ "progress": "{count} von {total} Themen erkundet",
+ "next": "Tipp zum Ausprobieren",
+ "records": "Transaktionen anzeigen",
+ "noFacts": "Keine bestätigten Ausgaben in diesem Zeitraum. Erkunde die Lektionen oder überprüfe deine Transaktionen, um mehr Kontext hinzuzufügen.",
+ "note": "Die erfassten Ausgaben sind kein vollständiges Budget. Eine fehlende Zahlung ist kein Beweis für null Ausgaben.",
+ "regular": {
+  "body": "Regelmäßige Fixkosten sind notwendige und meist vorhersehbare Ausgaben: Miete, Strom und wichtige Abos. Eine wiederkehrende Zahlung ist nicht automatisch essenziell; prüfe ihren Zweck, bevor du sie hier einordnest.",
+  "step": "Richte eine Liste der Rechnungen ein, die vor deinem nächsten bestätigten Einkommen fällig sind. Halte dieses Geld von den alltäglichen Ausgaben getrennt."
+ },
+ "irregular": {
+  "body": "Notwendige Reparaturen oder Gesundheitskosten fallen nicht jeden Monat an. Das sind essenzielle Überraschungen, keine alltäglichen Entscheidungen. Ein ruhiger Monat nimmt nicht die Notwendigkeit eines Puffers.",
+  "step": "Blicke einige Monate zurück, um notwendige einmalige Kosten zu finden. Entscheide, welchen Rückhalt du aufbauen kannst, ohne dass Rechnungen ungedeckt bleiben."
+ },
+ "everyday": {
+  "body": "Zu den alltäglichen Ausgaben gehören flexible Entscheidungen wie Cafés und Restaurantbesuche. Kleine Beträge können sich summieren, aber die Kategorie allein sagt nicht aus, ob ein Kauf für dich notwendig war.",
+  "step": "Wähle eine Kategorie, die du wirklich ändern möchtest. Überprüfe die Zahlungen, bevor du dir ein realistisches Limit setzt."
+ },
+ "fund": {
+  "body": "Ein Notfallgroschen schützt dich, wenn unerwartet eine essenzielle Ausgabe ansteht. Die unten erfassten Überraschungen beschreiben die Vergangenheit, nicht den Betrag, den dein Notfallgroschen enthalten muss.",
+  "step": "Wähle erst nach Überprüfung von Rechnungen und Fixkosten einen kleinen Sparbeitrag. Ein Kontostand oder ein Sparziel allein reicht nicht aus, um einen sicheren Beitrag festzulegen."
+ },
+ "savingConcept": {
+  "body": "Ein Sparziel ist ein Plan, kein bereits gespartes Geld. Zusätzlicher Sparspielraum hängt von verfügbaren Guthaben, anstehenden Rechnungen, essenziellen Rücklagen und den einbezogenen Konten ab.",
+  "step": "Prüfe, was noch fehlt, bevor du Geld zur Seite legst. Wenn diese Fakten unvollständig sind, frage Money Coach, was benötigt wird, anstatt eine Schätzung als Freibrief zu sehen."
+ },
+ "habit": {
+  "body": "Ein 20%-Reduzierungsszenario zeigt den Unterschied zu den erfassten Ausgaben. Es ändert keine Transaktionen, verschiebt kein Geld und garantiert nicht, dass die Differenz zum Sparen verfügbar ist.",
+  "step": "Versuche einen kleineren Betrag in einer flexiblen Kategorie. Vergleiche das Ergebnis mit deinen Prioritäten und wähle dann eine Gewohnheit, die du wiederholen kannst."
+ }
+}

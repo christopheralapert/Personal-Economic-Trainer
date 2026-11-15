@@ -1,4 +1,5 @@
 "use client";
+import {copyLocale} from "@/i18n/dictionaries";
 import {useCallback,useEffect,useRef,useState} from "react";
 import {Mic,Square,Volume2,VolumeX,X} from "lucide-react";
 import {useCopy,type Key} from "@/i18n/context";
@@ -53,7 +54,7 @@ export function GeminiVoiceInput({onText,disabled}:{onText:(text:string,detected
   catch{if(generation===active.current)setStatus("geminiVoiceFailed");}finally{if(generation===active.current){request.current=null;setState("idle");}}
  }
  return <div className="contents">{state!=="idle" ? <div className="order-last flex w-full flex-wrap items-center gap-2">{state==="recording" && <Button type="button" variant="outline" size="chip" onClick={()=>{if(recorder.current?.state==="recording"){setState("transcribing");recorder.current.stop();}}}><Square className="size-5"/>{t("speechStop")}</Button>}<Button type="button" variant="ghost" size="chip" onClick={cancel}><X className="size-5"/>{t("speechCancel")}</Button></div> : <Button type="button" variant="ghost" size="icon" aria-label={t("speechStart")} disabled={disabled} onClick={()=>void start()}><Mic className="size-5"/></Button>}
- {(state!=="idle" || status) && <span role="status" className="order-last w-full text-caption text-ink-2"><span>{status==='geminiVoiceFailed'?voiceFlow[locale].retry:t(state==="recording" ? "geminiRecording" : state==="transcribing" ? "geminiTranscribing" : state==="starting" ? "geminiVoicePreparing" : status!)}</span>{state==='recording' && <span className="block">{dictationHint[conversationLocale]}</span>}</span>}</div>;
+ {(state!=="idle" || status) && <span role="status" className="order-last w-full text-caption text-ink-2"><span>{status==='geminiVoiceFailed'?voiceFlow[copyLocale(locale)].retry:t(state==="recording" ? "geminiRecording" : state==="transcribing" ? "geminiTranscribing" : state==="starting" ? "geminiVoicePreparing" : status!)}</span>{state==='recording' && <span className="block">{dictationHint[conversationLocale]}</span>}</span>}</div>;
 }
 
 export function GeminiReadAloud({message,input,language,disabled=false}:{message:CoachMessage;input?:Record<string,unknown>;language:ConversationLanguage;disabled?:boolean}){
@@ -79,5 +80,5 @@ export function GeminiReadAloud({message,input,language,disabled=false}:{message
    const player=new Audio(url.current);player.addEventListener("ended",()=>finish());player.addEventListener("error",()=>finish("geminiVoiceFailed"));player.addEventListener('playing',()=>{if(current()){setPreparing(false);window.dispatchEvent(new CustomEvent('money-coach-audio-timing',{detail:{replay:false,waitMs:received-clicked,playbackMs:performance.now()-received,totalMs:performance.now()-clicked,serverTiming}}));}});audio.current=player;await player.play();if(current())setPreparing(false);
   }catch{finish("geminiVoiceFailed");}
  }
- return <div className="flex flex-wrap items-center gap-2"><Button type="button" variant="ghost" size="chip" disabled={disabled || !part} onClick={busy ? stop : ()=>void play()}>{busy ? <VolumeX className="size-5"/> : <Volume2 className="size-5"/>}{t(busy ? "stopReading" : "readAloud")}</Button><span className="text-caption text-ink-2">{t("geminiVoice")}</span>{preparing && <span role="status" className="w-full text-caption text-ink-2">{voiceFlow[locale].preparing}</span>}{status && <span role="status" className="w-full text-caption text-ink-2">{t(status)}</span>}</div>;
+ return <div className="flex flex-wrap items-center gap-2"><Button type="button" variant="ghost" size="chip" disabled={disabled || !part} onClick={busy ? stop : ()=>void play()}>{busy ? <VolumeX className="size-5"/> : <Volume2 className="size-5"/>}{t(busy ? "stopReading" : "readAloud")}</Button><span className="text-caption text-ink-2">{t("geminiVoice")}</span>{preparing && <span role="status" className="w-full text-caption text-ink-2">{voiceFlow[copyLocale(locale)].preparing}</span>}{status && <span role="status" className="w-full text-caption text-ink-2">{t(status)}</span>}</div>;
 }

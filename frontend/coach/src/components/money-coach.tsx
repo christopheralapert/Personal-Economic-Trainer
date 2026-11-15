@@ -1,4 +1,5 @@
 "use client";
+import {copyLocale} from "@/i18n/dictionaries";
 import {sourceDate} from "@/engine/source-date";
 import {OverviewFocus} from "./overview-focus";
 import {useMoneyData} from "@/lib/money-data-context";
@@ -14,6 +15,7 @@ import {DefaultChatTransport} from "ai";
 import {ArrowUp,BookOpen,ChartNoAxesColumn,ChevronLeft,MessageCircle,Settings,SlidersHorizontal,Trash2} from "lucide-react";
 import {toast} from "sonner";
 import {useCopy,type Locale} from "@/i18n/context";
+import {supportedLocales} from "@/i18n/dictionaries";
 import {overviewIncome} from "@/lib/overview-model";
 import {money,date,percent} from "@/lib/format";
 import {useKeyboardViewport} from "@/lib/use-keyboard-viewport";
@@ -84,7 +86,7 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
     pending.current=null;setLocalBusy(true);
     try {
       const question=languageCommand(current.question)?.question||current.question;
-      const answer:CoachMessage=['en','fi','et'].includes(current.language)?{...await new RuleProvider().answer(question,current.language as Locale,current.savings,{context:current.context,period:current.period,data:current.data}),metadata:{answerMode:"rule",language:current.language}}:{id:crypto.randomUUID(),role:'assistant',parts:[{type:'text',text:localLanguageUnavailable(current.locale)}],metadata:{answerMode:'rule',language:current.locale}};
+      const answer:CoachMessage=(supportedLocales as readonly string[]).includes(current.language)?{...await new RuleProvider().answer(question,current.language as Locale,current.savings,{context:current.context,period:current.period,data:current.data}),metadata:{answerMode:"rule",language:current.language}}:{id:crypto.randomUUID(),role:'assistant',parts:[{type:'text',text:localLanguageUnavailable(current.locale)}],metadata:{answerMode:'rule',language:current.locale}};
       if(current.generation!==latest.current) return;
       const messages:CoachMessage[]=[...current.messages,{id:crypto.randomUUID(),role:"user",parts:[{type:"text",text:current.question}]},answer];
       chat.setMessages(messages);
@@ -99,19 +101,19 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
     const generation=++latest.current;setInput("");setTab("coach");setSettings(false);setGoal(false);setFallback(false);setRequestFailed(false);
     const requestedAppLanguage=appLanguageCommand(question);
     if(requestedAppLanguage){
-      const supported=['en','fi','et'].includes(requestedAppLanguage),language=supported?requestedAppLanguage as Locale:locale;
+      const supported=(supportedLocales as readonly string[]).includes(requestedAppLanguage),language=supported?requestedAppLanguage as Locale:locale;
       if(supported){setLocale(language);setConversationLocale(language);}
-      chat.setMessages([...chat.messages,{id:crypto.randomUUID(),role:'user',parts:[{type:'text',text:question}]},{id:crypto.randomUUID(),role:'assistant',metadata:{answerMode:'rule',language},parts:[{type:'text',text:supported?appLanguageConfirmation[language]:appLanguageUnavailable(locale)}]}]);sending.current=false;return;
+      chat.setMessages([...chat.messages,{id:crypto.randomUUID(),role:'user',parts:[{type:'text',text:question}]},{id:crypto.randomUUID(),role:'assistant',metadata:{answerMode:'rule',language},parts:[{type:'text',text:supported?appLanguageConfirmation[copyLocale(language)]:appLanguageUnavailable(locale)}]}]);sending.current=false;return;
     }
     const command=languageCommand(question),language=command?.language??conversationLocale;
     let immediate:string|null=null;
     if(command?.scope==='app'){
-      if(['en','fi','et'].includes(language)){setLocale(language as Locale);setConversationLocale(language);immediate=languageConfirmation[language];}
+      if((supportedLocales as readonly string[]).includes(language)){setLocale(language as Locale);setConversationLocale(language);immediate=languageConfirmation[language];}
       else immediate=appLanguageUnavailable(locale);
     }else if(command){if(command.scope==='conversation')setConversationLocale(language);if(!command.question)immediate=languageConfirmation[language];}
     const financialQuestion=command?.question||question;
     immediate??=acknowledgement(financialQuestion,language);
-    if(!immediate && privacy && !['en','fi','et'].includes(language))immediate=localLanguageUnavailable(locale);
+    if(!immediate && privacy && !(supportedLocales as readonly string[]).includes(language))immediate=localLanguageUnavailable(locale);
     if(immediate){chat.setMessages([...chat.messages,{id:crypto.randomUUID(),role:'user',parts:[{type:'text',text:question}]},{id:crypto.randomUUID(),role:'assistant',metadata:{answerMode:'rule',language:command?.scope==='app' && !['en','fi','et'].includes(language)?locale:language},parts:[{type:'text',text:immediate}]}]);sending.current=false;return;}
     const context=isFollowUpQuestion(financialQuestion) ? displayedContext(chat.messages,chatViews) : undefined;
     pending.current={question,messages:chat.messages,locale,language,savings,generation,context,period,data,signature};
@@ -167,7 +169,7 @@ function PreferencesScreen({onGoal,savedGoal,onPrivacyChange,legal}:{onGoal:()=>
   const {openControls,data,scope}=useMoneyData(),planning=usePlanning(),income=overviewIncome(planning.period,data,planning.income),banks=bankSummaries(data);
   const {locale,setLocale,savings,setSavings,privacy,voiceProvider,t}=useCopy(),restricted=scope.excludedAccounts.length>0 || scope.excludedCategories.length>0;
   return <div className="space-y-6"><h2 className="text-xl font-semibold">{t("settings")}</h2>
-    <SettingsGroup title={t("language")}><RadioGroup aria-label={t("language")} value={locale} onValueChange={v=>setLocale(v as Locale)} className="gap-0 divide-y divide-line">{(["en","fi","et"] as const).map((value,i)=><label key={value} htmlFor={`language-${value}`} className="flex min-h-14 items-center gap-3 px-4"><RadioGroupItem id={`language-${value}`} value={value}/>{t((["english","finnish","estonian"] as const)[i])}</label>)}</RadioGroup></SettingsGroup>
+    <SettingsGroup title={t("language")}><RadioGroup aria-label={t("language")} value={locale} onValueChange={v=>setLocale(v as Locale)} className="gap-0 divide-y divide-line">{supportedLocales.map((value,i)=><label key={value} htmlFor={`language-${value}`} className="flex min-h-14 items-center gap-3 px-4"><RadioGroupItem id={`language-${value}`} value={value}/>{t((["english","finnish","estonian","german","swedish"] as const)[i])}</label>)}</RadioGroup></SettingsGroup>
     <SettingsGroup title={t("settingsDataSource")}><DatasetPicker/><SettingsSheetRow label={t("aboutData")}><DataSourceDetails embedded/></SettingsSheetRow></SettingsGroup>
     <SettingsGroup title={t("coachVisibility")}><SettingsRow label={t(restricted ? "coachSeesLimited" : "coachSeesAll")} onClick={openControls}/></SettingsGroup>
     <SettingsGroup title={t("settingsAiPrivacy")}>

@@ -13,7 +13,7 @@ export function spokenAnswer(name:ToolName,input:Record<string,unknown>,output:u
  function periodText(period:Period) {
   const start=new Date(period.start+"T12:00:00Z"),fullMonth=period.start.endsWith("-01") && monthPeriod(period.start).end===period.end;
   const fiMonths=["tammikuussa","helmikuussa","maaliskuussa","huhtikuussa","toukokuussa","kesäkuussa","heinäkuussa","elokuussa","syyskuussa","lokakuussa","marraskuussa","joulukuussa"];
-  if(fullMonth)return locale==="fi" ? `${fiMonths[start.getUTCMonth()]} ${start.getUTCFullYear()}` : new Intl.DateTimeFormat(locale==="en" ? "en-GB" : "et-EE",{month:"long",year:"numeric",timeZone:"UTC"}).format(start);
+  if(fullMonth)return locale==="fi" ? `${fiMonths[start.getUTCMonth()]} ${start.getUTCFullYear()}` : new Intl.DateTimeFormat({en:"en-GB",et:"et-EE",de:"de-DE",sv:"sv-SE"}[locale as "en"|"et"|"de"|"sv"]??"en-GB",{month:"long",year:"numeric",timeZone:"UTC"}).format(start);
   return `${date(period.start)}–${date(new Date(Date.parse(period.end+"T12:00:00Z")-86400000).toISOString().slice(0,10))}`;
  }
  if(name==="showDetails" || name==="showDonut") {
@@ -21,12 +21,12 @@ export function spokenAnswer(name:ToolName,input:Record<string,unknown>,output:u
   if(!result.groups.length)return t('noExpenseRecords');
   const total=t("spokenAllSpending",{amount:money(exactSum(result.groups.map(group=>group.amount))),period:periodText(result.period)});
   const top=[...result.groups].filter(group=>group.amount>0 && !['other_categories','otherCategories','__other__'].includes(group.key)).sort((a,b)=>b.amount-a.amount).slice(0,2).map(group=>`${categoryLabel(group.key,t)} (${money(group.amount)})`);
-  const leading=top.length ? locale==='en'?` Your biggest category was ${top.join(', followed by ')}.`:locale==='fi'?` Suurin kategoriasi oli ${top.join(', seuraavana ')}.`:` Sinu suurim kategooria oli ${top.join(', järgnes ')}.`:'';
-  return total+leading+(locale==='en'?' These records are partial.':locale==='fi'?' Tiedot ovat osittaiset.':' Andmed on osalised.');
+  const leading=top.length ? (locale==='en'||locale==='de'||locale==='sv')?` Your biggest category was ${top.join(', followed by ')}.`:locale==='fi'?` Suurin kategoriasi oli ${top.join(', seuraavana ')}.`:` Sinu suurim kategooria oli ${top.join(', järgnes ')}.`:'';
+  return total+leading+((locale==='en'||locale==='de'||locale==='sv')?' These records are partial.':locale==='fi'?' Tiedot ovat osittaiset.':' Andmed on osalised.');
  }
  if(name==='showWhatIf'){
   const result=propsSchemas.showWhatIf.parse(output),{pct,monthly,baseline}=result.result,category=categoryLabel(result.category,t),period=periodText(result.period);
-  return locale==='en'?`Cutting ${category} by ${pct}% would reduce recorded spending by ${money(monthly)} from a ${money(baseline)} baseline. Period: ${period}.`:locale==='fi'?`${category}: ${pct} % vähennys pienentäisi kirjattuja menoja ${money(monthly)} lähtösummasta ${money(baseline)}. Ajanjakso: ${period}.`:`${category}: ${pct}% vähendus vähendaks kirjendatud kulu ${money(monthly)} võrra baassummast ${money(baseline)}. Periood: ${period}.`;
+  return (locale==='en'||locale==='de'||locale==='sv')?`Cutting ${category} by ${pct}% would reduce recorded spending by ${money(monthly)} from a ${money(baseline)} baseline. Period: ${period}.`:locale==='fi'?`${category}: ${pct} % vähennys pienentäisi kirjattuja menoja ${money(monthly)} lähtösummasta ${money(baseline)}. Ajanjakso: ${period}.`:`${category}: ${pct}% vähendus vähendaks kirjendatud kulu ${money(monthly)} võrra baassummast ${money(baseline)}. Periood: ${period}.`;
  }
  if(name==="showFilter") {
   const result=propsSchemas.showFilter.parse(output);

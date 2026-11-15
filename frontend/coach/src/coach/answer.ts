@@ -46,7 +46,7 @@ export function answerFromTool(name:ToolName,input:Record<string,unknown>,output
   if(name==="showSafeToSpend") framing=t(propsSchemas.showSafeToSpend.parse(checked).purpose==="save" ? "safeSaveNote" : "safeNote");
   if(name==="showPayday") {
     const plan=propsSchemas.showPayday.parse(checked).result;
-    framing=plan.status==="ready" ? t("paydayAnswer",{amount:money(plan.perDay),date:new Intl.DateTimeFormat(locale==="fi" ? "fi-FI" : locale==="et" ? "et-EE" : "en-GB",{day:"numeric",month:"long",timeZone:"UTC"}).format(new Date(plan.payday+"T12:00:00Z"))}) : t(plan.reason==="income" ? "paydayNoIncome" : "paydayNoBalance");
+    framing=plan.status==="ready" ? t("paydayAnswer",{amount:money(plan.perDay),date:new Intl.DateTimeFormat({fi:"fi-FI",et:"et-EE",de:"de-DE",sv:"sv-SE",en:"en-GB"}[locale],{day:"numeric",month:"long",timeZone:"UTC"}).format(new Date(plan.payday+"T12:00:00Z"))}) : t(plan.reason==="income" ? "paydayNoIncome" : "paydayNoBalance");
   }
   if(name==="showConcept") framing=t(propsSchemas.showConcept.parse(checked).concept);
   if(name==="showStepper") framing=t("goal");

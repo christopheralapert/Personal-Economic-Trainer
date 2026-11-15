@@ -1,4 +1,5 @@
 "use client";
+import {copyLocale} from "@/i18n/dictionaries";
 import {useEffect,useRef,useState,type FormEvent} from "react";
 import type {components} from "@contracts";
 import {useCopy,categoryLabel} from "@/i18n/context";
@@ -20,7 +21,7 @@ type Schema=components["schemas"];
 type Period={start:string;end_exclusive:string};
 const recent=()=>{const today=new Date();return {start:new Date(Date.UTC(today.getUTCFullYear(),today.getUTCMonth()-1,1)).toISOString().slice(0,10),end_exclusive:new Date(Date.UTC(today.getUTCFullYear(),today.getUTCMonth(),1)).toISOString().slice(0,10)};};
 export function ImportedHistory({request}:{request:PrivateRequest}){
- const {locale,t}=useCopy(),c=recordsCopy[locale],r=reviewCopy[locale],{data}=useDashboard(request);
+ const {locale,t}=useCopy(),c=recordsCopy[copyLocale(locale)],r=reviewCopy[copyLocale(locale)],{data}=useDashboard(request);
  const [dates,setDates]=useState<Period>(recent),[account,setAccount]=useState(""),[merchant,setMerchant]=useState("");
  const [inventory,setInventory]=useState<Schema["LedgerInventoryV1"]|null>(null),[page,setPage]=useState<Schema["LedgerPageV1"]|null>(null);
  const [filtersOpen,setFiltersOpen]=useState(false);

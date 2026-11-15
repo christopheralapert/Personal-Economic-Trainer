@@ -1,0 +1,31 @@
+{
+ "progress": "Utforskat {count} av {total} ämnen",
+ "next": "En sak att testa",
+ "records": "Visa transaktioner",
+ "noFacts": "Inga bekräftade utgifter under denna period. Utforska lektionerna eller granska dina transaktioner för att lägga till kontext.",
+ "note": "Registrerade utgifter är inte en komplett budget. En saknad betalning är inte ett bevis på noll utgifter.",
+ "regular": {
+  "body": "Fasta nödvändigheter är kostnader du behöver och oftast kan förutse: hyra, el och viktiga abonnemang. En återkommande betalning är inte automatiskt nödvändig; kontrollera syftet innan du placerar den här.",
+  "step": "Lista räkningarna som förfaller före nästa bekräftade inkomst. Håll de pengarna åtskilda från vardagsutgifterna."
+ },
+ "irregular": {
+  "body": "En nödvändig reparation eller hälsoutgift kanske inte inträffar varje månad. Det är nödvändiga överraskningar, inte vardagsval. En lugn månad tar inte bort behovet av en buffert.",
+  "step": "Titta tillbaka några månader efter nödvändiga engångskostnader. Bestäm vilken reserv du kan bygga upp utan att lämna räkningar obetalda."
+ },
+ "everyday": {
+  "body": "Vardagsutgifter inkluderar flexibla val som kafébesök och restaurangmat. Små belopp kan bli mycket ihop, men kategorin i sig kan inte avgöra om ett köp var nödvändigt för dig.",
+  "step": "Välj en kategori som du verkligen vill ändra. Granska betalningarna innan du sätter en realistisk gräns."
+ },
+ "fund": {
+  "body": "En buffertsparande skyddar dig när en nödvändig kostnad dyker upp oväntat. Överraskningarna som registreras nedan beskriver det förflutna, inte beloppet din buffert måste innehålla.",
+  "step": "Välj ett litet bidrag först efter att du har granskat räkningar och nödvändigheter. Ett saldo eller ett sparmål ensamt kan inte avgöra ett säkert bidrag."
+ },
+ "savingConcept": {
+  "body": "Ett sparmål är en plan, inte pengar som redan sparats. Extra utrymme för sparande beror på tillgängliga saldon, kommande räkningar, nödvändiga reserver och kontona som ingår i din granskning.",
+  "step": "Granska vad som saknas innan du lägger undan pengar. Om dessa fakta är ofullständiga, fråga Coach vad som behövs istället för att behandla en uppskattning som ett tillstånd."
+ },
+ "habit": {
+  "body": "Ett scenario med 20 % minskning visar skillnaden mot registrerade utgifter. Det ändrar inte transaktioner, flyttar inte pengar och garanterar inte att skillnaden finns tillgänglig att spara.",
+  "step": "Testa ett lägre belopp i en flexibel kategori. Jämför resultatet med dina prioriteringar och välj sedan en vana som du kan upprepa."
+ }
+}

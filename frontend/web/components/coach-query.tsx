@@ -1,4 +1,5 @@
 "use client";
+import {copyLocale} from "@/i18n/dictionaries";
 
 import {useEffect,useRef,useState,type FormEvent} from "react";
 import type {components} from "@contracts";
@@ -33,7 +34,7 @@ const destinations:Record<string,{href:string;label:string}>={
 };
 
 export function CoachQuery({request,initialQuestion=""}:{request:PrivateRequest;initialQuestion?:string}) {
-  const {locale,setLocale,privacy,setPrivacy}=useCopy(),c=coachCopy[locale];
+  const {locale,setLocale,privacy,setPrivacy}=useCopy(),c=coachCopy[copyLocale(locale)];
   const [question,setQuestion]=useState(initialQuestion);
   const [accounts,setAccounts]=useState<Schema["AccountView"][]>([]),[account,setAccount]=useState("");
   const [scopeError,setScopeError]=useState(false),[importedPeriod,setImportedPeriod]=useState("");

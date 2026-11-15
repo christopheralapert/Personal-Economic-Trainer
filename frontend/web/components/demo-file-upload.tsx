@@ -1,4 +1,5 @@
 "use client";
+import {copyLocale} from "@/i18n/dictionaries";
 import {useId,useRef,useState,type DragEvent} from 'react';
 import {FileUp} from 'lucide-react';
 import {Button} from '@/components/ui/button';
@@ -6,7 +7,7 @@ import {useCopy} from '@/i18n/context';
 import {demoEntryCopy} from '../i18n/demo-entry';
 
 export function DemoFileUpload({busy,onFiles,onSample}:{busy:boolean;onFiles:(files:File[])=>void;onSample:()=>void}){
- const {locale}=useCopy(),c=demoEntryCopy[locale],input=useRef<HTMLInputElement>(null),hint=useId();
+ const {locale}=useCopy(),c=demoEntryCopy[copyLocale(locale)],input=useRef<HTMLInputElement>(null),hint=useId();
  const [dragging,setDragging]=useState(false),depth=useRef(0);
  function drag(event:DragEvent<HTMLDivElement>){
   event.preventDefault();

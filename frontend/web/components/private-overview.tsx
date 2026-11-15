@@ -1,4 +1,5 @@
 "use client";
+import {copyLocale} from "@/i18n/dictionaries";
 import {useEffect,useMemo,useRef,useState} from "react";
 import {useRouter} from "next/navigation";
 import {ChevronLeft,ChevronRight,Wallet} from "lucide-react";
@@ -24,7 +25,7 @@ import {reviewCopy} from "../i18n/classification-review";
 import {overviewCopy as text} from "../i18n/private-overview";
 
 export function PrivateOverview({request}:{request:PrivateRequest}) {
- const {locale,t}=useCopy(),c=text[locale],review=reviewCopy[locale],router=useRouter();
+ const {locale,t}=useCopy(),c=text[copyLocale(locale)],review=reviewCopy[copyLocale(locale)],router=useRouter();
  const {data,error:accountError,loading:accountsLoading,load}=useDashboard(request);
  const allExcluded=!!data?.accounts.length&&!data.accounts.some(a=>a.included);
  const [account,setAccount]=useState("");
