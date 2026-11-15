@@ -1,6 +1,48 @@
 # Challenge readiness — 15 November 2026
 
-## Current handoff after the permission retry
+## Presentation cleanup: bundled interface text
+
+The presentation uses bundled, reviewed **English / Finnish / Estonian** interface
+labels and all six Learn topics. The generated-UI client, catalog, provider route
+and their obsolete tests were removed, rather than merely hidden behind a flag.
+`/api/language` returns 404. Unsupported app-language commands explain the three
+available choices without calling a model or changing the current conversation.
+Settings and supported whole-app commands still switch/persist the bundled copy.
+Spanish/Japanese conversation controls remain separate; Gemini Coach text, voice,
+Privacy mode, imports, finance calculations and transaction evidence are preserved.
+No old application version or Git history was restored over the integrated fixes.
+
+Preview: http://127.0.0.1:33172/demo ; Coach:
+http://127.0.0.1:33172/demo?dataset=organizer1&tab=coach . The checked production
+artifact has application fingerprint **`b19c3d23df02`**, built from base `6da8ba7`
+plus this cleanup; its HEAD prefix advances after the local commit/rebuild.
+The existing private test API/data and bounded usage ledgers remain intact.
+
+| Check in this cleanup | Result |
+| --- | --- |
+| Main and standalone production builds; both application typechecks | Passed |
+| Coach/domain/voice unit suite | **253 passed**, 48 files; obsolete generated-translation tests removed, conversation controls retained |
+| Structure and main PWA/privacy checks | **75 passed** |
+| Conversation, voice-flow and challenge production browser suites | **42 passed**; test transport/local rules, audio mocked |
+| Real Finnish organizer1 Gemini regression | **1 passed**; `source=model`, `provider=gemini-direct`, August 2026 / €30.97 and open transaction; question → evidence 2,838 ms, provider 2,565 ms |
+| Visual review | 390 × 844 and 1280 × 900 landing, Overview, Learn and Finnish Settings; no horizontal overflow; existing design retained |
+| Repository hygiene | No tracked environment/build/log/archive artifacts, files over 2 MiB or high-confidence key-pattern candidates; entry-guide links resolve. This is not a comprehensive security audit |
+
+The first revised voice test incorrectly counted all Settings radios as five;
+scoping its assertion to the actual three-option Language group fixed the test.
+The first screenshot capture used a heading that is not present on the landing
+page; using its actual primary link allowed the complete batch to run. Neither
+failed harness attempt is counted as a passing check. The Impeccable hardening
+pass preserved layout/tokens; its detector returned no findings.
+
+Only the six retired generated-UI source/test files were removed in this cleanup;
+they remain recoverable in Git history. Useful finance, import, ownership,
+Privacy, voice and provider regressions and dependency attribution are retained.
+README and test guides now describe the supported presentation behavior. Local
+secrets were not changed; public HTTPS/ngrok were not updated. Physical-device,
+real Auth0, Nemotron correctness and production-operation gaps below remain.
+
+## Prior handoff after the permission retry
 
 - Implementation checkpoint: **`d0edf1e`**, `feat: add exact amount search and release readiness`.
 - Current local preview: http://127.0.0.1:33172/demo

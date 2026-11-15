@@ -1,4 +1,7 @@
-import {validLanguage} from '@/i18n/generated-catalog';
+function validLanguage(value:string):string|null {
+ if(value.length>35||!/^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/u.test(value))return null;
+ try{const code=Intl.getCanonicalLocales(value)[0],base=new Intl.Locale(code).language,name=new Intl.DisplayNames(['en'],{type:'language'}).of(base);return name&&name!==base?code:null;}catch{return null;}
+}
 let names:Map<string,string>|undefined;
 /** Match only explicit application-language commands, never financial questions. */
 export function appLanguageCommand(text:string):string|null {

@@ -1,5 +1,12 @@
 # Main demo voice review
 
+**Current interface policy:** UI labels and Learn lessons now use bundled EN/FI/ET
+copy only. The experimental generated-UI client, provider route and its tests were
+removed. ES/JA conversation replies, editable dictation and Gemini/device speech
+remain separate features. Generated-interface results below are historical, not
+current presentation claims. See [challenge readiness](challenge-readiness-review.md)
+for the current verified build and remaining physical-device checks.
+
 The phone flow uses the main web entry point `/demo?dataset=organizer1`. This work starts at integrated commit `32c5877` in worktree `agent/voice-polish`. Changes cover voice controls, composer integration, translations and tests. The Gemini text route and the main checkout's `.env` remain coordinator work.
 
 ## Integrated coordinator verification — 14 November 2026

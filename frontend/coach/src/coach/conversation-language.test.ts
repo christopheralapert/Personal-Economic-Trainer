@@ -1,10 +1,14 @@
 import {describe,it,expect} from 'vitest';
-import {languageCommand,acknowledgement} from './conversation-language';
+import {languageCommand,acknowledgement,appLanguageUnavailable,appLanguageConfirmation} from './conversation-language';
 import {dictationCommand} from '@/voice/dictation-command';
 import {appLanguageCommand} from './app-language-command';
 describe('conversation controls independent of the UI language',()=>{
- it('resolves additional UI languages without adding them to Settings',()=>{
+ it('recognizes unsupported application-language requests without treating them as financial queries',()=>{
   expect(appLanguageCommand('Switch the whole app to Hindi')).toBe('hi');expect(appLanguageCommand('Switch the whole app to Japanese')).toBe('ja');expect(appLanguageCommand('Switch the whole app to zh-CN')).toBe('zh-CN');expect(appLanguageCommand('Show Japanese restaurant payments')).toBeNull();
+ });
+ it('offers reviewed interface languages without promising live UI generation',()=>{
+  for(const locale of ['en','fi','et'] as const){expect(appLanguageConfirmation[locale]).toBeTruthy();expect(appLanguageUnavailable(locale)).not.toMatch(/AI|tehis|tekoäly/iu);}
+  expect(appLanguageUnavailable('en')).toContain('without changing the interface');
  });
  it('keeps one-answer, conversation and application scopes distinct',()=>{
   expect(languageCommand('Vasta sellele hispaania keeles. How much did I spend on taxis last month?')).toEqual({language:'es',scope:'answer',question:'How much did I spend on taxis last month?'});

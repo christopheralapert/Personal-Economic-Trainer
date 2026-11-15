@@ -1,6 +1,5 @@
 import {test,expect} from '@playwright/test';
-import {setupVoice,mockHostedVoice,questionInput,submitQuestion} from './voice-support';
-import {generatedCatalog} from '../../frontend/coach/src/i18n/generated-catalog';
+import {setupVoice,mockHostedVoice,questionInput,submitQuestion,languages} from './voice-support';
 const assistant=(page:import('@playwright/test').Page)=>page.locator('[data-message-role="assistant"]').last();
 test('typed thanks is an immediate acknowledgement; arrow and Enter share the real composer',async({page})=>{
  const traffic=await setupVoice(page,'en','available',{privacy:false,provider:'gemini'});await mockHostedVoice(page,'en');
@@ -48,20 +47,39 @@ test('Privacy mid-conversation blocks hosted chat/audio and keeps evidence usabl
  await page.getByRole('button',{name:'Settings',exact:true}).click();await page.getByRole('switch',{name:'Privacy mode',exact:true}).check();await page.getByRole('button',{name:'Back',exact:true}).click();
  await submitQuestion(page,'en');await assistant(page).getByRole('button',{name:'Listen to answer',exact:true}).click();await page.getByRole('button',{name:'Voice input',exact:true}).click();await page.evaluate(()=>{window.voiceTest.result('Thank you');window.voiceTest.end();});expect(hosted.transcriptions).toHaveLength(0);expect(hosted.speeches).toHaveLength(0);expect(traffic.audio).toHaveLength(0);expect(traffic.chat.at(-1)).toMatchObject({privacy:true});await expect(assistant(page)).toContainText('30,97');
 });
-test('generated ES and JA UI preserves the thread; Settings and command restore English',async({page})=>{
- await setupVoice(page,'en','available',{privacy:false});await mockHostedVoice(page,'en');await submitQuestion(page,'en');
- await page.route('**/api/language',route=>{const {language,keys}=route.request().postDataJSON();return route.fulfill({json:{translations:Object.fromEntries(keys.map((key:string)=>[key,`${language} ${generatedCatalog[key]}`]))},headers:{'x-money-coach-revision':route.request().headers()['x-money-coach-revision']}});});
- for(const [name,code] of [['Spanish','es'],['Japanese','ja']]){await page.locator('input[autocomplete="off"]').fill(`Switch the whole app to ${name}`);await page.locator('input[autocomplete="off"]').press('Enter');await expect(page.locator(`div[lang="${code}"]`)).toBeVisible();await expect(page.locator('[data-message-role="assistant"]').first()).toContainText('30,97');}
- await page.getByRole('button',{name:'ja Settings',exact:true}).click();await page.getByRole('radio',{name:'English',exact:true}).click();await expect(page.getByRole('heading',{name:'Settings',exact:true})).toBeVisible();await page.getByRole('button',{name:'Back',exact:true}).click();
- await questionInput(page,'en').fill('Switch the whole app back to English');await questionInput(page,'en').press('Enter');await page.reload();await page.getByRole('tab',{name:'Coach',exact:true}).click();await expect(page.locator('[data-message-role="assistant"]')).toHaveCount(0);
+test('reviewed UI languages preserve evidence and unsupported choices never request AI translation',async({page})=>{
+ const traffic=await setupVoice(page,'en','available',{privacy:false});await mockHostedVoice(page,'en');await submitQuestion(page,'en');
+ const translations:string[]=[];page.on('request',request=>{if(new URL(request.url()).pathname==='/api/language')translations.push(request.url());});
+ for(const name of ['Spanish','Japanese']){
+  await questionInput(page,'en').fill(`Switch the whole app to ${name}`);await questionInput(page,'en').press('Enter');
+  await expect(page.locator('div[lang="en"]')).toBeVisible();await expect(assistant(page)).toContainText('The interface supports English, Finnish and Estonian.');
+ }
+ await expect(page.locator('[data-message-role="assistant"]').first()).toContainText('30,97');
+ await page.locator('[data-message-role="assistant"]').first().getByRole('button',{name:'MRC-TRN-0063',exact:true}).click();
+ await expect(page.getByRole('dialog')).toContainText('30,97');await page.getByRole('dialog').getByRole('button',{name:'Done',exact:true}).click();
+ await page.getByRole('button',{name:'Settings',exact:true}).click();await expect(page.getByRole('radiogroup',{name:'Language',exact:true}).getByRole('radio')).toHaveCount(3);
+ for(const code of ['fi','et','en'] as const){
+  await page.locator(`#language-${code}`).click();await expect(page.getByRole('heading',{name:languages[code].copy.settings,exact:true})).toBeVisible();
+  await expect(page.locator(`div[lang="${code}"]`)).toBeVisible();
+ }
+ await page.getByRole('button',{name:'Back',exact:true}).click();
+ await expect(page.locator('[data-message-role="assistant"]').first()).toContainText('30,97');
+ await page.reload();await page.getByRole('button',{name:'Settings',exact:true}).click();await expect(page.locator('#language-en')).toBeChecked();
+ expect(translations).toEqual([]);expect(traffic.chat).toHaveLength(1);
+ expect((await page.request.post('/api/language',{data:{language:'es',keys:['coach']}})).status()).toBe(404);
 });
 test('dictation end and simultaneous form submission send a financial question exactly once',async({page})=>{
  const traffic=await setupVoice(page,'en');const question='How much did I spend on taxis last month?';await questionInput(page,'en').fill(question);await page.getByRole('button',{name:'Voice input',exact:true}).click();
  await page.evaluate(q=>{window.voiceTest.result(`${q} Thank you`);window.voiceTest.end();document.querySelector('form')!.requestSubmit();},question);
  await expect(assistant(page)).toContainText('30,97');await expect(page.locator('[data-message-role="user"]')).toHaveCount(1);expect(traffic.chat).toHaveLength(1);
 });
-test('Privacy cancels pending translation and ignores the late result',async({page})=>{
- await setupVoice(page,'en','available',{privacy:false});let release!:()=>void,calls=0;const gate=new Promise<void>(resolve=>release=resolve);
- await page.route('**/api/language',async route=>{calls++;await gate;const {keys}=route.request().postDataJSON();await route.fulfill({json:{translations:Object.fromEntries(keys.map((key:string)=>[key,`es ${generatedCatalog[key]}`]))},headers:{'x-money-coach-revision':route.request().headers()['x-money-coach-revision']}}).catch(()=>{});});
- await questionInput(page,'en').fill('Switch the whole app to Spanish');await questionInput(page,'en').press('Enter');await expect.poll(()=>calls).toBe(1);await page.getByRole('button',{name:'Settings',exact:true}).click();await page.getByRole('switch',{name:'Privacy mode',exact:true}).check();release();await page.getByRole('button',{name:'Back',exact:true}).click();await expect(page.locator('div[lang="en"]')).toBeVisible();await expect(questionInput(page,'en')).toBeEnabled();expect(calls).toBe(1);
+test('Privacy keeps UI language commands local and conversation language independent',async({page})=>{
+ const traffic=await setupVoice(page,'en'),translations:string[]=[];
+ page.on('request',request=>{if(new URL(request.url()).pathname==='/api/language')translations.push(request.url());});
+ for(const command of ['Reply from now on in Spanish','Switch the whole app to Japanese']){await questionInput(page,'en').fill(command);await questionInput(page,'en').press('Enter');}
+ await expect(page.locator('div[lang="en"]')).toBeVisible();await expect(page.locator('[data-message-role="assistant"]').first()).toContainText('Responderé en español.');
+ await questionInput(page,'en').fill('How much did I spend on taxis last month?');await questionInput(page,'en').press('Enter');await expect(assistant(page)).toContainText('Local Coach supports English, Finnish and Estonian.');
+ await questionInput(page,'en').fill('Switch the whole app back to English');await questionInput(page,'en').press('Enter');
+ await submitQuestion(page,'en');await expect(assistant(page)).toContainText('30,97');
+ expect(translations).toEqual([]);expect(traffic.audio).toEqual([]);expect(traffic.external).toEqual([]);expect(traffic.chat).toHaveLength(1);expect(traffic.chat[0]).toMatchObject({privacy:true});
 });

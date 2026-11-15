@@ -1,5 +1,11 @@
 # Test suites
 
+Interface text and Learn content use bundled EN/FI/ET translations. The voice-flow
+suite verifies language selection/persistence, preserved transaction evidence and
+zero UI-translation requests, including unsupported ES/JA interface commands.
+The retired `/api/language` route must return 404. Conversation-language controls
+and live Gemini Coach/audio tests remain independent of these static UI checks.
+
 Latest working-tree acceptance and blockers: [challenge readiness](challenge-readiness-review.md). This supersedes older preview URLs, migration-head and unlimited-public-chat statements; earlier reports retain their historical build context. `playwright.challenge.config.ts` runs the EN/FI/ET organizer and anonymous sample-import journey in installed Chrome and emulated WebKit at 390 × 844 and 1280 × 900. `playwright.planning-review.config.ts` checks the reviewed planner with mocked session/API fixtures; the independent PostgreSQL planning suites verify actual calculations, authorization and persistence. Neither is a real-phone or Auth0 test.
 
 `playwright.amount-search.config.ts` verifies exact EUR transaction bounds through the real demo composer. Its private case requires `MONEYLENS_AMOUNT_SEARCH_PRIVATE=true` and a fresh isolated test-OIDC/PostgreSQL rehearsal; it imports two accounts, checks exact row scopes, a native Gemini mock response and local Privacy, and opens transaction evidence. Set `MONEYLENS_AMOUNT_SEARCH_ORIGIN` to the dedicated loopback build. `tests/api/test_amount_search.py` and `tests/integration/test_amount_search_flow.py` cover parser parity, invalid/changed model arguments, signed-cursor bounds, refunds and owner isolation. Shared vectors are in `fixtures/synthetic/amount-search.v1.json`. The older amount-guard cases now retain unsupported-currency/negative-bound protection, rather than rejecting supported EUR limits.

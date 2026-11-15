@@ -13,9 +13,3 @@ test('real Gemini speech is generated on an explicit Listen request',async({page
  const timing=await page.evaluate(()=>(window as unknown as {moneyCoachAudioTimings:unknown[]}).moneyCoachAudioTimings[0]);
  console.log(JSON.stringify({realGeminiSpeechRequests:1,audioBytes:content.length,timing,physicalSpeakerVerified:false}));
 });
-test('real NVIDIA UI translation is generated again for identical requests',async({page})=>{
- test.skip(process.env.MONEY_COACH_REAL_FRESH_TEST!=='true','Explicit real synthetic provider opt-in required');
- const response=await page.goto('/demo'),revision=response!.headers()['x-moneylens-build'];
- for(let index=0;index<2;index++){const result=await page.evaluate(async revision=>{const response=await fetch('/api/language',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json','X-Money-Coach-Privacy':'off','X-Money-Coach-Revision':revision},body:JSON.stringify({language:'es',keys:['coach','learn']})});return {status:response.status,body:await response.json()};},revision);expect(result.status,String(result.body.error??'')).toBe(200);expect(result.body).toMatchObject({provider:'nemotron',cached:false});expect(Object.keys(result.body.translations)).toEqual(['coach','learn']);}
- console.log(JSON.stringify({realNemotronUITranslationRequests:2,reusedResults:false}));
-});

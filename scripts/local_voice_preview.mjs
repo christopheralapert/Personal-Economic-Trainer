@@ -8,11 +8,11 @@ const root=fileURLToPath(new URL('../',import.meta.url)),mode=process.argv[2],po
 if(!['build','start'].includes(mode)||!Number.isInteger(port)||port<1024||port>65535)throw Error('Use: node scripts/local_voice_preview.mjs build|start [port]');
 const env=Object.fromEntries(Object.entries(process.env).filter(([name])=>!['MONEYLENS_','MONEY_COACH_','GEMINI_','VERDA_','OPENAI_','NEXT_PUBLIC_'].some(prefix=>name.startsWith(prefix))));
 Object.assign(env,{MONEYLENS_NEXT_DIST:`.next/voice-flow-${port}`,MONEYLENS_API_URL:'http://127.0.0.1:9',MONEY_COACH_PUBLIC_GEMINI_ENABLED:'true',MONEY_COACH_PUBLIC_AI_ORIGINS:`http://127.0.0.1:${port}`,MONEY_COACH_MODEL_USAGE_PATH:path.join(root,'.cache',`voice-flow-${port}-text.json`),MONEY_COACH_GEMINI_VOICE_ENABLED:'true',MONEY_COACH_VOICE_LEDGER_PATH:path.join(root,'.cache',`voice-flow-${port}-audio.json`),MONEY_COACH_VOICE_MAX_REQUESTS:'40',NEXT_TELEMETRY_DISABLED:'1'});
+Object.assign(env,{MONEY_COACH_PUBLIC_AI_BUDGET_PATH:path.join(root,'.cache',`voice-flow-${port}-public.json`),MONEY_COACH_PUBLIC_AI_MAX_REQUESTS:'40',MONEY_COACH_PUBLIC_AI_REQUESTS_PER_MINUTE:'6'});
 if(mode==='start'){
  const settings=parseEnv(readFileSync(path.join(root,'.env'),'utf8'));
  if(!settings.GEMINI_API_KEY)throw Error('GEMINI_API_KEY: missing');
  env.GEMINI_API_KEY=settings.GEMINI_API_KEY;
- if(settings.VERDA_INFERENCE_KEY){env.VERDA_INFERENCE_KEY=settings.VERDA_INFERENCE_KEY;env.MONEY_COACH_GENERATED_LANGUAGES_ENABLED='true';}
  console.log('GEMINI_API_KEY: loaded server-side from root .env');
  const probe=net.createServer();await new Promise((resolve,reject)=>{probe.once('error',()=>reject(Error(`Port ${port} occupied; no server stopped`)));probe.listen(port,'127.0.0.1',()=>probe.close(resolve));});
 }
