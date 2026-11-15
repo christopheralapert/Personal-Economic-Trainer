@@ -82,8 +82,23 @@ in command arguments, logs or Git.
    checksum, key recovery and the retained backup's expiry privately. Remove only
    the exact disposable destination and fixture resources after reviewing targets.
 
-The local migration tests are not a backup/restore proof. No restore, retention
-policy or production security certification is claimed by this guide.
+An opt-in synthetic recovery regression is available when the existing isolated
+test administrator and its PostgreSQL container are explicitly supplied:
+
+```powershell
+# MONEYLENS_TEST_DATABASE_URL must already name a dedicated loopback test administrator.
+$env:MONEYLENS_BACKUP_CONTAINER='<its existing PostgreSQL container>'
+.venv/Scripts/python.exe -m pytest -c backend/api/pyproject.toml tests/integration/test_backup_restore.py -s -q -p no:cacheprovider
+```
+
+It verifies the container owns that loopback port, dumps only its uniquely
+created fixture, encrypts/decrypts the archive in memory, restores to another
+new database and compares exact row snapshots, migration head and RLS policies.
+Three restricted owner scopes must retain their own exact cent totals. The
+source remains unchanged and only the test's disposable resources are removed.
+It does not exercise off-host storage, retained backup expiry, production role
+bootstrap, lost-key recovery or operational recovery objectives. Local migration
+tests alone are not a restore proof; neither test certifies production security.
 
 ## Physical-device and user review
 

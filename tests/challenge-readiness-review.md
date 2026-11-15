@@ -1,6 +1,25 @@
 # Challenge readiness — 15 November 2026
 
-## Permission retry: live providers now reachable
+## Current handoff after the permission retry
+
+- Implementation checkpoint: **`d0edf1e`**, `feat: add exact amount search and release readiness`.
+- Current local preview: http://127.0.0.1:33172/demo
+- Organizer Coach: http://127.0.0.1:33172/demo?dataset=organizer1&tab=coach
+- Anonymous sample import: http://127.0.0.1:33172/demo/import
+- Private test entry: http://127.0.0.1:33172/api/v1/auth/login?return_to=/import
+- Learn: http://127.0.0.1:33172/demo?dataset=organizer1&tab=learn
+- Verified production build: **`d0edf1e-131377e695625033-bdeae4fa70c4`**;
+  later test/report-only commits retain application fingerprint `bdeae4fa70c4`.
+
+The isolated API is on 18085. The normal test sign-in entry offers **model-review**
+(one “Synthetic conversation account”, two October taxi rows totalling €30.97),
+**other-owner** and **fresh-preview** (empty). No password is needed. This is
+signed **test-OIDC, not real Auth0**. Public and private text use real Gemini;
+public Gemini voice is enabled. Private hosted audio remains disabled. Nemotron
+search is not enabled/promoted after the failed strict probe. Earlier previews,
+public HTTPS and ngrok remain unchanged.
+
+### Real-provider and recovery results
 
 This section supersedes the earlier network/Git blockers below. New processes
 can reach Google and Verda and stage Git changes. The PowerShell executable still
@@ -22,8 +41,51 @@ Each financial answer used two native Gemini calls: tool selection then grounded
 composition. These are single observations, not percentile benchmarks. The real
 speech browser test also passed: **503,022 streaming-envelope bytes**, containing
 audio and completion with no error. This byte count is not decoded audio size or
-physical-speaker proof. A timing-listener assertion was subsequently added so the
-next run also reports browser playback scheduling separately.
+physical-speaker proof. The repeated real speech test passed with a playback
+timing assertion: **2,701 ms** click → first scheduled PCM, **68 ms** estimated
+browser/output startup, **2,769 ms** estimated click → output. The provider's
+first-chunk wait was **2,537 ms**. Output latency is estimated by the browser, not
+measured acoustically; this repeat is another fresh generation, not audio replay.
+The second stream envelope contained 456,663 bytes, audio and successful completion.
+
+Permission-retry regressions also passed: both workspace typechecks, **53**
+targeted API tests, **59** targeted Coach/voice tests and **18** structure/readiness
+tests. Full-suite results below were obtained earlier on the same application
+source. GitHub read-only reachability now works; the remote integration branch
+still points at the local base `f5218e9`.
+
+On the 33172 build, one additional **real Finnish browser test passed**:
+“Paljonko käytin takseihin viime kuussa?” returned `source=model`,
+`provider=gemini-direct`, a Finnish August 2026 sentence and €30.97. The dated
+underlying transaction opened. Question → open evidence took **4,129 ms**;
+provider time **3,870 ms** across two calls (evidence time is included, not merely
+answer latency).
+
+The fresh private browser test also passed through real synthetic CSV selection,
+automatic local classification, saved History and real `gemini-3.5-flash`:
+two saved October taxi rows → **€30.97**, both evidence rows opened and a detail
+drawer verified. Confirmation → History: **368 ms**; general conversation →
+visible answer: **1,314 ms**; taxi query → API answer: **2,482 ms**, followed by a
+passing visible-answer assertion. Three real private provider calls, zero model
+transport mocks. Enabling Privacy then produced a local answer without changing
+the provider counters. The identity service alone uses a signed test issuer.
+
+On this same source, **8** mocked-SSE/local conversational, **14** mocked voice
+and **20** local-Privacy challenge browser regressions passed again. Challenge
+coverage includes EN/FI/ET, Chromium/emulated WebKit, 390 × 844 and 1280 × 900.
+No physical microphone, acoustic output, phone installation or human user study
+is implied by these tests.
+
+Docker now works. The new opt-in `tests/integration/test_backup_restore.py`
+**passed** against disposable PostgreSQL 17.6: four synthetic rows / three owner
+scopes, exact full-table snapshots, migration head `0029_automatic_classification`,
+RLS policies and restricted-role totals preserved. Dump **258 ms**, restore
+**788 ms**; source unchanged. Encryption/decryption was in memory, with no retained
+backup or key. Only uniquely created test databases/roles were removed; existing
+preview databases were left intact. Two earlier exploratory dump attempts failed
+because the container's database superuser was not named `postgres`; using its
+configured administrator resolved this without credential logging. This does not
+prove production off-host backups, lost-key recovery, retention or billing setup.
 
 The separate, read-only Nemotron smoke reached **HTTP 200** in **1,586.7 ms** and
 returned `interpret_money_question`. It **failed** strict validation:
@@ -33,7 +95,36 @@ success. The experimental adapter remains separate; Gemini stays the default.
 Keys, payloads and provider bodies were not logged. Real Auth0 and physical-device
 or human-user checks remain unverified; improved permissions do not prove them.
 
-## Checked version and entry points
+### Repeat commands
+
+```powershell
+$env:CONVERSATION_COACH_URL='http://127.0.0.1:33172'
+$env:MONEY_COACH_REAL_CONVERSATION_TEST='true'
+node node_modules/@playwright/test/cli.js test --config tests/config/playwright.conversational-coach.config.ts --grep '@real.*Finnish taxi answer'
+$env:PRIVATE_CONVERSATION_URL='http://127.0.0.1:33172'
+$env:PRIVATE_CONVERSATION_API_PORT='18085'
+$env:PRIVATE_CONVERSATION_REAL='true'
+node node_modules/@playwright/test/cli.js test --config tests/config/playwright.private-conversation.config.ts
+$env:FRESH_COACH_URL='http://127.0.0.1:33172'
+$env:MONEY_COACH_REAL_FRESH_TEST='true'
+node node_modules/@playwright/test/cli.js test --config tests/config/playwright.fresh-coach.config.ts --grep 'real Gemini speech'
+```
+
+These opt-ins use paid live inference and preserve durable request allowances.
+Repeating the private fixture now tests an exact re-import (zero added rows), not
+another fresh workspace. The container recovery command is documented in
+`deploy/production-readiness.md` and requires the existing private test DSN.
+
+**Still missing:** real Auth0's six settings and normal two-user tenant sign-in,
+successful schema-valid Nemotron search/ledger/browser proof, physical-device
+microphone/playback/install, actual participant review and production
+security/retention/key-recovery/provider-billing approval. Do not call a fallback,
+configured key or HTTP 200 alone a successful provider check.
+
+Everything below is the historical baseline and earlier diagnostics, superseded
+by this current handoff where results differ.
+
+## Historical checked version and entry points
 
 - Branch: `integration/demo-import-first-next`; base HEAD: `f5218e9`.
 - Source: modified working tree, **not a new commit**. Git could not create `.git/index.lock` (`Permission denied`); the elevated process itself failed with `Access is denied (os error 5)`. The index remains empty. No history rewriting, push, PR, public deployment or ngrok action occurred.

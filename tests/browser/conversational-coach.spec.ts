@@ -237,6 +237,27 @@ async function realReply(page:Page,question:string,calls?:1|2) {
 test.describe('@real native Gemini conversation through the production server',()=>{
  test.skip(process.env.MONEY_COACH_REAL_CONVERSATION_TEST!=='true','Explicit synthetic real-provider opt-in required; no browser route mocks');
 
+ test('Finnish taxi answer names August 2026 and opens the real synthetic transaction',async({page})=>{
+  await page.addInitScript(()=>{
+   localStorage.setItem('money-coach-preferences.v1',JSON.stringify({locale:'fi',savings:10}));
+   localStorage.setItem('money-coach-privacy.v1','false');
+  });
+  await page.goto(entry);
+  const pending=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/chat');
+  const started=performance.now();
+  await page.getByRole('textbox',{name:'Kysymyksesi',exact:true}).fill('Paljonko käytin takseihin viime kuussa?');
+  await page.getByRole('button',{name:'Lähetä kysymys',exact:true}).click();
+  const response=await pending,headers=response.headers(),answer=assistants(page).last();
+  expect(headers['x-money-coach-source'],headers['x-money-coach-evaluation']).toBe('model');
+  expect(headers['x-money-coach-provider']).toBe('gemini-direct');
+  await expect(answer.locator('[data-conversation-reply]')).toContainText('30,97');
+  await expect(answer.locator('[data-conversation-reply]')).toContainText(/elokuu(?:ssa|n|ta)? 2026/iu);
+  await answer.getByRole('button',{name:'MRC-TRN-0063',exact:true}).click();
+  await expect(page.getByRole('dialog')).toContainText('30,97');
+  await expect(page.getByRole('dialog')).toContainText('26.8.2026');
+  console.log(JSON.stringify({language:'fi',source:headers['x-money-coach-source'],provider:headers['x-money-coach-provider'],questionToEvidenceMs:Math.round(performance.now()-started),timing:JSON.parse(headers['x-money-coach-usage']??'null')}));
+ });
+
  for(const question of spendingQuestions)test(`native conversation handles "${question}"`,async({page})=>{
   await openCoach(page);const {answer}=await realReply(page,question,2);
   await expect(answer.locator('[data-conversation-reply]')).toContainText('7 017,40');
