@@ -15,7 +15,8 @@ for(const [locale,copy] of[["en",en],["fi",fi],["et",et]] as const)test(`${local
  await expect(answer.getByRole("heading",{name:copy.week,exact:true})).toBeVisible();
  await expect(answer.getByText(copy.safeNote,{exact:true})).toHaveCount(0);
  await expect(answer.getByText(copy.confidenceLow,{exact:true})).toBeVisible();
- await expect(answer).toContainText(/599,17\s€/);await expect(answer).toContainText(/998,63\s€/);
+ // Organizer reserves come from the profile's own recent bills and surprise costs.
+ await expect(answer).toContainText(/266,05\s€/);await expect(answer).toContainText(/443,42\s€/);
  // With the removed intro gone, the real card is the first element, not an empty paragraph.
  expect(await answer.evaluate(node=>node.firstElementChild?.querySelector('h2')?.textContent)).toBe(copy.week);
  const calculation=answer.getByRole("button",{name:copy.calculation,exact:true});

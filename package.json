@@ -13,6 +13,7 @@
     "build:coach": "npm run build --workspace @moneylens/coach",
     "dev:api": "node --env-file-if-exists=.env scripts/run_api.mjs",
     "dev:demo-api": "node scripts/run_demo_api.mjs",
+    "dev:gemma": "node scripts/run_gemma_demo.mjs",
     "build:web": "node scripts/generate_pwa.mjs && npm run build --workspace @moneylens/web",
     "build": "npm run build:coach && npm run build:web",
     "test": "npm run test --workspace @moneylens/coach",

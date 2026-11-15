@@ -10,7 +10,7 @@ export type FinancialIntent=
   | {status:"ready";tool:"showTransactions";period:Period;scope:Scope}
   | {status:"ready";tool:"showDonut"|"showCategories"|"showBaskets"|"showProfile";period:Period}
   | {status:"ready";tool:"showWhatIf";period:Period;category:string;pct:number}
-  | {status:"ready";tool:"showBenchmark";period:Period;category:string}
+  | {status:"ready";tool:"showBenchmark";period:Period;category:string;generic?:true}
   | {status:"ready";tool:"peerComparison";period:Period;metric:import("@/engine/peer-comparison").PeerMetric}
   | {status:"ready";tool:"showSafeToSpend";purpose?:"spend"|"save"}
   | {status:"ready";tool:"showStepper"}
@@ -29,6 +29,14 @@ export function requestForIntent(intent:Extract<FinancialIntent,{status:"ready"}
   if(intent.tool==="showFilter") Object.assign(input,{value:intent.value},intent.scope);
   if(intent.tool==="showSafeToSpend" && intent.purpose!==undefined) input.purpose=intent.purpose;
   return {name:intent.tool,input};
+}
+/** A generic "compare me" uses the richest comparison the selected records support:
+ * same-age synthetic S-Pankki customers when a peer profile exists, otherwise the
+ * Statistics Finland reference. The explicit category comparisons are unchanged. */
+export function adaptIntentToData(intent:FinancialIntent,data?:{peer_context?:{complete_months:number;restricted?:boolean}|null}):FinancialIntent {
+  if(intent.status!=="ready" || intent.tool!=="showBenchmark" || !intent.generic) return intent;
+  const peers=data?.peer_context;
+  return peers && peers.complete_months>=6 && !peers.restricted ? {status:"ready",tool:"peerComparison",period:intent.period,metric:"everyday"} : intent;
 }
 
 const quoted='"(?:[^"\\\\]|\\\\["\\\\/bfnrt]|\\\\u[0-9a-fA-F]{4})*"';
@@ -145,7 +153,7 @@ export function interpretQuestion(question:string,selected?:Period,referenceDate
   if(/^where did my money go$/iu.test(text)) return {status:"ready",tool:"showDonut",period};
   if(/^what kind of spender (?:am|was) i$/iu.test(text)) return {status:"ready",tool:"showProfile",period};
   if(/^show my three baskets$/iu.test(text)) return {status:"ready",tool:"showBaskets",period};
-  if(/^compare me to others$/iu.test(text)) return isCalendarMonth(period) ? {status:"ready",tool:"showBenchmark",period,category:"taxi"} : reject("MONTH_REQUIRED");
+  if(/^compare me to others$/iu.test(text)) return isCalendarMonth(period) ? {status:"ready",tool:"showBenchmark",period,category:"taxi",generic:true} : reject("MONTH_REQUIRED");
   const compare=text.match(/^compare (?:my )?(.+?) spending (?:to|with) (?:others|the population)$/iu);
   if(compare) {
     const parsed=scope(compare[1]);

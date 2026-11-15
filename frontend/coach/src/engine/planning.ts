@@ -12,7 +12,20 @@ export function recurringIncome(data:Dataset=demo,today=sourceDate(data.as_of)) 
   if(recent.slice(1).some((r,i)=>{const days=(Date.parse(r.booked_on)-Date.parse(recent[i].booked_on))/86400000;return days<25 || days>35;})) continue;
   candidates.push(median);
  }
- return candidates.length ? exactSum(candidates) : null;
+ if(candidates.length) return exactSum(candidates);
+ // Payers often move salary days around holidays. Accept one stable payer whose
+ // monthly totals were present in each of the last three complete months.
+ const payers=new Map<string,number[]>();
+ for(let offset=1;offset<=3;offset++) {
+  const totals=new Map<string,number>();
+  for(const row of records(monthPeriod(today,-offset),data)) if(row.economic_flow==="income" && row.amount_minor>0) {
+   const key=`${row.account_id}/${row.merchant.replace(/\d{4}-\d{2}-\d{2}|\d+/gu,"").replace(/[\s/.,-]+$/u,"").trim().toLocaleLowerCase()}`;
+   totals.set(key,exactSum([totals.get(key) ?? 0,row.amount_minor]));
+  }
+  for(const [key,total] of totals) payers.set(key,[...(payers.get(key) ?? []),total]);
+ }
+ const stable=[...payers.values()].filter(values=>values.length===3).map(values=>{const sorted=[...values].sort((a,b)=>a-b);return {median:sorted[1],ok:sorted.every(value=>Math.abs(value-sorted[1])<=sorted[1]*.2)};}).filter(item=>item.ok);
+ return stable.length ? exactSum(stable.map(item=>item.median)) : null;
 }
 /** Estimate describes a cautious historical planning range, never adds projected income to funds. */
 export function weeklyRange({data=demo,today=sourceDate(data.as_of),income=null,savingsPercent=10,billsConfirmed=false,classificationsReviewed=false}:{data?:Dataset;today?:string;income?:number|null;savingsPercent?:number;billsConfirmed?:boolean;classificationsReviewed?:boolean}={}) {

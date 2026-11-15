@@ -7,6 +7,7 @@ import {publicAIPolicy,withPublicAIReservation} from "@/voice/public-budget";
 import {VoiceError} from "@/voice/provider";
 import {RuleProvider} from "./rule-provider";
 import {ConversationProvider} from './conversation-provider';
+import {LocalGemmaProvider,gemmaConfig} from './gemma-provider';
 import {throwIfCancelled,CoachCancelledError} from "./execution";
 import {COACH_REVISION} from "./transport";
 import type {createCoachExecutor} from "./server-executor";
@@ -16,7 +17,15 @@ export function createPublicCoachExecutor({env=process.env,network=globalThis.fe
  const execute:ReturnType<typeof createCoachExecutor>=async(request,question,locale,savingsPercent,context,period,scope,dataset,privacy,conversation)=>{
   const data=scopedDataset(await readDataset(request,dataset??"starter"),scope),execution={signal:request.signal,data,context,period};
   const fallback=async(diagnostic:string)=>({message:await new RuleProvider().answer(question,locale,savingsPercent,execution),source:"rule" as const,diagnostic});
-  throwIfCancelled(request.signal);if(privacy!==false)return fallback("privacy_rule");
+  throwIfCancelled(request.signal);
+  if(privacy!==false){
+   // Privacy mode never reaches a hosted provider. An explicitly configured
+   // loopback Gemma may word answers; otherwise local rules answer.
+   const gemma=gemmaConfig(env);if(!gemma)return fallback("privacy_rule");
+   const outcome=await new LocalGemmaProvider(gemma,network).answer(question,locale,savingsPercent,execution,conversation);
+   throwIfCancelled(request.signal);
+   return {message:outcome.message,source:outcome.source,diagnostic:outcome.diagnostic,provider:outcome.source==="model"?"gemma-local":undefined,usageDiagnostic:outcome.timing};
+  }
   const key=env.GEMINI_API_KEY,file=env.MONEY_COACH_MODEL_USAGE_PATH;
   if(env.MONEY_COACH_PUBLIC_GEMINI_ENABLED!=="true" || !key || !COACH_REVISION || !file || !path.isAbsolute(file))return fallback("public_configuration");
   try {

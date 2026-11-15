@@ -134,6 +134,21 @@ export function monthlyAverages(n:number,data:Dataset=demo) {
 }
 export const reviewReasonSchema=z.enum(["history_incomplete","schedule_unreviewed","balances_missing","income_missing","date_mismatch","balances_outdated"]);
 export type ReviewReason=z.infer<typeof reviewReasonSchema>;
+/** Typical monthly regular bills (median) and irregular costs (mean) from complete past months. */
+export function observedReserves(today:string,data:Dataset=demo) {
+  dateSchema.parse(today);
+  const regular:number[]=[],irregular:number[]=[];
+  for(let offset=1;offset<=6;offset++) {
+    const analysis=analyzePeriod(monthPeriod(today,-offset),data);
+    if(analysis.expenses===null) continue;
+    const amount=(key:string)=>Math.max(0,analysis.baskets.find(group=>group.key===key)?.amount ?? 0);
+    if(regular.length<3) regular.push(amount("mandatory_regular"));
+    irregular.push(amount("mandatory_irregular"));
+  }
+  if(regular.length<3) return null;
+  const sorted=[...regular].sort((a,b)=>a-b);
+  return {regular:sorted[1],irregular:Math.round(exactSum(irregular)/irregular.length),months:irregular.length};
+}
 export function safeToSpend(today:string,data:Dataset=demo,savingsPercent=10) {
   dateSchema.parse(today);z.number().int().min(0).max(100).parse(savingsPercent);
   const included=data.accounts.filter(account=>account.included);
@@ -145,7 +160,11 @@ export function safeToSpend(today:string,data:Dataset=demo,savingsPercent=10) {
     ? exactSum(balances.map(([row])=>exactSum([row.amount_minor,-row.included_credit_minor]))) : null;
   const realizedIncome=exactSum(records(monthPeriod(today),data).filter(t=>t.economic_flow==="income" && t.booked_on<=today).map(t=>t.amount_minor));
   const savings=realizedIncome>0 ? basisPointAmount(realizedIncome,savingsPercent*100) : null;
-  const costs=exactSum([data.bills_minor,data.essentials_minor,data.buffer_minor,savings ?? 0]);
+  // Organizer profiles carry no reviewed reserves. Their own recent baskets then supply
+  // cautious, clearly labelled reserves instead of treating unknown bills as zero.
+  const derived=data.bills_minor===0 && data.essentials_minor===0 && data.buffer_minor===0 ? observedReserves(today,data) : null;
+  const regular=derived?.regular ?? data.bills_minor,irregular=derived?.irregular ?? data.essentials_minor;
+  const costs=exactSum([regular,irregular,data.buffer_minor,savings ?? 0]);
   const reasons:ReviewReason[]=["history_incomplete","schedule_unreviewed"];
   if(balance===null) reasons.push("balances_missing");
   if(savings===null) reasons.push("income_missing");
@@ -153,8 +172,8 @@ export function safeToSpend(today:string,data:Dataset=demo,savingsPercent=10) {
   if(balance!==null && balances.some(group=>sourceDate(group[0].observed_at)!==today)) reasons.push("balances_outdated");
   // No future-income projection or monthly proration grants spendable money.
   // The supplied fixture has no complete history, reviewed schedule or income coverage.
-  return {status:"review_required" as const,amount:null,reasons,balance,regular:data.bills_minor,
-    irregular:data.essentials_minor,buffer:data.buffer_minor,savings,savingsPercent,
+  return {status:"review_required" as const,amount:null,reasons,balance,regular,
+    irregular,buffer:data.buffer_minor,savings,savingsPercent,reserveSource:derived ? "observed" as const : "supplied" as const,reserveMonths:derived?.months ?? null,
     illustrativeHeadroom:balance===null ? null : Math.max(0,exactSum([balance,-costs])),realizedIncome,asOf:today,sourceAsOf:data.as_of,
     stale:today!==sourceDate(data.as_of),coverage:"partial" as const};
 }
@@ -181,9 +200,14 @@ export function reductionFromAnalysis(category:string,pct:number,period:Period,a
 export function spenderProfile(period:Period=lastMonth,data:Dataset=demo) {
   const {categories,baskets}=analyzePeriod(period,data);
   const leading=categories.find(group=>group.gross>0) ?? null,gross=exactSum(categories.map(group=>group.gross));
+  const share=(key:string)=>{const group=baskets.find(item=>item.key===key);return group && gross>0 ? group.gross/gross*100 : 0;};
+  // A descriptive spending style from the three baskets, never a personality score.
+  const style=gross<=0 ? null : share("everyday")>=50 ? "everyday_led" as const : share("mandatory_regular")>=50 ? "fixed_led" as const
+    : share("mandatory_irregular")>=25 ? "surprise_heavy" as const : "balanced" as const;
+  const styleShare=style===null ? null : style==="fixed_led" ? share("mandatory_regular") : style==="surprise_heavy" ? share("mandatory_irregular") : share("everyday");
   return {type:leading ? "observed_pattern" as const : "insufficient" as const,
     leading,leadingGrossShare:leading && gross>0 ? leading.gross/gross*100 : null,baskets,total:exactSum(categories.map(g=>g.amount)),
-    count:exactSum(categories.map(g=>g.count)),period,coverage:"partial" as const};
+    count:exactSum(categories.map(g=>g.count)),period,coverage:"partial" as const,style,styleShare};
 }
 export type PopulationReference={category:string;annual:number|null;year:number;source:string;household:string};
 export interface BenchmarkSource {get(category:string):PopulationReference|null}

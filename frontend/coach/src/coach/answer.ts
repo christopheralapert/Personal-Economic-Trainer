@@ -36,7 +36,8 @@ export function answerFromTool(name:ToolName,input:Record<string,unknown>,output
   if(name==="showWhatIf") framing=t("simulationAnswer",{amount:money(propsSchemas.showWhatIf.parse(checked).result.monthly)});
   if(name==="showProfile") {
     const profile=propsSchemas.showProfile.parse(checked).result;
-    framing=profile.leading ? t("profileAnswer",{category:categoryLabel(profile.leading.key,t)}) : t("noPattern");
+    const style=profile.style ? ({everyday_led:"styleEverydayLed",fixed_led:"styleFixedLed",surprise_heavy:"styleSurpriseHeavy",balanced:"styleBalanced"} as const)[profile.style] : null;
+    framing=profile.leading ? [style ? t("styleAnswer",{style:t(style)}) : "",t("profileAnswer",{category:categoryLabel(profile.leading.key,t)})].filter(Boolean).join(" ") : t("noPattern");
   }
   if(name==="showBenchmark") {
     const result=propsSchemas.showBenchmark.parse(checked).result;

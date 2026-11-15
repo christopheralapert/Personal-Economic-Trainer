@@ -1,7 +1,7 @@
 import {sourceDate} from "@/engine/source-date";
 import {z} from "zod";
 import {type CoachMessage,createComponentTools} from "./catalog";
-import {requestForIntent} from "./intent";
+import {adaptIntentToData,requestForIntent} from "./intent";
 import {resolveQuestion} from "./resolve-question";
 import {answerBasis,answerFromTool} from "./answer";
 import {UnavailableScenarioError} from "@/engine";
@@ -15,7 +15,7 @@ export class RuleProvider implements ChatProvider {
     throwIfCancelled(execution.signal);
     const t=(key:Parameters<typeof translate>[1])=>translate(locale,key);
     const message=(text:string):CoachMessage=>({id:crypto.randomUUID(),role:"assistant",parts:[{type:"text",text}]});
-    const intent=resolveQuestion(question,execution.context,execution.period,execution.data ? sourceDate(execution.data.as_of) : undefined);
+    const intent=adaptIntentToData(resolveQuestion(question,execution.context,execution.period,execution.data ? sourceDate(execution.data.as_of) : undefined),execution.data);
     if(intent.status!=='ready' && intent.reason==='UNSUPPORTED_AMOUNT_FILTER')return message({
       en:'That amount filter is ambiguous or unsupported. Please give an exact EUR minimum or maximum, or both; no search was run.',
       fi:'Summarajaus on epäselvä tai sitä ei tueta. Anna tarkka vähimmäis- tai enimmäissumma euroina tai molemmat; hakua ei tehty.',

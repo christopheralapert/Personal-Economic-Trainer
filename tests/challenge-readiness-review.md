@@ -1,5 +1,45 @@
 # Challenge readiness — 15 November 2026
 
+## Presentation-ready pass: requirements gaps, UI and local Gemma
+
+Branch `integration/presentation-ready-next`, based on `6141cd7`. This pass closes the requirement gaps found against the official brief and adds local Gemma to Privacy mode.
+
+| Change | Before | After |
+| --- | --- | --- |
+| Safe to spend on organizer data | Organizer profiles supply no reviewed bills, so rent counted as €0: organizer1 showed **€599–998 a week** | When no reserves are supplied, typical monthly bills (median of the last 3 complete months) and surprise costs (mean of 6 months) are reserved and labelled as estimates. organizer1 now shows **€266.05–443.42**; the result stays `review_required` with low confidence |
+| Salary detection | Merchant text contains the payment date, and payday moves, so no income was found | A payer present in each of the last 3 complete months within ±20% is accepted; organizer1 salary is €7,489.27 |
+| “What kind of spender am I?” | Largest category only | A spending style from the three baskets (everyday-led, fixed-cost, surprise-hit, balanced), with its share, a plain-language explanation and a basket bar; still not a personality score |
+| “Compare me to others” | Always Statistics Finland taxis, “Not available” for organizer months without taxis | Organizer profiles compare everyday spending with same-age synthetic S-Pankki customers; other datasets keep the Statistics Finland taxi reference |
+| Category vocabulary | Entertainment, travel, utilities, health, transport, lifestyle and home and technology were not understood | EN/FI/ET words for every organizer category; also enables What-if on them |
+| Landing | Two buttons | The four official example questions open the sample Coach with the question ready, plus three feature points (baskets, What if, privacy) |
+
+### Local Gemma
+
+Ollama 0.40.16 and `gemma3:4b` (Q4_K_M, 3.4 GB) are installed on the development laptop (RTX 5070 Laptop GPU, 8 GB). Ollama listens on 127.0.0.1 only. `npm run dev:gemma` verifies local GGUF Gemma metadata, warms the model and starts the app. Cold load took **68 s** on first use; warm calls took **0.6–2.0 s**.
+
+Real production-build browser check, organizer1, Privacy mode, 390 × 844: every answer labelled `gemma-local`, and zero requests to non-loopback hosts.
+
+| Question | Result | Time |
+| --- | --- | ---: |
+| How much did I spend on taxis last month? | €30.97, August 2026, evidence attached | 1,067 ms |
+| how much went on cabs in july? (rules alone cannot parse) | €226.57, July 2026 | 1,800 ms |
+| If I ate out 20% less, what would I save? | €159.58, September 2026 (selected period) | 1,701 ms |
+| hi! what can you do? | General reply, no money claims | 1,251 ms |
+
+The direct real-model probe also showed the safeguards working. A Finnish reply was rejected as ungrounded and the reviewed answer was shown. An Estonian entertainment question was first misrouted to small talk, which is now refused whenever a category or period is named. Estonian wording was grammatically poor, so Gemma writes reply text only in English by default. These are single observations, not a multilingual quality benchmark. The earlier Python Gemma adapter on `agent/gemma-privacy-next` (private backend) was not merged.
+
+### Verification in this pass
+
+| Check | Result |
+| --- | --- |
+| Coach unit suite (Vitest) | **271 passed**, 50 files, including 10 Gemma provider and 8 presentation-engine tests |
+| Coach typecheck, web typecheck, px lint | Passed |
+| Coach PWA/AI Node suites; root PWA suite; web utilities; structure | 15, 54, 7 and 21 passed |
+| Python API suite | **1,113 passed** (`--basetemp` in a writable folder) |
+| Production browser suites, Chrome | compact-copy **4/4**, demo **16/16** (including a new peer-comparison test), challenge **20/20** (Chrome/WebKit, phone/desktop), redesign **102 passed, 1 failed, 7 skipped**, demo-import **7/8** |
+
+The challenge and demo-import suites need the synthetic API with `MONEYLENS_APP_ORIGIN` set to the preview origin. The demo-import failure uses the `fresh-preview` signed test identity, which needs the separate private test-OIDC harness. The redesign failure (`private-records.spec.ts`, “AI model; calculations…” label) also fails on an unmodified `6141cd7` build, so it predates this pass. The compact-copy weekly range expectation was updated from €599.17–998.63 to €266.05–443.42.
+
 ## Presentation cleanup: bundled interface text
 
 The presentation uses bundled, reviewed **English / Finnish / Estonian** interface
@@ -305,16 +345,16 @@ The official challenge text supplied in the conversation was the requirement sou
 
 | Requirement / scope | Where the user sees it | Check and evidence | State |
 | --- | --- | --- | --- |
-| Official core: talk with personal financial data | Coach and evidence drawers | Public localized/browser flows and private six-format saved-ledger queries; real-provider recheck blocked below | Partly proven |
+| Official core: talk with personal financial data | Coach and evidence drawers | Real Gemini (Privacy off) and real local Gemma (Privacy on) answers with evidence; see the presentation-ready pass above | Proven |
 | Official core: organizer synthetic dataset | Anonymous organizer1 | `organizer-source.json`, `build_organizer_data.py`, provenance test; 1,543 whole-customer rows; matching source SHA-256 `49b3265d8e44e751de305a074dcffcda732bb79aa1e07b46fcca774ce76f1e63` | Proven |
 | Official example: last-month taxis | Organizer Coach | EN/FI/ET, August 2026, €30.97, opened `MRC-TRN-0063`; Chrome/WebKit phone/desktop | Proven |
-| Official example: spender pattern | Coach | `organizer-demo.spec.ts` free-text profile → Home, transaction-linked chart | Proven |
+| Official example: spender pattern | Coach | Basket-based spending style plus largest category; `presentation.test.ts`, `organizer-demo.spec.ts` | Proven |
 | Official core: three baskets and plain-language learning | Overview / six Learn topics | `challenge-acceptance.spec.ts`, organizer suite and existing learning/domain tests | Proven |
 | Official example: reduce dining by 20% | Coach / What if | September €797.88 → €159.58; 20% initial slider, 30%/speech regression | Proven |
-| Official emphasis: safe spending/saving | Demo calculation review / private Plan | Incomplete data withheld; 55 real-DB planning checks and 9 mocked-API UI checks independently prove €200 → reserve €50 → €150 → release €200. No claim of one unmocked planning browser journey or complete organizer finances | Partly proven |
+| Official emphasis: safe spending/saving | Demo calculation review / private Plan | Organizer weekly range now reserves typical bills and surprise costs from history (€266.05–443.42 for organizer1, low confidence). Incomplete data withheld; 55 real-DB planning checks and 9 mocked-API UI checks independently prove €200 → reserve €50 → €150 → release €200. No claim of one unmocked planning browser journey or complete organizer finances | Partly proven |
 | Official MyData direction: choose what to explore | Account/period/category selectors, free-text Coach, transaction details | Scoped queries, comparisons and exact EUR minimum/maximum search combined with category/merchant/period/account. Arbitrary OR logic and unrestricted analytics are not claimed | Partly proven |
 | Recommended: mobile web | Demo, upload, Coach and private views | Chrome/WebKit 390 × 844; desktop 1280 × 900; no document overflow in checked journeys | Proven |
-| Optional bonus: population benchmarks | Comparison/reference tools | Existing reference/domain tests; no new population-data browser proof in this pass | Partly proven |
+| Optional bonus: population benchmarks | “Compare me to others” | Organizer profiles: same-age synthetic S-Pankki peers (unit and browser tests); other data: Statistics Finland taxi reference | Proven for synthetic peers; Statistics Finland coverage limited to mapped categories |
 | Optional bonus: PSD2 multi-bank connection | Separate real-bank integration | File-account aggregation is not PSD2; real consent/credentials were not exercised | Blocked |
 | Product acceptance: private signup and isolation | Normal /import sign-in and private workspace | Signed test-OIDC; fresh/repeat/concurrent provisioning, blocked membership, RLS, saved-ledger isolation in database regressions and six-format harness | Proven with test-OIDC |
 | Product acceptance: real Auth0 | Same private entry with real configuration | Not supplied/verified by local test issuer | Blocked |

@@ -19,10 +19,12 @@ export function SafeToSpendCard({result,purpose="spend",onGoal,calculationOnly=f
  const [open,setOpen]=useState(false);
  const missingBalance=result.reasons.some(reason=>["balances_missing","balances_outdated","date_mismatch"].includes(reason));
  const prompt:Key=restricted?"scopeReserveNote":purpose==="save"?"planningReviewNoAllowance":missingBalance?"planningReviewBalance":range.estimate===null?"planningReviewIncome":"planningPrompt";
- const parts:[Key,number|null][]=[["availableBalance",result.balance],["regularBills",-result.regular],["irregularReserve",-result.irregular],["buffer",-result.buffer],["savingsReserve",result.savings===null ? null : -result.savings]];
+ const observed=result.reserveSource==="observed";
+ const parts:[Key,number|null][]=[["availableBalance",result.balance],[observed ? "regularBillsObserved" : "regularBills",-result.regular],[observed ? "irregularReserveObserved" : "irregularReserve",-result.irregular],["buffer",-result.buffer],["savingsReserve",result.savings===null ? null : -result.savings]];
  const calculation=<>
   <p className="text-sm text-ink-2">{t("rangeBasis")}</p>
   {range.observedMonths<3 && <p className="text-sm text-ink-2">{t("planningReviewRecordedMonths",{count:range.observedMonths})}</p>}
+  {observed && result.reserveMonths!==null && <p className="text-sm text-ink-2">{t("reserveObserved",{months:result.reserveMonths})}</p>}
   <dl className="divide-y divide-line">{parts.filter(([,value])=>!restricted && value!==null).map(([key,value])=><div key={key} className="flex flex-wrap justify-between gap-2 py-3 text-sm"><dt>{t(key)}</dt><dd className="ml-auto font-semibold">{money(value!)}</dd></div>)}</dl>
   {result.illustrativeHeadroom!==null && !restricted && <p className="text-sm">{t(purpose==="save" ? "afterReserves" : "beforeTarget")}: <strong>{money(result.illustrativeHeadroom)}</strong></p>}
   <section aria-label={t("planningReviewTitle")} className="space-y-3">
@@ -52,6 +54,7 @@ export function SafeToSpendCard({result,purpose="spend",onGoal,calculationOnly=f
  {!compatible && <div className="space-y-2 text-caption text-ink-2">{result.reasons.map(reason=><p key={reason}>{t(reasonCopy[reason])}</p>)}<p>{t("sourceSnapshot",{date:date(result.sourceAsOf)})}</p></div>}
  <p className="text-caption text-ink-2">{t("rangeNote")}</p>
  {range.incomeSource && <p className="text-caption text-ink-2">{t(range.incomeSource==="user" ? "yourEstimate" : "inferredIncome")}: {money(range.estimate!)}</p>}
+ {observed && !restricted && result.reserveMonths!==null && <p className="text-caption text-ink-2">{t("reserveObserved",{months:result.reserveMonths})}</p>}
  <Drawer open={open} onOpenChange={setOpen}><DrawerTrigger asChild><Button variant="outline">{t("calculation")}</Button></DrawerTrigger><DrawerContent><DrawerHeader><DrawerTitle>{t("calculation")}</DrawerTitle><DrawerDescription>{t("rangeNote")}</DrawerDescription></DrawerHeader><div className="max-h-sheet space-y-4 overflow-y-auto px-4">{calculation}</div><DrawerFooter><DrawerClose asChild><Button>{t("done")}</Button></DrawerClose></DrawerFooter></DrawerContent></Drawer>
  {purpose==="save" && onGoal && <Button className="h-auto min-h-12 max-w-full whitespace-normal" onClick={onGoal}>{t("goal")}</Button>}
  </CardContent></Card>;

@@ -38,7 +38,7 @@ export function createChatRoute(execute=executeCoach,readDataset=(_request:Reque
   const conversational=outcome.source==='model' && answer.metadata && typeof answer.metadata==='object' && 'generatedConversation' in answer.metadata && answer.metadata.generatedConversation===true;
   if(!conversational && (language==='es' || language==='ja'))answer.parts=answer.parts.map(part=>part.type==='text'?{...part,text:localText??(language==='es'?'Consulta los resultados registrados a continuación.':'以下の記録された結果をご確認ください。')}:part);
   const stream=createUIMessageStream({execute:({writer})=>{
-    writer.write({type:"start",messageId:answer.id,messageMetadata:{answerMode:outcome.source,language,...(conversational?{generatedConversation:true}:{}),...(outcome.source==='model' && answer.metadata && typeof answer.metadata==='object' && 'generatedGuidance' in answer.metadata && answer.metadata.generatedGuidance===true ? {generatedGuidance:true} : {})}});
+    writer.write({type:"start",messageId:answer.id,messageMetadata:{answerMode:outcome.source,language,...(outcome.source==='model' && 'provider' in outcome && outcome.provider==='gemma-local'?{provider:'gemma-local'}:{}),...(conversational?{generatedConversation:true}:{}),...(outcome.source==='model' && answer.metadata && typeof answer.metadata==='object' && 'generatedGuidance' in answer.metadata && answer.metadata.generatedGuidance===true ? {generatedGuidance:true} : {})}});
     writer.write({type:"start-step"});
     for(const [i,part] of answer.parts.entries()) {
       if(part.type==="text") {const id=`${answer.id}-${i}`;writer.write({type:"text-start",id});writer.write({type:"text-delta",id,delta:part.text});writer.write({type:"text-end",id});}

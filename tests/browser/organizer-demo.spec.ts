@@ -17,8 +17,8 @@ test('organizer demo supports six free-text questions, previous-month context an
  await ask('What about the month before?',2);
  const july=profile.transactions.filter(r=>r.category==='taxi'&&r.booked_on>='2026-07-01'&&r.booked_on<'2026-08-01');
  await expect(answers.last()).toContainText(amount(-july.reduce((s,r)=>s+r.amount_minor,0)));
- await ask('What kind of spender am I?',3);await expect(answers.last()).toContainText('Home');
- await ask('What is safe for me to spend this week?',4);await expect(answers.last()).toContainText('How is this calculated?');
+ await ask('What kind of spender am I?',3);await expect(answers.last()).toContainText('Home');await expect(answers.last()).toContainText('Everyday spender');
+ await ask('What is safe for me to spend this week?',4);await expect(answers.last()).toContainText('How is this calculated?');await expect(answers.last()).toContainText(/266,05\s€/);await expect(answers.last()).toContainText('estimated from your last 6 months');
  await ask('How much could I save if I reduced dining out by 20%?',5);await expect(answers.last().getByRole('slider')).toBeVisible();
  await ask('Show transactions in August 2026',6);await expect(answers.last()).toContainText('Transactions');
  await expect(answers).toHaveCount(6);expect(demoTraffic.chat).toHaveLength(6);expect(demoTraffic.privatePaths).toEqual([]);expect(bank).toEqual([]);
@@ -42,4 +42,13 @@ test('public access screen opens the organizer profile even after another demo w
  await expect(page.locator('header')).toContainText('S-Pankki challenge demo · Synthetic data · 30.9.2026');
  await expect(page.locator('[data-overview-block="period"]')).toContainText('September 2026');
  expect(privateRequests).toEqual([]);
+});
+test('compare me to others uses same-age synthetic S-Pankki peers for organizer profiles',async({page,demoTraffic})=>{
+ await page.goto('/demo?dataset=organizer1&tab=coach');
+ const input=page.getByRole('textbox',{name:'Your question',exact:true});await expect(input).toBeEditable();
+ await input.fill('Compare me to others');await page.getByRole('button',{name:'Send question',exact:true}).click();
+ const answer=page.locator('[data-message-role="assistant"]').last();
+ await expect(answer).toContainText('Everyday spending');await expect(answer).toContainText('Peer median');
+ await expect(answer).toContainText('Synthetic Helsinki-region data');await expect(answer).not.toContainText('Taxis');
+ expect(demoTraffic.privatePaths).toEqual([]);
 });

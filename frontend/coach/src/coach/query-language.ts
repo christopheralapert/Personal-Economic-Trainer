@@ -8,6 +8,15 @@ export const categoryAliases:Record<string,string>={
   groceries:"groceries",ruokaostokset:"groceries",ruokaostoksiin:"groceries",toidukaubad:"groceries",toidukaupadele:"groceries",
   housing:"housing",asuminen:"housing",asumiseen:"housing",eluasemekulud:"housing",eluasemele:"housing",
   repairs:"repairs",korjaukset:"repairs",korjauksiin:"repairs",remont:"repairs",remondile:"repairs",
+  // Organizer dataset categories, with the localized labels shown in the app.
+  transport:"transport","public transport":"transport",liikenne:"transport",liikenteeseen:"transport",joukkoliikenne:"transport",joukkoliikenteeseen:"transport",transpordile:"transport",ühistransport:"transport",ühistranspordile:"transport",
+  travel:"travel",travelling:"travel",trips:"travel",matkailu:"travel",matkailuun:"travel",matkat:"travel",matkoihin:"travel",reisimine:"travel",reisimisele:"travel",reisid:"travel",reisidele:"travel",
+  entertainment:"entertainment",viihde:"entertainment",viihteeseen:"entertainment",meelelahutus:"entertainment",meelelahutusele:"entertainment",
+  utilities:"utilities","electricity and services":"utilities","sähkö ja palvelut":"utilities","sähköön ja palveluihin":"utilities",kommunaalkulud:"utilities",kommunaalkuludele:"utilities",
+  health:"health",healthcare:"health",terveys:"health",terveyteen:"health",tervis:"health",tervisele:"health",
+  lifestyle:"lifestyle",elämäntyyli:"lifestyle",elämäntyyliin:"lifestyle",elustiil:"lifestyle",elustiilile:"lifestyle",
+  "home and technology":"home_tech","home tech":"home_tech",electronics:"home_tech","koti ja tekniikka":"home_tech","kotiin ja tekniikkaan":"home_tech","kodu ja tehnika":"home_tech","kodule ja tehnikale":"home_tech",
+  investments:"investment",sijoitukset:"investment",sijoituksiin:"investment",investeeringud:"investment",investeeringutele:"investment",
 };
 const finnishMonths=["tammikuussa","helmikuussa","maaliskuussa","huhtikuussa","toukokuussa","kesäkuussa","heinäkuussa","elokuussa","syyskuussa","lokakuussa","marraskuussa","joulukuussa"];
 const estonianMonths=["jaanuaris","veebruaris","märtsis","aprillis","mais","juunis","juulis","augustis","septembris","oktoobris","novembris","detsembris"];
