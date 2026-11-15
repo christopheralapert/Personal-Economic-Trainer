@@ -195,6 +195,7 @@ export class LocalGemmaProvider{
    'End with one practical next step the user can take in this app, such as opening the transactions, trying a What if reduction or checking the three baskets. Return JSON with text.'].filter(Boolean).join('\n');
   const result=z.object({text:z.string().trim().min(1).max(1500)}).strict().parse(await this.chat(system,JSON.stringify({question:cleanConversationText(question),verifiedFacts:facts}),
    {type:'object',additionalProperties:false,required:['text'],properties:{text:{type:'string',maxLength:1500}}},400,signal));
-  return result.text;
+  // Small models sometimes wrap the reply in stray quotation marks.
+  return result.text.trim().replace(/^["'“”„]+|["'“”„]+$/gu,'').trim();
  }
 }
