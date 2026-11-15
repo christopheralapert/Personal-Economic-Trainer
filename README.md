@@ -53,7 +53,7 @@ Start at `/demo`: **Try file import** opens the synthetic upload box; **Use samp
 
 The What if tab also has **Until payday**: money left per day before the next detected salary after upcoming bills and a surprise buffer, with a balance forecast chart, a planned-purchase slider and a late-salary option. For organizer1 that is €206.44 a day until 15 October, or €131.13 if the salary is a week late. The Coach answers the same questions (“Can I afford a 200 € purchase?”).
 
-For verification, exact supported exports, local preview and remaining limitations, see [challenge readiness](tests/challenge-readiness-review.md). Real Gemini text and generated audio have passed opt-in local browser checks; physical-device audio and real Auth0 remain separate checks. The public HTTPS presentation is not automatically updated by local work.
+For verification, exact supported exports, local preview and remaining limitations, see [challenge readiness](docs/verification/challenge-readiness-review.md). Real Gemini text and generated audio have passed opt-in local browser checks; physical-device audio and real Auth0 remain separate checks. The public HTTPS presentation is not automatically updated by local work.
 
 Transaction search supports exact EUR minimum/maximum amounts combined with category, quoted merchant, period and selected accounts. For example, “Show last month's taxi rides over EUR 20.” uses a strict greater-than boundary of 2,001 cents, never floating-point rounding. Ambiguous ranges and unsupported currencies still ask for clarification. See [release checks](deploy/production-readiness.md) for safe configuration diagnostics, Auth0 setup, real-device/user trials and the backup/restore checklist; these are not a production certification.
 

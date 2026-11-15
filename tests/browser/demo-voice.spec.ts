@@ -1,6 +1,7 @@
 import {test,expect} from "@playwright/test";
 import path from "node:path";
 import {languages,setupVoice,questionInput,submitQuestion,mockHostedVoice,type Locale} from "./voice-support";
+import {speechText} from "../../frontend/coach/src/lib/speech-text";
 
 for(const locale of Object.keys(languages) as Locale[])for(const provider of ["browser","gemini"] as const)for(const width of [360,390])for(const colorScheme of ["light","dark"] as const){
  test(`phone ${locale} ${provider} ${width} ${colorScheme}: visible controls and restart`,async({page})=>{
@@ -63,7 +64,8 @@ for(const locale of Object.keys(languages) as Locale[])for(const provider of ["b
    expect(hosted.speeches.every(value=>value.tool==="showWhatIf")).toBe(true);
    await page.evaluate(()=>{window.voiceTest.settleHosted(0);window.voiceTest.settleHosted(0,true);});
   }else{
-   expect(await page.evaluate(()=>window.voiceTest.spoken.map(value=>value.text))).toEqual([original,visible]);
+   // Device voices hear the same visible sentences in speech-friendly form (amounts, dates).
+   expect(await page.evaluate(()=>window.voiceTest.spoken.map(value=>value.text))).toEqual([speechText(original,locale),speechText(visible,locale)]);
    await page.evaluate(()=>{window.voiceTest.settleSpeech(0);window.voiceTest.settleSpeech(0,true);});
   }
   await expect(answer.getByRole("button",{name:copy.stopReading,exact:true})).toBeVisible();
@@ -110,7 +112,7 @@ for(const locale of Object.keys(languages) as Locale[]){
   await expect(sentence).toBeVisible();await expect(sentence).toContainText("30,97");
   const visible=(await sentence.textContent())!.trim();expect(visible).not.toContain(copy.modeRules);
   await answer.getByRole("button",{name:copy.readAloud,exact:true}).click();
-  await expect.poll(()=>page.evaluate(()=>window.voiceTest.spoken)).toEqual([{text:visible,lang:tag,local:true}]);
+  await expect.poll(()=>page.evaluate(()=>window.voiceTest.spoken)).toEqual([{text:speechText(visible,locale),lang:tag,local:true}]);
   const cancelled=await page.evaluate(()=>window.voiceTest.cancels);
   await answer.getByRole("button",{name:copy.stopReading,exact:true}).click();
   await expect.poll(()=>page.evaluate(()=>window.voiceTest.cancels)).toBeGreaterThan(cancelled);

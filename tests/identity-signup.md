@@ -31,7 +31,7 @@ The integrated API intentionally returns its existing generic HTTP 500 `INTERNAL
 
 ## Integrated browser verification
 
-See [the combined signup and statements report](signup-statements-review.md). `tests/browser/signup-statements.spec.ts` runs against a fresh loopback-only self-signup rehearsal with two non-provisioned signed test identities; it never targets Auth0. Set `MONEYLENS_SIGNUP_BROWSER_ORIGIN` to that server and `MONEYLENS_SIGNUP_STATEMENT_FIXTURES` to generated synthetic fixture files, then run `npx playwright test --config tests/config/playwright.signup-statements.config.ts`. Hosted calls remain opt-in via `MONEYLENS_SIGNUP_LIVE_GEMINI=true`; without it, answers use Privacy mode's local rules. This is a destructive-data-free test setup, not a production identity provider.
+See [the combined signup and statements report](../docs/verification/signup-statements-review.md). `tests/browser/signup-statements.spec.ts` runs against a fresh loopback-only self-signup rehearsal with two non-provisioned signed test identities; it never targets Auth0. Set `MONEYLENS_SIGNUP_BROWSER_ORIGIN` to that server and `MONEYLENS_SIGNUP_STATEMENT_FIXTURES` to generated synthetic fixture files, then run `npx playwright test --config tests/config/playwright.signup-statements.config.ts`. Hosted calls remain opt-in via `MONEYLENS_SIGNUP_LIVE_GEMINI=true`; without it, answers use Privacy mode's local rules. This is a destructive-data-free test setup, not a production identity provider.
 
 To use an already isolated administrator database instead, set `MONEYLENS_TEST_DATABASE_URL` in the current process and run:
 

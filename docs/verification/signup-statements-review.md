@@ -56,7 +56,7 @@ The new preview and its uniquely created PostgreSQL database are left running. O
 If this local preview stops, the retained-checkout launch sequence is:
 
 ```powershell
-Set-Location C:/Users/chris/Documents/Repo/Personal-Economic-Trainer
+Set-Location <repository root>
 docker start moneylens-coach-test-20261114
 node .cache/build-amount-guard.cjs
 node .cache/start-amount-guard.cjs
@@ -96,7 +96,7 @@ The final preview/API and their uniquely created PostgreSQL database are left ru
 If the preview has stopped, this **local-checkout-only PowerShell sequence** starts a fresh isolated rehearsal. Do not run it while 33125/18045 are occupied; it refuses occupied ports. The ignored launchers/artifact are retained locally, not committed:
 
 ```powershell
-Set-Location C:/Users/chris/Documents/Repo/Personal-Economic-Trainer
+Set-Location <repository root>
 docker start moneylens-coach-test-20261114
 node .cache/build-release-final.cjs
 node .cache/start-release-final.cjs --live-gemini

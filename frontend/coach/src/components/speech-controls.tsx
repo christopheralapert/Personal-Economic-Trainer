@@ -9,6 +9,7 @@ import {GeminiVoiceInput,GeminiReadAloud} from "./gemini-voice";
 import {answerLanguage,speechLanguages,type ConversationLanguage} from '@/coach/conversation-language';
 import {dictationCommand,dictationHint} from '@/voice/dictation-command';
 import {spokenAnswer} from '@/coach/spoken-answer';
+import {speechText,preferredVoice} from '@/lib/speech-text';
 
 type Recognition={lang:string;interimResults:boolean;processLocally?:boolean;start:()=>void;stop:()=>void;abort:()=>void;onresult:((event:{results:ArrayLike<ArrayLike<{transcript:string}>>;resultIndex:number})=>void)|null;onerror:((event:{error:string})=>void)|null;onend:(()=>void)|null};
 type RecognitionConstructor={new():Recognition;available?:(options:{langs:string[];processLocally:boolean})=>Promise<string>};
@@ -56,7 +57,11 @@ export function ReadAloud({article,message}:{article:RefObject<HTMLElement|null>
  const part=message.parts.find(value=>value.type.startsWith("tool-") && "state" in value && value.state==="output-available" && "input" in value && "output" in value);
  const current=useSpokenResult(part ? part.type.slice(5) as ToolName : null,part && "input" in part ? part.input : {},part && "output" in part ? part.output : {});
  const key=JSON.stringify([message.id,spokenLocale,savings,current?.input]);
- const text=current && part?spokenAnswer(part.type.slice(5) as ToolName,current.input,current.output,spokenLocale):undefined;
+ const summary=current && part?spokenAnswer(part.type.slice(5) as ToolName,current.input,current.output,spokenLocale):undefined;
+ // A model-written reply describes the submitted result; once sliders or filters change, read the live summary.
+ const generated=message.metadata && typeof message.metadata==="object" && "generatedConversation" in message.metadata && message.metadata.generatedConversation===true ? message.parts.find(value=>value.type==="text") : undefined;
+ const unchanged=!part || !current || !("input" in part) || JSON.stringify(current.input)===JSON.stringify(part.input);
+ const text=generated && generated.type==="text" && unchanged ? generated.text : summary;
  return !privacy && voiceProvider==="gemini" ? <GeminiReadAloud key={key} message={message} language={spokenLocale} input={current?.input} disabled={!current?.speakable}/> : <BrowserReadAloud key={key} article={article} text={text} language={spokenLocale} disabled={current?.speakable===false}/>;
 }
 function BrowserReadAloud({article,text:summary,language:locale,disabled=false}:{article:RefObject<HTMLElement|null>;text?:string;language:ConversationLanguage;disabled?:boolean}) {
@@ -68,9 +73,9 @@ function BrowserReadAloud({article,text:summary,language:locale,disabled=false}:
  useEffect(()=>{window.addEventListener("money-coach-stop-playback",stop);return()=>window.removeEventListener("money-coach-stop-playback",stop);},[stop]);
  function play(){setError(false);const synth=window.speechSynthesis,text=summary??article.current?.querySelector("[data-spoken-answer]")?.textContent?.trim();
   if(!synth || !text){setError(true);return;}
-  const voice=synth.getVoices().find(item=>item.lang.toLowerCase().split("-")[0]===locale && (!privacy || item.localService===true));
+  const voice=preferredVoice(synth.getVoices(),locale,language[locale],privacy);
   if(!voice){setError(true);return;}
-  try {window.dispatchEvent(new Event("money-coach-stop-playback"));window.dispatchEvent(new Event("money-coach-stop-listening"));const attempt=++generation.current,utterance=new SpeechSynthesisUtterance(text);utterance.lang=language[locale];utterance.voice=voice;utterance.onend=()=>{if(attempt===generation.current){generation.current++;setSpeaking(false);}};utterance.onerror=()=>{if(attempt===generation.current){generation.current++;setSpeaking(false);setError(true);}};setSpeaking(true);synth.speak(utterance);} catch {generation.current++;setSpeaking(false);setError(true);}
+  try {window.dispatchEvent(new Event("money-coach-stop-playback"));window.dispatchEvent(new Event("money-coach-stop-listening"));const attempt=++generation.current,utterance=new SpeechSynthesisUtterance(speechText(text,locale));utterance.lang=language[locale];utterance.voice=voice;utterance.onend=()=>{if(attempt===generation.current){generation.current++;setSpeaking(false);}};utterance.onerror=()=>{if(attempt===generation.current){generation.current++;setSpeaking(false);setError(true);}};setSpeaking(true);synth.speak(utterance);} catch {generation.current++;setSpeaking(false);setError(true);}
  }
  return <div className="flex flex-wrap items-center gap-2"><Button type="button" variant="ghost" size="chip" disabled={disabled || (!available && !speaking)} onClick={speaking ? stop : play}>{speaking ? <VolumeX className="size-5"/> : <Volume2 className="size-5"/>}{t(speaking ? "stopReading" : "readAloud")}</Button>{(error || !available || disabled) && <span role="status" className="text-caption text-ink-2">{t("voiceUnavailable")}</span>}</div>;
 }

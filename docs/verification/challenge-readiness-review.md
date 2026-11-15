@@ -1,5 +1,19 @@
 # Challenge readiness — 15 November 2026
 
+## Final checks before submission
+
+German and Swedish are selectable interface and Coach languages. Their interface text is machine-translated with Gemini (`frontend/coach/src/i18n/generated/`) and has not been human-reviewed; a few signed-in-only screens fall back to English. Device read-aloud now speaks amounts and dates naturally (“30 euros 97 cents”, “1 September 2026”). It prefers the exact regional natural voice and reads the model-written reply while the result is unchanged. Hosted Gemini speech still receives exactly the visible sentence.
+
+| Check | Result |
+| --- | --- |
+| Coach unit suite | **280 passed**, 52 files |
+| Python API | **1,113 passed** |
+| Structure, web utilities, coach PWA/AI, root PWA, coach release | 21, 7, 15, 54, 5 passed |
+| Typechecks (coach, web), px lint | Passed |
+| Browser on a production build | compact-copy 4/4, demo 17/17, challenge 20/20 (Chrome/WebKit), voice 74/74, redesign 104 passed with 1 known failure, demo-import 7/8 |
+
+The two remaining browser failures are the ones described below: `private-records.spec.ts` also fails on an unmodified `6141cd7` build, and the demo-import `fresh-preview` case needs the separate signed test-identity setup.
+
 ## Until payday (What if tab and Coach)
 
 Branch `feature/until-payday-next`. Shows money left per day before the next detected salary. It reserves regular bills due before payday (last month's mandatory-regular rows, projected one month ahead) and a prorated surprise buffer. It adds a 30-day rebuilt balance history, a forecast at the usual everyday pace with bill markers and a hover tooltip, a planned-purchase slider and late-salary options (+3 or +7 days). Coach answers “How much can I spend per day until payday?”, “What if my salary is a week late?” and “Can I afford a 200 € purchase?” in EN/FI/ET. Gemini and Gemma receive the per-day amount and payday facts. Gemma also maps free phrasing (“Can I buy a 350 euro phone before payday?”) onto it.
@@ -325,7 +339,7 @@ Remaining checks and smallest next steps:
   then perform normal two-user login/logout/isolation; test-OIDC is not Auth0.
 - **Physical device and user study:** no physical microphone/speaker/install or
   human participants are available here. Execute the consent-based phone/user
-  protocol in [production readiness](../deploy/production-readiness.md); automation
+  protocol in [production readiness](../../deploy/production-readiness.md); automation
   and emulated WebKit do not replace it.
 - **Production backup/security/billing:** local admission/privacy/RLS controls are
   tested, but a production deployment is not certified. Docker engine access is
