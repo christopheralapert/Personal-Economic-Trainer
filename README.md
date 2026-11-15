@@ -47,7 +47,7 @@ Open http://127.0.0.1:3000/demo for the synthetic demo. It works without a bank 
 
 ### Challenge review
 
-Start at `/demo`: **Try file import** opens the synthetic upload box; **Use sample file** previews the bundled `auto-taxis.csv` without a download or sign-in. Confirm it, then choose **View transactions** or **Ask Coach**. October 2026 taxis total **€30.97 across two transactions**. Personal statements belong in the separate authenticated `/import` workspace, not the public sample session.
+Start at `/demo`: **Try file import** opens the synthetic upload box; **Use sample file** previews the bundled `auto-taxis.csv` without a download or sign-in. Confirm it, then choose **View transactions** or **Ask Coach**. October 2026 taxis total **€30.97 across two transactions**. Visitors can also upload their own statement there (Wise CSV, PDF or XLSX, or a standard CAMT.053, MT940 or QIF file in EUR, up to 2 MiB). It is parsed in memory for that browser session only, never written to the database or disk, and deleted after one hour. The authenticated `/import` workspace keeps statements across sessions.
 
 **Try with sample data** opens `/demo?dataset=organizer1`. Its August 2026 taxi total is **€30.97**; the September dining baseline is **€797.88**, so a 20% historical reduction is **€159.58**. These are different datasets/periods despite the matching taxi amount. Overview, Coach, What if and Learn share the selected synthetic records; answers expose transaction evidence.
 

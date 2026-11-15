@@ -1,4 +1,5 @@
-"""Anonymous synthetic-file rehearsal. Normalized rows live only in bounded sessions."""
+"""Anonymous statement practice. Uploaded files are parsed in memory; normalized rows live only in
+bounded one-hour sessions, never in the database, on disk or in another visitor's session."""
 import base64
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -11,7 +12,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import Response, JSONResponse
 from .identity import AuthError
 from .statement_files import FileUpload, FileConfirm, published
-from .statement_formats import parse_statement
+from .statement_formats import parse_statement, WiseStatementError
 from .transaction_classification import local_classification
 
 router = APIRouter(prefix='/v1/demo-statements')
@@ -29,6 +30,8 @@ class DemoSession:
     receipts: dict = field(default_factory=dict)
     account: str = field(default_factory=lambda: str(uuid4()))
     rows: list = field(default_factory=list)
+    sample: bool = True
+    last: str = '2026-10-03'
     previews_created: int = 0
 
 def store(request):
@@ -76,23 +79,27 @@ def start(request:Request):
 @router.get('/statements/wise/accounts')
 def accounts(request:Request):
     state=session(request)
-    return [] if not state.rows else [{'id':state.account,'name':'Synthetic taxis','currency':'EUR','last_statement_date':'2026-10-03'}]
+    return [] if not state.rows else [{'id':state.account,'name':account_name(state),'currency':'EUR','last_statement_date':state.last}]
+
+def account_name(state):
+    return 'Synthetic taxis' if state.sample else 'Your statement'
 
 @router.post('/statements/wise/preview')
 def preview(body:FileUpload,request:Request):
     state=session(request,True)
     try:content=base64.b64decode(body.content_base64,validate=True)
     except ValueError:raise AuthError('INVALID_IMPORT_COMMAND',422) from None
-    # Public practice accepts the supplied synthetic fixture only. Real uploads
-    # use the authenticated importer, never this anonymous endpoint.
-    if body.format!='csv' or content.replace(b'\r\n',b'\n')!=SAMPLE.replace(b'\r\n',b'\n'):
-        return {'state':'invalid','code':'synthetic_sample_required'}
+    # Any supported EUR statement is accepted. It is parsed in memory for this
+    # session only and is never written to the ledger, database or disk.
+    sample=body.format=='csv' and content.replace(b'\r\n',b'\n')==SAMPLE.replace(b'\r\n',b'\n')
+    try:document=parse_statement(content,body.format,body.date_order)
+    except WiseStatementError as error:return {'state':'invalid','code':error.args[0] if error.args else 'unsupported_layout'}
+    if document.currency not in (None,'EUR') or not document.rows:return {'state':'invalid','code':'unsupported_currency' if document.rows else 'no_transactions'}
     with request.app.state.demo_statement_lock:
         if len(state.previews)>=10 or state.previews_created>=100:raise AuthError('IMPORT_INTAKE_THROTTLED',429)
-        document=parse_statement(content,body.format,body.date_order)
         classifications=[local_classification(row) for row in document.rows]
-        identifier=str(uuid4());state.previews[identifier]=(document,classifications);state.previews_created+=1
-        return dict(state='preview',id=identifier,account='Synthetic taxis',account_id=state.account if state.rows else None,
+        identifier=str(uuid4());state.previews[identifier]=(document,classifications,sample);state.previews_created+=1
+        return dict(state='preview',id=identifier,account='Synthetic taxis' if sample else 'Your statement',account_id=state.account if state.rows else None,
             requires_account=False,currency='EUR',requires_currency=False,start=document.start.isoformat(),
             end_exclusive=(document.last+timedelta(days=1)).isoformat(),last_statement_date=document.last.isoformat(),
             count=len(document.rows),repeated_reference_groups=0,possible_overlap=bool(state.rows),
@@ -110,20 +117,21 @@ def confirm(body:FileConfirm,request:Request):
         for selected in body.previews:
             identifier=str(selected.preview_id)
             if selected.account_id and str(selected.account_id)!=state.account:raise AuthError('NOT_FOUND',404)
-            if identifier in state.receipts:planned.append((identifier,None,None));continue
+            if identifier in state.receipts:planned.append((identifier,None,None,True));continue
             if identifier not in state.previews:raise AuthError('NOT_FOUND',404)
-            document,original=state.previews[identifier];values=list(original);seen=set()
+            document,original,sample=state.previews[identifier];values=list(original);seen=set()
             for review in selected.reviews:
                 if review.index in seen or review.index>=len(values):raise AuthError('INVALID_IMPORT_COMMAND',422)
                 seen.add(review.index)
                 try:values[review.index]=review.classification(document.rows[review.index].amount_minor)
                 except ValueError:raise AuthError('INVALID_IMPORT_COMMAND',422) from None
-            planned.append((identifier,document,values))
+            planned.append((identifier,document,values,sample))
         results=[]
-        for identifier,document,values in planned:
+        for identifier,document,values,sample in planned:
             if document is None:results.append({**state.receipts[identifier],'added_count':0});continue
             added=0 if state.rows else len(document.rows)
             if added:
+                state.sample=sample;state.last=document.last.isoformat()
                 state.rows=[dict(id=str(uuid4()),account_id=state.account,amount_minor=row.amount_minor,currency='EUR',
                     booked_on=row.booked_on.isoformat(),merchant=row.merchant or row.description,
                     economic_flow=c.economic_flow if c.economic_flow in ('expense','refund','income','internal_transfer') else 'internal_transfer',
@@ -138,7 +146,9 @@ def dataset(request:Request):
     state=session(request)
     with request.app.state.demo_statement_lock:
         if not state.rows:raise AuthError('NOT_FOUND',404)
-        return {'notice':'Synthetic statement practice; expires with this isolated demo session.','profiles':[dict(
-            as_of='2026-11-14T12:00:00+02:00',name='Synthetic statement practice',mode='synthetic',
-            accounts=[dict(id=state.account,name='Synthetic taxis',currency='EUR',included=True)],transactions=deepcopy(state.rows),
+        # The sample keeps its reviewed reference date; an uploaded statement is read as of its last day.
+        as_of='2026-11-14T12:00:00+02:00' if state.sample else state.last+'T23:59:59+02:00'
+        return {'notice':'Statement practice; kept only in memory and deleted when this demo session expires.','profiles':[dict(
+            as_of=as_of,name='Synthetic statement practice' if state.sample else 'Your statement',mode='synthetic',
+            accounts=[dict(id=state.account,name=account_name(state),currency='EUR',included=True)],transactions=deepcopy(state.rows),
             balances=[],bills_minor=0,essentials_minor=0,buffer_minor=0)]}

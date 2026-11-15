@@ -44,7 +44,11 @@ def test_session_isolation_batch_rollback_and_synthetic_only_boundary():
         assert a.get('/v1/demo-statements/dataset').status_code==404
         assert a.post('/v1/demo-statements/statements/wise/confirm',headers=ah,json=foreign).json()['added_count']==2
         assert b.get('/v1/demo-statements/dataset').status_code==404
-        assert preview(b,bh,SAMPLE.replace(b'15.97',b'99.97')).json()['code']=='synthetic_sample_required'
+        # Visitors may try their own EUR statement; it stays in their session only.
+        own=preview(b,bh,SAMPLE.replace(b'15.97',b'99.97')).json()
+        assert own['state']=='preview' and own['account']=='Your statement' and own['count']==2
+        assert preview(b,bh,b'not,a,statement'+bytes([10])+b'1,2,3'+bytes([10])).json()['state']=='invalid'
+        assert b.get('/v1/demo-statements/dataset').status_code==404
         assert preview(a,{'origin':'http://testserver'}).status_code==403
         assert a.post('/v1/demo-statements/session',headers={'origin':'https://other.example'}).status_code==403
         assert a.get('/v1/demo-statements/sample/auto-taxis.csv').content==SAMPLE

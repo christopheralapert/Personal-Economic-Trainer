@@ -22,10 +22,10 @@ export function DemoFileUpload({busy,onFiles,onSample}:{busy:boolean;onFiles:(fi
    onDrop={event=>{event.preventDefault();depth.current=0;setDragging(false);if(!busy)onFiles(Array.from(event.dataTransfer.files));}}>
    <FileUp aria-hidden="true" className="size-7 text-primary"/>
    <p id={hint} className="text-sm text-ink-2">{c.dropHint}</p>
-   <input ref={input} type="file" multiple accept=".csv" aria-label={c.chooseFiles} aria-describedby={hint} className="hidden" disabled={busy}
+   <input ref={input} type="file" multiple accept=".csv,.pdf,.xlsx,.xml,.sta,.mt940,.qif" aria-label={c.chooseFiles} aria-describedby={hint} className="hidden" disabled={busy}
     onChange={event=>{onFiles(Array.from(event.target.files??[]));event.target.value='';}}/>
    <Button type="button" disabled={busy} aria-describedby={hint} onClick={()=>input.current?.click()}>{c.chooseFiles}</Button>
-   <p className="text-caption text-ink-2">auto-taxis.csv · CSV</p>
+   <p className="text-caption text-ink-2">CSV · PDF · XLSX · CAMT.053 · MT940 · QIF</p>
   </div>
   <Button type="button" variant="outline" className="w-full" disabled={busy} onClick={onSample}>{c.useSample}</Button>
  </div>;
