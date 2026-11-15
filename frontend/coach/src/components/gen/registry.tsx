@@ -17,6 +17,7 @@ import {CategoryList} from "./category-list";
 import {HistoryResult,useHistorySnapshot} from "./history-result";
 import {transactionPage} from "@/engine/history";
 import {SafeToSpendCard} from "./safe-to-spend-card";
+import {PaydayPlanner} from "./payday-planner";
 import {WhatIfSlider} from "./what-if-slider";
 import {SpenderProfile} from "./spender-profile";
 import {BenchmarkBars} from "./benchmark-bars";
@@ -81,7 +82,7 @@ export const componentRegistry={
   showDonut:DonutAnswer,showSummary:SummaryTiles,
   showTicks:TicksAnswer,
   showBaskets:BasketCard,showCategories:CategoryList,showTransactions:TransactionsAnswer,
-  showSafeToSpend:SafeToSpendCard,showWhatIf:WhatIfAnswer,showProfile:SpenderProfile,
+  showSafeToSpend:SafeToSpendCard,showPayday:PaydayPlanner,showWhatIf:WhatIfAnswer,showProfile:SpenderProfile,
   showBenchmark:BenchmarkBars,showConcept:ConceptCard,showInfo:InfoBanner,
   showDetails:PeriodAnswer,showFilter:FilterAnswer,showStepper:GoalAnswer,
 };
@@ -93,5 +94,5 @@ export function GeneratedComponent({name,output,onAsk,onGoal,sentence}:{name:Too
   const Component=componentRegistry[name] as React.ComponentType<Record<string,unknown>>;
   const hideIntro=name==="showSafeToSpend" && propsSchemas.showSafeToSpend.parse(checked.data).purpose!=="save";
   const basis=name==="showSafeToSpend" ? monthPeriod(propsSchemas.showSafeToSpend.parse(checked.data).result.asOf) : "period" in checked.data ? checked.data.period as import("@/engine").Period : "result" in checked.data && typeof checked.data.result==="object" && checked.data.result!==null && "period" in checked.data.result ? checked.data.result.period as import("@/engine").Period : undefined;
-  return <>{!headlineLed.has(name) && !hideIntro && sentence}<Component {...checked.data} onAsk={onAsk} onGoal={onGoal} onClick={()=>onAsk?.(t("qSafe"))} {...(headlineLed.has(name) ? {sentence} : {})}/>{!["showTransactions","showDonut","showWhatIf","showDetails","showFilter","peerComparison"].includes(name) && <BasisChip period={basis}/>}</>;
+  return <>{!headlineLed.has(name) && !hideIntro && sentence}<Component {...checked.data} onAsk={onAsk} onGoal={onGoal} onClick={()=>onAsk?.(t("qSafe"))} {...(headlineLed.has(name) ? {sentence} : {})}/>{!["showTransactions","showDonut","showWhatIf","showDetails","showFilter","peerComparison","showPayday"].includes(name) && <BasisChip period={basis}/>}</>;
 }

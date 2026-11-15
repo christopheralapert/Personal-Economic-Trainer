@@ -13,6 +13,7 @@ export type FinancialIntent=
   | {status:"ready";tool:"showBenchmark";period:Period;category:string;generic?:true}
   | {status:"ready";tool:"peerComparison";period:Period;metric:import("@/engine/peer-comparison").PeerMetric}
   | {status:"ready";tool:"showSafeToSpend";purpose?:"spend"|"save"}
+  | {status:"ready";tool:"showPayday";purchase_minor?:number;delay_days?:number}
   | {status:"ready";tool:"showStepper"}
   | {status:"ready";tool:"showConcept";concept:"fund"|"safeConcept"|"savingConcept"|"cashflow"|"habit"|"basketConcept"|"regular"|"irregular"|"everyday"}
   | {status:"ready";tool:"showFilter";period:Period;value:"all"|"booked"|"reserved"|"reversed";scope:Scope}
@@ -28,7 +29,18 @@ export function requestForIntent(intent:Extract<FinancialIntent,{status:"ready"}
   if(intent.tool==="showConcept") input.concept=intent.concept;
   if(intent.tool==="showFilter") Object.assign(input,{value:intent.value},intent.scope);
   if(intent.tool==="showSafeToSpend" && intent.purpose!==undefined) input.purpose=intent.purpose;
+  if(intent.tool==="showPayday"){if(intent.purchase_minor!==undefined)input.purchase_minor=intent.purchase_minor;if(intent.delay_days!==undefined)input.delay_days=intent.delay_days;}
   return {name:intent.tool,input};
+}
+const euros=String.raw`(?:€\s?)?(\d{1,5}(?:[.,]\d{1,2})?)\s?(?:€|eur|euros?)?`;
+/** Until-payday questions: per-day room, a late salary (days) or a planned purchase (EUR). */
+export function paydayIntent(text:string):FinancialIntent|null {
+  if(/^(?:how much (?:can|could) i spend (?:per|a|each) day(?: until (?:my )?(?:next )?payday)?|how much (?:can|could) i spend until (?:my )?(?:next )?payday|(?:show )?(?:my )?(?:money )?until payday|when is (?:my )?(?:next )?payday)$/iu.test(text))return {status:"ready",tool:"showPayday"};
+  const late=text.match(/^what if (?:my )?(?:salary|pay|paycheck|payday) is (?:(\d{1,2}) days?|(a|one) week) late$/iu);
+  if(late){const days=late[2] ? 7 : Number(late[1]);return days>=1 && days<=14 ? {status:"ready",tool:"showPayday",delay_days:days} : null;}
+  const purchase=text.match(new RegExp(`^(?:can i afford (?:a |an )?${euros}(?: purchase| item)?|what if i (?:buy|spend) (?:something for )?${euros}(?: (?:today|now))?)$`,"iu"));
+  if(purchase){const value=(purchase[1]??purchase[2]).replace(",",".");const [whole,fraction=""]=value.split(".");const cents=Number(whole)*100+Number(fraction.padEnd(2,"0"));return cents>0 && cents<=10_000_000 ? {status:"ready",tool:"showPayday",purchase_minor:cents} : null;}
+  return null;
 }
 /** A generic "compare me" uses the richest comparison the selected records support:
  * same-age synthetic S-Pankki customers when a peer profile exists, otherwise the
@@ -42,7 +54,7 @@ export function adaptIntentToData(intent:FinancialIntent,data?:{peer_context?:{c
 const quoted='"(?:[^"\\\\]|\\\\["\\\\/bfnrt]|\\\\u[0-9a-fA-F]{4})*"';
 const relative=/^(.*?) (last month|previous month|this month|last week|this week|viime kuussa|tässä kuussa|viime viikolla|tällä viikolla|eelmisel kuul|sel kuul|eelmisel nädalal|sel nädalal)$/iu;
 const months=["january","february","march","april","may","june","july","august","september","october","november","december"];
-const presetKeys:Key[]=["qTaxi","qProfile","qSafe","qSave","qWhatif","qDonut","qCompare","qBaskets","qLearn"];
+const presetKeys:Key[]=["qTaxi","qProfile","qSafe","qSave","qWhatif","qDonut","qCompare","qBaskets","qLearn","qPayday","qPaydayLate","qPaydayPurchase"];
 function clean(value:string) {return value.trim().replace(/\?$/u,"").trim();}
 /** Move one explicit month phrase to the grammar's suffix; quoted labels stay literal. */
 function monthAtEnd(value:string):string {
@@ -106,6 +118,7 @@ export function interpretQuestion(question:string,selected?:Period,referenceDate
   let text=monthAtEnd(canonical(clean(question)));
   const guidance=text.match(/^what is safe for me to (spend|save)(?: this (?:week|month))?$/iu);
   if(guidance) return guidance[1].toLowerCase()==="save" ? {status:"ready",tool:"showSafeToSpend",purpose:"save"} : {status:"ready",tool:"showSafeToSpend"};
+  const payday=paydayIntent(text);if(payday) return payday;
   if(/^(?:explain (?:an? )?|what is an? )emergency fund$/iu.test(text)) return {status:"ready",tool:"showConcept",concept:"fund"};
   if(/^explain safe to spend$/iu.test(text)) return {status:"ready",tool:"showConcept",concept:"safeConcept"};
   if(/^set a savings goal$/iu.test(text)) return {status:"ready",tool:"showStepper"};

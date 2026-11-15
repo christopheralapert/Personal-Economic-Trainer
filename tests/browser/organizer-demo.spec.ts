@@ -52,3 +52,17 @@ test('compare me to others uses same-age synthetic S-Pankki peers for organizer 
  await expect(answer).toContainText('Synthetic Helsinki-region data');await expect(answer).not.toContainText('Taxis');
  expect(demoTraffic.privatePaths).toEqual([]);
 });
+test('until payday plan shows per-day room, a late salary and a planned purchase',async({page,demoTraffic})=>{
+ await page.goto('/demo?dataset=organizer1&tab=whatif');
+ const planner=page.locator('[data-payday-planner]');
+ await expect(planner).toContainText('206,44');await expect(planner).toContainText('15.10.2026');await expect(planner).toContainText('Home');
+ await planner.getByRole('radio',{name:'+7 days',exact:true}).click();
+ await expect(planner).toContainText('131,13');await expect(planner).toContainText('run out on 18.10.2026');
+ await page.getByRole('tab',{name:'Coach',exact:true}).click();
+ const input=page.getByRole('textbox',{name:'Your question',exact:true});await expect(input).toBeEditable();
+ await input.fill('Can I afford a 200 € purchase?');await page.getByRole('button',{name:'Send question',exact:true}).click();
+ const answer=page.locator('[data-message-role="assistant"]').last();
+ await expect(answer.locator('[data-payday-planner]')).toContainText('193,11');await expect(answer).toContainText('a day until payday on 15 October');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);
+ expect(demoTraffic.privatePaths).toEqual([]);
+});

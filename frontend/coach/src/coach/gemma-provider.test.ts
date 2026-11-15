@@ -6,7 +6,7 @@ import {CoachCancelledError} from './execution';
 const config:GemmaConfig={url:'http://127.0.0.1:11434',model:'gemma3:4b',timeoutMs:5000,replyLanguages:['en']};
 const show={details:{format:'gguf',family:'gemma3'},model_info:{'general.architecture':'gemma3'}};
 const chat=(content:unknown)=>({model:'gemma3:4b',done:true,done_reason:'stop',message:{role:'assistant',content:JSON.stringify(content)}});
-const slots=(value:Record<string,unknown>)=>({kind:'unclear',category:'none',period:'none',month:'none',percent:0,concept:'none',reply:'',...value});
+const slots=(value:Record<string,unknown>)=>({kind:'unclear',category:'none',period:'none',month:'none',percent:0,concept:'none',amount_eur:0,delay_days:0,reply:'',...value});
 /** Ollama stand-in: /api/show metadata, then queued /api/chat contents in order. */
 function ollama(replies:unknown[],info:unknown=show){
  const queue=[...replies];

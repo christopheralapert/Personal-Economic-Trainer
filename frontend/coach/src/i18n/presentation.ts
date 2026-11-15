@@ -14,6 +14,14 @@ export const presentationEn={
  landingBaskets:"Three baskets",landingBasketsNote:"Must-pay regular, must-pay surprises and everyday spending that slips away.",
  landingWhatIf:"What if",landingWhatIfNote:"See what a small change would save in a month and a year.",
  landingPrivate:"Private by default",landingPrivateNote:"Privacy mode uses no cloud AI. Every figure is calculated from your transactions, with the evidence one tap away.",
+ paydayTitle:"Until payday",paydayPerDay:"{amount} a day",paydayDays:"for {days} days, until payday on {date}",paydayUsual:"Your usual everyday spending: {amount} a day",
+ paydayRunsOut:"At your usual pace your balance would run out on {date}.",paydayTight:"That is less than you usually spend. Slowing down a little gets you to payday.",paydayOnTrack:"You can keep your usual pace until payday.",
+ paydayPurchase:"Planned purchase",paydayDelay:"Salary late",paydayOnTime:"On time",paydayLateDays:"+{days} days",paydayBalance:"Balance today",paydayBills:"Bills before payday",paydayBuffer:"Surprise buffer",paydayLeft:"Left until payday",paydayIncome:"Expected salary",
+ paydayNote:"An estimate from your recorded transactions: last month's regular bills repeat and you spend at your usual everyday pace. Not permission to spend.",
+ paydayActual:"Balance",paydayForecastLabel:"Forecast at usual pace",paydayToday:"Today",paydayPayday:"Payday",
+ paydayNoIncome:"No regular salary was found in recent months, so a payday plan is not available.",paydayNoBalance:"The latest balance is missing or out of date, so a payday plan is not available.",paydayNoBills:"No regular bills are expected before payday.",
+ paydayChart:"Balance over the last 30 days and forecast until payday",paydayAnswer:"About {amount} a day until payday on {date}.",
+ qPayday:"How much can I spend per day until payday?",qPaydayLate:"What if my salary is a week late?",qPaydayPurchase:"Can I afford a 200 € purchase?",
 };
 export const presentationFi:typeof presentationEn={
  modeGemma:"Vastaus yksityisesti Gemmalla tällä tietokoneella",
@@ -29,6 +37,14 @@ export const presentationFi:typeof presentationEn={
  landingBaskets:"Kolme koria",landingBasketsNote:"Pakolliset säännölliset, pakolliset yllätykset ja arjen kulut, jotka valuvat huomaamatta.",
  landingWhatIf:"Mitä jos",landingWhatIfNote:"Katso, mitä pieni muutos säästäisi kuukaudessa ja vuodessa.",
  landingPrivate:"Oletuksena yksityinen",landingPrivateNote:"Yksityisyystila ei käytä pilvitekoälyä. Jokainen luku lasketaan tapahtumistasi, ja todisteet ovat yhden napautuksen päässä.",
+ paydayTitle:"Palkkapäivään asti",paydayPerDay:"{amount} päivässä",paydayDays:"{days} päivän ajan, palkkapäivään {date} asti",paydayUsual:"Tavallinen arkikulutuksesi: {amount} päivässä",
+ paydayRunsOut:"Tavallisella tahdilla saldosi loppuisi {date}.",paydayTight:"Se on vähemmän kuin tavallisesti käytät. Pienellä hidastamisella pääset palkkapäivään.",paydayOnTrack:"Voit jatkaa tavallista tahtiasi palkkapäivään asti.",
+ paydayPurchase:"Suunniteltu ostos",paydayDelay:"Palkka myöhässä",paydayOnTime:"Ajallaan",paydayLateDays:"+{days} päivää",paydayBalance:"Saldo tänään",paydayBills:"Laskut ennen palkkapäivää",paydayBuffer:"Yllätysvara",paydayLeft:"Jäljellä palkkapäivään",paydayIncome:"Odotettu palkka",
+ paydayNote:"Arvio kirjatuista tapahtumistasi: viime kuun säännölliset laskut toistuvat ja kulutat tavallista arkitahtiasi. Ei lupa kuluttaa.",
+ paydayActual:"Saldo",paydayForecastLabel:"Ennuste tavallisella tahdilla",paydayToday:"Tänään",paydayPayday:"Palkkapäivä",
+ paydayNoIncome:"Viime kuukausilta ei löytynyt säännöllistä palkkaa, joten palkkapäiväsuunnitelmaa ei voi tehdä.",paydayNoBalance:"Viimeisin saldo puuttuu tai on vanhentunut, joten palkkapäiväsuunnitelmaa ei voi tehdä.",paydayNoBills:"Ennen palkkapäivää ei ole odotettavissa säännöllisiä laskuja.",
+ paydayChart:"Saldo viimeiseltä 30 päivältä ja ennuste palkkapäivään",paydayAnswer:"Noin {amount} päivässä palkkapäivään {date} asti.",
+ qPayday:"Paljonko voin käyttää päivässä palkkapäivään asti?",qPaydayLate:"Entä jos palkka myöhästyy viikon?",qPaydayPurchase:"Onko minulla varaa 200 euron ostokseen?",
 };
 export const presentationEt:typeof presentationEn={
  modeGemma:"Vastas privaatselt Gemma selles arvutis",
@@ -44,4 +60,12 @@ export const presentationEt:typeof presentationEn={
  landingBaskets:"Kolm korvi",landingBasketsNote:"Kohustuslikud korrapärased, kohustuslikud ootamatud ja igapäevased kulud, mis märkamatult kaovad.",
  landingWhatIf:"Mis siis, kui",landingWhatIfNote:"Vaata, kui palju väike muutus kuus ja aastas säästaks.",
  landingPrivate:"Vaikimisi privaatne",landingPrivateNote:"Privaatsusrežiim ei kasuta pilve-AI-d. Iga arv arvutatakse sinu tehingutest ja tõendid on ühe puudutuse kaugusel.",
+ paydayTitle:"Palgapäevani",paydayPerDay:"{amount} päevas",paydayDays:"{days} päeva jooksul, kuni palgapäevani {date}",paydayUsual:"Sinu tavaline igapäevakulu: {amount} päevas",
+ paydayRunsOut:"Tavalise tempoga saaks su saldo otsa {date}.",paydayTight:"See on vähem, kui tavaliselt kulutad. Kerge pidurdamisega jõuad palgapäevani.",paydayOnTrack:"Võid tavalise tempoga jätkata kuni palgapäevani.",
+ paydayPurchase:"Planeeritud ost",paydayDelay:"Palk hilineb",paydayOnTime:"Õigel ajal",paydayLateDays:"+{days} päeva",paydayBalance:"Saldo täna",paydayBills:"Arved enne palgapäeva",paydayBuffer:"Ootamatuste puhver",paydayLeft:"Alles palgapäevani",paydayIncome:"Oodatav palk",
+ paydayNote:"Hinnang sinu kirjendatud tehingute põhjal: eelmise kuu korrapärased arved korduvad ja kulutad tavalises igapäevatempos. Ei ole luba kulutada.",
+ paydayActual:"Saldo",paydayForecastLabel:"Prognoos tavalise tempoga",paydayToday:"Täna",paydayPayday:"Palgapäev",
+ paydayNoIncome:"Viimastest kuudest ei leitud korrapärast palka, seega palgapäeva plaani ei saa koostada.",paydayNoBalance:"Viimane saldo puudub või on aegunud, seega palgapäeva plaani ei saa koostada.",paydayNoBills:"Enne palgapäeva ei ole oodata korrapäraseid arveid.",
+ paydayChart:"Saldo viimase 30 päeva jooksul ja prognoos palgapäevani",paydayAnswer:"Umbes {amount} päevas kuni palgapäevani {date}.",
+ qPayday:"Kui palju võin päevas kulutada palgapäevani?",qPaydayLate:"Mis siis, kui palk hilineb nädala?",qPaydayPurchase:"Kas mul on raha 200-eurose ostu jaoks?",
 };

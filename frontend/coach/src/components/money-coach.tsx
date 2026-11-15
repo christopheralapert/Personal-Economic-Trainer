@@ -23,6 +23,8 @@ import {RuleProvider} from "@/coach/rule-provider";
 import {coachFetch,prepareCoachRequest} from "@/coach/transport";
 import type {SavingsGoal} from "@/lib/savings-goal";
 import {Simulator} from "./simulator";
+import {PaydayPlanner} from "./gen/payday-planner";
+import {paydayForecast} from "@/engine/payday";
 import {ViewScope} from "@/lib/view-state";
 import {displayedContext} from "@/coach/displayed-context";
 import {isFollowUpQuestion,type QuestionContext} from "@/coach/question-context";
@@ -152,7 +154,7 @@ export function MoneyCoach({embeddedDemo=false,onlineCoachEnabled=false}:{embedd
           <div ref={end} className="scroll-above-composer"/>
           <div className="above-navigation pb-safe fixed inset-x-0 z-30 mx-auto w-full max-w-app border-t border-line bg-surface px-4 py-3"><form className="flex flex-wrap items-center gap-2" onSubmit={event=>{event.preventDefault();void ask(input);}}><Input ref={bindQuestionInput} className="min-w-0 flex-1 basis-0" aria-label={t("questionLabel")} placeholder={t("questionLabel")} maxLength={2000} autoComplete="off" value={input} disabled={busy} onChange={e=>{window.dispatchEvent(new Event("money-coach-stop-listening"));setInput(e.target.value);}}/><VoiceInput disabled={busy} onText={text=>{setInput(text);focusDraft.current=true;questionInput.current?.focus({preventScroll:true});}} onSend={askFromEntry}/><Button type="submit" size="icon" aria-label={t("send")} disabled={busy || !input.trim()}><ArrowUp className="size-5"/></Button></form>{!privacy && onlineCoachEnabled && voiceProvider!=="gemini" && <p className="mt-1 text-caption text-ink-2">{t("geminiCoachNotice")}</p>}{!privacy && <p className="mt-1 text-caption text-ink-2">{t(voiceProvider==="gemini" ? onlineCoachEnabled ? "geminiCoachVoiceNotice" : "geminiVoiceNotice" : "speechOnline")}</p>}<p className="mt-2 text-caption text-ink-2">{t("disclaimer")}</p></div>
         </TabsContent>
-        <TabsContent value="whatif"><ViewScope store={visitViews} name="simulator"><Simulator goal={savedGoal}/></ViewScope></TabsContent>
+        <TabsContent value="whatif"><ViewScope store={visitViews} name="simulator"><Simulator goal={savedGoal}/></ViewScope><div className="mt-6"><PaydayTab/></div></TabsContent>
         <TabsContent value="learn"><PersonalizedLearn onAsk={askFromEntry}/></TabsContent>
         </>}
         <TabsList aria-label={t("app")} className="pb-safe bottom-keyboard fixed inset-x-0 z-40 mx-auto grid h-auto min-h-navigation w-full max-w-app grid-cols-4 rounded-none border-t border-line bg-surface px-2 py-1">{tabs.map(({key,Icon})=><TabsTrigger key={key} value={key} className="min-h-14 min-w-0 flex-col gap-1 whitespace-normal rounded-xl px-1 py-1 text-caption data-[state=active]:bg-brand-tint data-[state=active]:text-active-ink"><Icon className="size-6"/><span>{t(key)}</span></TabsTrigger>)}</TabsList>
@@ -185,3 +187,5 @@ function PreferencesScreen({onGoal,savedGoal,onPrivacyChange,legal}:{onGoal:()=>
     </SettingsGroup>
   </div>;
 }
+/** What-if tab: the until-payday plan from the selected records, recomputed when they change. */
+function PaydayTab(){const {data}=useMoneyData(),result=useMemo(()=>paydayForecast({data}),[data]);return <PaydayPlanner key={data.as_of+data.transactions.length} result={result}/>;}

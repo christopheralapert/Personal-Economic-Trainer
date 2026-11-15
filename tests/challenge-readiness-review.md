@@ -1,5 +1,13 @@
 # Challenge readiness — 15 November 2026
 
+## Until payday (What if tab and Coach)
+
+Branch `feature/until-payday-next`. Shows money left per day before the next detected salary. It reserves regular bills due before payday (last month's mandatory-regular rows, projected one month ahead) and a prorated surprise buffer. It adds a 30-day rebuilt balance history, a forecast at the usual everyday pace with bill markers and a hover tooltip, a planned-purchase slider and late-salary options (+3 or +7 days). Coach answers “How much can I spend per day until payday?”, “What if my salary is a week late?” and “Can I afford a 200 € purchase?” in EN/FI/ET. Gemini and Gemma receive the per-day amount and payday facts. Gemma also maps free phrasing (“Can I buy a 350 euro phone before payday?”) onto it.
+
+organizer1 (30 Sep 2026): salary day 15, payday 15 Oct, 15 days, rent €1,390.20 on 2 Oct, buffer €177.03, **€206.44 a day** against a usual €184.42. A €200 purchase gives €193.11. A 7-day late salary gives **€131.13 a day**, and at the usual pace the balance runs out on 18 Oct. Without a regular salary (starter) or with an out-of-date balance (organizer7), the plan says so instead of guessing.
+
+Checks: coach unit suite **277 passed** (6 new payday tests); typecheck and px lint clean. On a production build: demo **17/17** (new planner and purchase-question test), compact-copy **4/4**, challenge **20/20**. Redesign (104 passed) and demo-import (7/8) keep only the two known environment or pre-existing failures described below. Real-Gemma browser check: the free-phrased phone question was answered by `gemma-local` as “€183.11 per day until payday”. No horizontal overflow at 390 or 1280 px and no page errors.
+
 ## Presentation-ready pass: requirements gaps, UI and local Gemma
 
 Branch `integration/presentation-ready-next`, based on `6141cd7`. This pass closes the requirement gaps found against the official brief and adds local Gemma to Privacy mode.

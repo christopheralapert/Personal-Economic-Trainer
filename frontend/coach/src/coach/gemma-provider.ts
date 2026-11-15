@@ -39,7 +39,7 @@ export function gemmaConfig(env:Record<string,string|undefined>):GemmaConfig|nul
  }catch{return null;}
 }
 
-const kinds=['category_spend','transactions','where_money_went','baskets','spender_type','safe_to_spend','safe_to_save','what_if','compare','concept','reply','unclear'] as const;
+const kinds=['category_spend','transactions','where_money_went','baskets','spender_type','safe_to_spend','safe_to_save','payday','what_if','compare','concept','reply','unclear'] as const;
 const concepts=['none','fund','cashflow','habit','basketConcept','safeConcept','savingConcept'] as const;
 /** English phrases the deterministic parser accepts; checked against the alias table at use. */
 const categoryPhrase:Record<string,string>={taxi:'taxis',dining:'dining out',home_tech:'home and technology',investment:'investments'};
@@ -144,13 +144,13 @@ export class LocalGemmaProvider{
  /** Closed slots only. The canonical question is rebuilt here and parsed again by the rules. */
  private async interpret(question:string,language:string,reference:string,data:typeof demo,signal:AbortSignal):Promise<{kind:'reply';reply:string}|{kind:'question';question:string|null}>{
   const categories=[...new Set(data.transactions.filter(row=>row.economic_flow==='expense').map(row=>row.category))].filter(key=>categoryAliases[categoryPhrase[key]??key]===key).sort();
-  const schema={type:'object',additionalProperties:false,required:['kind','category','period','month','percent','concept','reply'],properties:{
+  const schema={type:'object',additionalProperties:false,required:['kind','category','period','month','percent','concept','amount_eur','delay_days','reply'],properties:{amount_eur:{type:'integer',minimum:0,maximum:100000},delay_days:{type:'integer',minimum:0,maximum:14},
    kind:{type:'string',enum:kinds},category:{type:'string',enum:['none',...categories]},period:{type:'string',enum:['last_month','this_month','named_month','none']},
    month:{type:'string',pattern:'^(none|20[0-9]{2}-(0[1-9]|1[0-2]))$'},percent:{type:'integer',minimum:0,maximum:100},concept:{type:'string',enum:concepts},reply:{type:'string',maxLength:600}}};
   const last=monthPeriod(reference,-1);
   const system=[
    'You route a bank customer\'s message for Money Coach, a personal finance coach. Return JSON only.',
-   'kind: category_spend = money spent on one category (set category and period); transactions = list transactions for a period; where_money_went = spending breakdown; baskets = the three spending baskets; spender_type = what kind of spender they are; safe_to_spend = how much is safe to spend now; safe_to_save = how much is safe to save; what_if = saving from cutting one category by a percentage (set category and percent); compare = compare with other people; concept = explain a money concept (set concept); reply = greeting, thanks or a general money question that does not need their records; unclear = anything else.',
+   'kind: category_spend = money spent on one category (set category and period); transactions = list transactions for a period; where_money_went = spending breakdown; baskets = the three spending baskets; spender_type = what kind of spender they are; safe_to_spend = how much is safe to spend this week; safe_to_save = how much is safe to save; payday = money per day until payday, affording a planned purchase (set amount_eur) or a late salary (set delay_days); what_if = saving from cutting one category by a percentage (set category and percent); compare = compare with other people; concept = explain a money concept (set concept); reply = greeting, thanks or a general money question that does not need their records; unclear = anything else.',
    `Concepts: fund = emergency fund, cashflow = cash flow, habit = small habit change, basketConcept = the three baskets, safeConcept = safe to spend, savingConcept = safe to save.`,
    `Categories: ${categories.join(', ')}. taxi = taxis or cabs; dining = restaurants, cafes or eating out; home_tech = home goods and electronics.`,
    `Today is ${reference}. last_month is ${monthName(last.start)}. For an explicitly named month use period named_month and month YYYY-MM; otherwise month none.`,
@@ -162,8 +162,10 @@ export class LocalGemmaProvider{
    '"Kui palju kulutasin eelmisel kuul meelelahutusele?" -> {"kind":"category_spend","category":"entertainment","period":"last_month",...}',
    '"Mihin rahani menivät?" -> {"kind":"where_money_went","period":"last_month",...}',
    '"Mikä on hätävara?" -> {"kind":"concept","concept":"fund",...}',
+   '"Can I buy a 350 euro phone before payday?" -> {"kind":"payday","amount_eur":350,"delay_days":0,...}',
+   '"Kui palju saan päevas kulutada, kui palk tuleb 5 päeva hiljem?" -> {"kind":"payday","amount_eur":0,"delay_days":5,...}',
    '"Thanks, that helps!" -> {"kind":"reply","reply":"You are welcome! Ask me about any category or month whenever you like.",...}'].join('\n');
-  const slots=z.object({kind:z.enum(kinds),category:z.string(),period:z.enum(['last_month','this_month','named_month','none']),month:z.string(),percent:z.number().int().min(0).max(100),concept:z.enum(concepts),reply:z.string().max(600)}).strict()
+  const slots=z.object({kind:z.enum(kinds),category:z.string(),period:z.enum(['last_month','this_month','named_month','none']),month:z.string(),percent:z.number().int().min(0).max(100),concept:z.enum(concepts),amount_eur:z.number().int().min(0).max(100000),delay_days:z.number().int().min(0).max(14),reply:z.string().max(600)}).strict()
    .parse(await this.chat(system,cleanConversationText(question),schema,160,signal));
   if(slots.kind==='reply')return {kind:'reply',reply:slots.reply};
   const category=slots.category!=='none' && categories.includes(slots.category) ? categoryPhrase[slots.category]??slots.category : null;
@@ -176,6 +178,7 @@ export class LocalGemmaProvider{
    where_money_went:named ? `Show transactions ${when}` : `Where did my money go ${when}?`,
    baskets:'Show my three baskets',spender_type:'What kind of spender am I?',
    safe_to_spend:'What is safe for me to spend this week?',safe_to_save:'What is safe for me to save?',
+   payday:slots.amount_eur>0 ? `Can I afford a ${slots.amount_eur} € purchase?` : slots.delay_days>0 ? `What if my salary is ${slots.delay_days} days late?` : 'How much can I spend per day until payday?',
    what_if:category && slots.percent>0 ? `How much could I save if I reduced ${category} by ${slots.percent}%?` : null,
    compare:'Compare me to others',concept,reply:null,unclear:null};
   return {kind:'question',question:canonical[slots.kind]};
@@ -186,6 +189,7 @@ export class LocalGemmaProvider{
   const system=[`You are Money Coach, a friendly personal finance coach. Write the reply in ${languageName[language]??'English'} as plain text, two or three short sentences, no Markdown.`,
    'Use ONLY verifiedFacts for anything about the user. Never calculate, round or invent numbers, transactions or categories.',
    facts.amount ? `You must include this exact amount text: ${facts.amount}.` : 'Do not write any amounts.',
+   'payday' in facts ? 'verifiedFacts.amount is the amount the user can spend PER DAY until payday, not a total. Say "a day" or "per day" with it.' : '',
    period ? `You must name the period exactly as: ${period}.` : '',
    'Records may be partial; say so briefly. Do not ask the user for information: the app already shows the details and evidence next to your reply.',
    'End with one practical next step the user can take in this app, such as opening the transactions, trying a What if reduction or checking the three baskets. Return JSON with text.'].filter(Boolean).join('\n');
